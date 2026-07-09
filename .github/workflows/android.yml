@@ -13,7 +13,7 @@ jobs:
     steps:
 
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
 
       - name: Install system dependencies
@@ -63,7 +63,7 @@ jobs:
 
 
       - name: Upload APK
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: spirit-island-debug-apk
           path: bin/*.apk
