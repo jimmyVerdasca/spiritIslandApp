@@ -4,10 +4,8 @@ on:
   workflow_dispatch:
 
 jobs:
-
   build:
-
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
 
     steps:
 
@@ -29,7 +27,6 @@ jobs:
             libtool \
             pkg-config \
             zlib1g-dev \
-            libncurses5 \
             libncurses5-dev \
             cmake
 
