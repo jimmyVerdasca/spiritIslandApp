@@ -1,0 +1,52 @@
+name: Build Android APK
+
+on:
+  workflow_dispatch:
+
+jobs:
+
+  build:
+
+    name: Build APK
+    runs-on: ubuntu-latest
+
+    steps:
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+
+      - name: Install system dependencies
+        run: |
+          sudo apt update
+          sudo apt install -y \
+            python3-pip \
+            python3-venv \
+            git \
+            zip \
+            unzip \
+            openjdk-17-jdk
+
+
+      - name: Install Buildozer
+        run: |
+          pip install --user buildozer
+
+
+      - name: Add buildozer to PATH
+        run: |
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
+
+
+      - name: Build APK
+        run: |
+          buildozer android debug
+
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+
+          name: spirit-island-debug-apk
+
+          path: bin/*.apk
