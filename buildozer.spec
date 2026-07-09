@@ -9,6 +9,7 @@ package.domain = org.spiritisland
 version = 0.1.0
 
 source.dir = .
+source.include_exts = py,png,jpg,kv,atlas,db
 
 requirements = python3,kivy,pillow
 
@@ -21,6 +22,8 @@ android.api = 35
 android.minapi = 26
 android.ndk = 27c
 android.archs = arm64-v8a
+
+
 
 
 [buildozer]
