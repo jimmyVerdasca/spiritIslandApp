@@ -7,7 +7,6 @@ jobs:
 
   build:
 
-    name: Build APK
     runs-on: ubuntu-latest
 
     steps:
@@ -25,7 +24,14 @@ jobs:
             git \
             zip \
             unzip \
-            openjdk-17-jdk
+            openjdk-17-jdk \
+            autoconf \
+            libtool \
+            pkg-config \
+            zlib1g-dev \
+            libncurses5 \
+            libncurses5-dev \
+            cmake
 
 
       - name: Install Buildozer
@@ -38,20 +44,15 @@ jobs:
           echo "$HOME/.local/bin" >> $GITHUB_PATH
 
 
-      - name: Accept Android licenses
-        run: |
-          yes | sdkmanager --licenses
-
-
       - name: Build APK
+        env:
+          ACCEPT_ANDROID_SDK_LICENSES: "yes"
         run: |
-          buildozer android debug
+          yes | buildozer android debug
 
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-
           name: spirit-island-debug-apk
-
           path: bin/*.apk
