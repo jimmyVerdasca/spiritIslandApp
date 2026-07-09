@@ -3,6 +3,7 @@ name: Build Android APK
 on:
   workflow_dispatch:
 
+
 jobs:
 
   build:
@@ -10,10 +11,34 @@ jobs:
     name: Build APK
     runs-on: ubuntu-22.04
 
+
     steps:
 
       - name: Checkout repository
         uses: actions/checkout@v5
+
+
+      # Cache Android SDK, NDK, Gradle, Buildozer downloads
+      - name: Cache Buildozer
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.buildozer
+            ~/.gradle
+          key: buildozer-${{ runner.os }}-${{ hashFiles('buildozer.spec') }}
+          restore-keys: |
+            buildozer-${{ runner.os }}-
+
+
+      # Cache Python packages
+      - name: Cache pip
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/pip
+          key: pip-${{ runner.os }}-${{ hashFiles('buildozer.spec') }}
+          restore-keys: |
+            pip-${{ runner.os }}-
 
 
       - name: Install system dependencies
@@ -48,11 +73,6 @@ jobs:
       - name: Add Buildozer to PATH
         run: |
           echo "$HOME/.local/bin" >> $GITHUB_PATH
-
-
-      - name: Clean previous Buildozer files
-        run: |
-          rm -rf .buildozer
 
 
       - name: Build APK
