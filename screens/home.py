@@ -4,6 +4,7 @@ from kivy.uix.label import Label
 from kivy.uix.button import Button
 
 from engine.generator import generate_game
+from engine.formatter import format_game
 
 
 class HomeScreen(Screen):
@@ -42,9 +43,6 @@ class HomeScreen(Screen):
 
     def generate(self, instance):
 
-        game = generate_game(
-            players=2,
-            max_difficulty=3
-        )
+        game = generate_game(        )
 
-        self.result.text = str(game)
+        self.result.text = format_game(game)
