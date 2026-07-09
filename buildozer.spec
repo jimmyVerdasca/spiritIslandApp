@@ -17,6 +17,11 @@ orientation = portrait
 fullscreen = 0
 
 
+android.api = 35
+android.minapi = 23
+android.ndk = 27c
+
+
 [buildozer]
 
 log_level = 2

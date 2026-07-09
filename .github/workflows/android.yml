@@ -38,6 +38,11 @@ jobs:
           echo "$HOME/.local/bin" >> $GITHUB_PATH
 
 
+      - name: Accept Android licenses
+        run: |
+          yes | sdkmanager --licenses
+
+
       - name: Build APK
         run: |
           buildozer android debug
