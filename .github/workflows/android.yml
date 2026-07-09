@@ -39,7 +39,10 @@ jobs:
       - name: Add buildozer to PATH
         run: |
           echo "$HOME/.local/bin" >> $GITHUB_PATH
-
+          
+      - name: Clean previous build
+        run: |
+          buildozer android clean
 
       - name: Build APK
         env:

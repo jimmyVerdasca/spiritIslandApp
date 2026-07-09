@@ -18,7 +18,7 @@ fullscreen = 0
 
 
 android.api = 35
-android.minapi = 23
+android.minapi = 26
 android.ndk = 27c
 
 
