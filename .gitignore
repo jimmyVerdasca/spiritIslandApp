@@ -1,34 +1,137 @@
+# ============================================================
+# Python
+# ============================================================
+
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments
+venv/
+env/
+.venv/
+
+# Python package/build files
+build/
+dist/
+*.egg-info/
+.eggs/
+
+
+# ============================================================
+# SQLite / Databases
+# ============================================================
+
+# Local databases
+*.db
+*.sqlite
+*.sqlite3
+
+# Allow committing an empty/template database if desired
+!database_template.db
+
+
+# ============================================================
+# Kivy
+# ============================================================
+
+.kivy/
+
+
+# ============================================================
+# Buildozer / Android build
+# ============================================================
+
+.buildozer/
+bin/
+
+# APK / AAB outputs
+*.apk
+*.aab
+
 # Gradle files
 .gradle/
+
+# Gradle build outputs
 build/
 
-# Local configuration file (sdk path, etc)
+# Local Android configuration
 local.properties
 
-# Log/OS Files
-*.log
-
-# Android Studio generated files and folders
+# Android Studio / Gradle generated files
 captures/
 .externalNativeBuild/
 .cxx/
-*.aab
-*.apk
 output-metadata.json
 
-# IntelliJ
-*.iml
+
+# ============================================================
+# Android Studio / IntelliJ
+# ============================================================
+
 .idea/
+*.iml
+
 misc.xml
 deploymentTargetDropDown.xml
 render.experimental.xml
 
-# Keystore files
+
+# ============================================================
+# Android signing keys
+# ============================================================
+
 *.jks
 *.keystore
 
-# Google Services (e.g. APIs or Firebase)
+
+# ============================================================
+# Google services
+# ============================================================
+
 google-services.json
 
-# Android Profiling
+
+# ============================================================
+# Android profiling
+# ============================================================
+
 *.hprof
+
+
+# ============================================================
+# IDE
+# ============================================================
+
+.vscode/
+*.code-workspace
+
+
+# ============================================================
+# Operating system
+# ============================================================
+
+# Windows
+Thumbs.db
+Desktop.ini
+
+# macOS
+.DS_Store
+
+
+# ============================================================
+# Logs and temporary files
+# ============================================================
+
+*.log
+*.tmp
+*.bak
+
+
+# ============================================================
+# Project generated files
+# ============================================================
+
+generated/
+exports/
+screenshots/
