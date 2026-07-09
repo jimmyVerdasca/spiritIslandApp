@@ -4,7 +4,10 @@ on:
   workflow_dispatch:
 
 jobs:
+
   build:
+
+    name: Build APK
     runs-on: ubuntu-22.04
 
     steps:
@@ -27,7 +30,7 @@ jobs:
             libtool \
             pkg-config \
             zlib1g-dev \
-            libncurses5-dev \
+            libncurses-dev \
             cmake
 
 
@@ -36,13 +39,15 @@ jobs:
           pip install --user buildozer
 
 
-      - name: Add buildozer to PATH
+      - name: Add Buildozer to PATH
         run: |
           echo "$HOME/.local/bin" >> $GITHUB_PATH
-          
-      - name: Clean previous build
+
+
+      - name: Clean previous Buildozer files
         run: |
-          buildozer android clean
+          rm -rf .buildozer
+
 
       - name: Build APK
         env:
