@@ -2,15 +2,19 @@ name: Build Android APK
 
 on:
   workflow_dispatch:
+    inputs:
+      clean_build:
+        description: "Remove Buildozer cache before building"
+        required: false
+        default: false
+        type: boolean
 
 
 jobs:
 
   build:
 
-    name: Build APK
     runs-on: ubuntu-22.04
-
 
     steps:
 
@@ -18,27 +22,11 @@ jobs:
         uses: actions/checkout@v5
 
 
-      # Cache Android SDK, NDK, Gradle, Buildozer downloads
-      - name: Cache Buildozer
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.buildozer
-            ~/.gradle
-          key: buildozer-${{ runner.os }}-${{ hashFiles('buildozer.spec') }}
-          restore-keys: |
-            buildozer-${{ runner.os }}-
-
-
-      # Cache Python packages
-      - name: Cache pip
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.cache/pip
-          key: pip-${{ runner.os }}-${{ hashFiles('buildozer.spec') }}
-          restore-keys: |
-            pip-${{ runner.os }}-
+      - name: Clean Buildozer cache
+        if: ${{ inputs.clean_build }}
+        run: |
+          rm -rf .buildozer
+          rm -rf bin
 
 
       - name: Install system dependencies
@@ -59,6 +47,11 @@ jobs:
             cmake
 
 
+      - name: Create database
+        run: |
+          python database/init_db.py
+
+
       - name: Set Java 17
         run: |
           echo "JAVA_HOME=$JAVA_HOME_17_X64" >> $GITHUB_ENV
@@ -76,8 +69,6 @@ jobs:
 
 
       - name: Build APK
-        env:
-          ACCEPT_ANDROID_SDK_LICENSES: "yes"
         run: |
           yes | buildozer android debug
 
