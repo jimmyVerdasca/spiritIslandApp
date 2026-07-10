@@ -20,13 +20,27 @@ jobs:
 
       - name: Checkout repository
         uses: actions/checkout@v5
-
-
+      
       - name: Clean Buildozer cache
         if: ${{ inputs.clean_build }}
         run: |
           rm -rf .buildozer
+          rm -rf ~/.buildozer
+          rm -rf ~/.gradle
+          rm -rf ~/.cache/pip
           rm -rf bin
+
+      - name: Cache Buildozer
+        uses: actions/cache@v4
+        with:
+          path: |
+            .buildozer
+            ~/.buildozer
+            ~/.gradle
+            ~/.cache/pip
+          key: buildozer-${{ runner.os }}-${{ hashFiles('buildozer.spec', 'requirements.txt') }}
+          restore-keys: |
+            buildozer-${{ runner.os }}-
 
 
       - name: Install system dependencies
