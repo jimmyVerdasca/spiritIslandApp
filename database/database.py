@@ -2,14 +2,15 @@ from pathlib import Path
 import shutil
 import sqlite3
 
-from kivy.resources import resource_find
-from kivy.app import App
 from contextlib import contextmanager
 
+from kivy.app import App
 
-DB_NAME = "spirit_island.db"
-
-DATABASE_VERSION = 1
+from database.config import (
+    DB_NAME,
+    DATABASE_VERSION,
+    DB_PATH
+)
 
 
 def get_database_path():
@@ -85,13 +86,9 @@ def needs_database_update(target):
         return True
 
 
-
 def install_database(target):
-
-    source = resource_find(
-        "database/" + DB_NAME
-    )
-
+    
+    source = DB_PATH
 
     if source is None:
 

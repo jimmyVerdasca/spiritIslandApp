@@ -1,16 +1,12 @@
 import sqlite3
 
-from pathlib import Path
-
-from database.database import (
+from database.config import (
     DATABASE_VERSION,
     DB_NAME,
+    DB_PATH
 )
 
-DB_PATH = (
-    Path(__file__).parent /
-    DB_NAME
-)
+
 
 # DATA inital of the DB
 spirits = [
