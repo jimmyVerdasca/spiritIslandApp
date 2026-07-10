@@ -49,7 +49,7 @@ jobs:
 
       - name: Create database
         run: |
-          python tools/init_db.py
+          python -m database.init_db
 
 
       - name: Set Java 17

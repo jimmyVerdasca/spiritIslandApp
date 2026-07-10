@@ -124,6 +124,7 @@ def create_database():
     DROP TABLE IF EXISTS scenarios;
     DROP TABLE IF EXISTS difficulties;
     DROP TABLE IF EXISTS boards;
+    DROP TABLE IF EXISTS database_info;
 
     CREATE TABLE database_info(
         version INTEGER NOT NULL
