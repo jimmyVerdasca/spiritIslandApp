@@ -1,4 +1,3 @@
-from database.database import get_connection
 import random
 
 def get_all(cursor):
