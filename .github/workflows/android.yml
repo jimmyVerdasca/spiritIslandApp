@@ -77,9 +77,13 @@ jobs:
 
       - name: Install Android SDK packages
         run: |
+          mkdir -p ~/.android
+          touch ~/.android/repositories.cfg
+
           yes | $ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager --licenses || true
 
           $ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager \
+            --sdk_root=$ANDROID_SDK_ROOT \
             "platform-tools" \
             "platforms;android-35" \
             "build-tools;35.0.0"
@@ -118,6 +122,11 @@ jobs:
           if [ -f "$HOME/.buildozer/android/platform/android-sdk/tools/bin/sdkmanager" ]; then
             yes | $HOME/.buildozer/android/platform/android-sdk/tools/bin/sdkmanager --licenses || true
           fi
+      
+      - name: Configure Buildozer Android tools
+        run: |
+          mkdir -p ~/.buildozer/android/platform
+          echo "build_tools_version = 35.0.0"
 
 
       - name: Build APK
