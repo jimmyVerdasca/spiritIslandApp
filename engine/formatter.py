@@ -15,9 +15,9 @@ def format_game(game):
     text.append("")
     text.append("Spirits:")
 
-    for spirit in game["spirits"]:
+    for (spirit, board) in zip(game["spirits"], game["boards"]):
         text.append(
-            f"- {spirit['name']}"
+            f"- {spirit['name']} ({board['name']})"
         )
         
     text.append("")
