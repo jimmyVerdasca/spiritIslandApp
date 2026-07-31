@@ -25,16 +25,10 @@ jobs:
           rm -rf ~/.buildozer
           rm -rf ~/.gradle
 
-      - name: Locate sdkmanager
-        run: |
-          find / -name sdkmanager 2>/dev/null || true
-          
-      - name: Accept Android SDK licenses
-        run: |
-          yes | sdkmanager --licenses
-
       - name: Build APK
-        id: build
+        id: buildenv:
+        env:
+          ACCEPT_ANDROID_SDK_LICENSES: "y"
         run: |
           buildozer android debug
 
