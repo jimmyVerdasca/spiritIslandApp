@@ -6,7 +6,8 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-
+    container:
+      image: ghcr.io/kivy/buildozer:latest
     steps:
       - uses: actions/checkout@v5
 
@@ -19,7 +20,6 @@ jobs:
 
       - name: Build APK
         id: build
-        uses: ArtemSBulgakov/buildozer-action@v1
         with:
           command: buildozer android debug
 
