@@ -24,6 +24,10 @@ jobs:
           rm -rf .buildozer
           rm -rf ~/.buildozer
           rm -rf ~/.gradle
+          
+      - name: Accept Android SDK licenses
+        run: |
+          yes | sdkmanager --licenses
 
       - name: Build APK
         id: build
