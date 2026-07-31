@@ -9,15 +9,11 @@ on:
         default: false
         type: boolean
 
-
 jobs:
-
   build:
-
     runs-on: ubuntu-22.04
 
     steps:
-
       - name: Checkout repository
         uses: actions/checkout@v5
 
@@ -25,7 +21,7 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: "3.10"
-      
+
       - name: Clean Buildozer cache
         if: ${{ inputs.clean_build }}
         run: |
@@ -47,17 +43,16 @@ jobs:
           restore-keys: |
             buildozer-${{ runner.os }}-py310-
 
-
       - name: Install system dependencies
         run: |
-          sudo apt update
-          sudo apt install -y \
-            python3-pip \
-            python3-venv \
+          sudo apt-get update
+          sudo apt-get install -y \
             git \
             zip \
             unzip \
             openjdk-17-jdk \
+            python3-pip \
+            python3-venv \
             autoconf \
             libtool \
             pkg-config \
@@ -65,17 +60,23 @@ jobs:
             libncurses-dev \
             cmake
 
-
-      - name: Create database
-        run: |
-          python -m database.init_db
-
-
       - name: Set Java 17
         run: |
           echo "JAVA_HOME=$JAVA_HOME_17_X64" >> $GITHUB_ENV
           echo "$JAVA_HOME_17_X64/bin" >> $GITHUB_PATH
 
+      - name: Install Android SDK command-line tools
+        run: |
+          yes | $ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager --licenses
+
+          $ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager \
+            "platform-tools" \
+            "platforms;android-35" \
+            "build-tools;36.0.0"
+
+      - name: Create database
+        run: |
+          python -m database.init_db
 
       - name: Install Buildozer
         run: |
@@ -84,21 +85,27 @@ jobs:
             buildozer==1.5.0 \
             cython==0.29.36
 
-
       - name: Add Buildozer to PATH
         run: |
           echo "$HOME/.local/bin" >> $GITHUB_PATH
 
-
       - name: Build APK
         run: |
           for i in 1 2 3; do
-            buildozer -v android debug && break || sleep 30
+            buildozer -v android debug && break
+            echo "Build failed, retrying in 30 seconds..."
+            sleep 30
           done
 
+      - name: List APKs
+        run: |
+          find . -name "*.apk"
 
       - name: Upload APK
         uses: actions/upload-artifact@v5
         with:
           name: spirit-island-debug-apk
-          path: bin/*.apk
+          path: |
+            bin/*.apk
+            ./.buildozer/**/*.apk
+          if-no-files-found: error
