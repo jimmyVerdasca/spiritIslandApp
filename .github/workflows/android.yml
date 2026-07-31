@@ -15,8 +15,6 @@ jobs:
 
     env:
       ANDROID_SDK_ROOT: /usr/local/lib/android/sdk
-      ANDROIDSDK: /usr/local/lib/android/sdk
-      ANDROID_HOME: /usr/local/lib/android/sdk
       ANDROIDAPI: 35
       ANDROIDMINAPI: 26
 
@@ -50,9 +48,9 @@ jobs:
             ~/.buildozer
             ~/.gradle
             ~/.cache/pip
-          key: buildozer-old-v2-${{ runner.os }}-py310-${{ hashFiles('buildozer.spec', 'requirements.txt') }}
+          key: buildozer-api35-${{ runner.os }}-py310-${{ hashFiles('buildozer.spec', 'requirements.txt') }}
           restore-keys: |
-            buildozer-old-v2-${{ runner.os }}-py310-
+            buildozer-api35-${{ runner.os }}-py310-
 
 
       - name: Install system dependencies
@@ -79,50 +77,48 @@ jobs:
           echo "$JAVA_HOME_17_X64/bin" >> $GITHUB_PATH
 
 
-      - name: Install Android SDK packages
+      - name: Install Android SDK for Buildozer
         run: |
           mkdir -p ~/.android
           touch ~/.android/repositories.cfg
 
+          SDK="$HOME/.buildozer/android/platform/android-sdk"
+
+          mkdir -p "$SDK"
+
           SDKMANAGER="$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager"
 
-          yes | $SDKMANAGER --sdk_root=$ANDROID_SDK_ROOT --licenses || true
+          yes | $SDKMANAGER \
+            --sdk_root="$SDK" \
+            --licenses || true
 
           $SDKMANAGER \
-            --sdk_root=$ANDROID_SDK_ROOT \
+            --sdk_root="$SDK" \
             "platform-tools" \
             "platforms;android-35" \
             "build-tools;35.0.0"
 
-      - name: Export Android SDK tools
-        run: |
-          echo "$ANDROID_SDK_ROOT/cmdline-tools/latest/bin" >> $GITHUB_PATH
-          echo "$ANDROID_SDK_ROOT/platform-tools" >> $GITHUB_PATH
+          echo "SDK installed:"
+          ls "$SDK"
+          ls "$SDK/build-tools"
 
-      - name: Verify SDK
+
+      - name: Verify Android SDK
         run: |
-          echo "ANDROID_SDK_ROOT=$ANDROID_SDK_ROOT"
-          ls $ANDROID_SDK_ROOT
-          ls $ANDROID_SDK_ROOT/build-tools
+          echo "Buildozer SDK:"
+          ls ~/.buildozer/android/platform/android-sdk
+          ls ~/.buildozer/android/platform/android-sdk/build-tools
 
 
       - name: Create database
         run: |
           python -m database.init_db
 
-      - name: Configure Buildozer SDK paths
-        run: |
-          mkdir -p ~/.buildozer/android/platform
-
-          ln -s $ANDROID_SDK_ROOT ~/.buildozer/android/platform/android-sdk
-
-          echo "Buildozer SDK:"
-          ls -la ~/.buildozer/android/platform/
-
 
       - name: Install Buildozer
         run: |
           python -m pip install --upgrade "pip<25" setuptools wheel
+
           python -m pip install --user \
             buildozer==1.5.0 \
             cython==0.29.36
@@ -132,29 +128,21 @@ jobs:
         run: |
           echo "$HOME/.local/bin" >> $GITHUB_PATH
 
-      
-      - name: Configure Buildozer Android tools
-        run: |
-          mkdir -p ~/.buildozer/android/platform
-          echo "build_tools_version = 35.0.0"
 
       - name: Configure Buildozer environment
         run: |
-          echo "ANDROIDSDK=$ANDROID_SDK_ROOT" >> $GITHUB_ENV
-          echo "ANDROID_HOME=$ANDROID_SDK_ROOT" >> $GITHUB_ENV
+          echo "ANDROIDSDK=$HOME/.buildozer/android/platform/android-sdk" >> $GITHUB_ENV
+          echo "ANDROID_HOME=$HOME/.buildozer/android/platform/android-sdk" >> $GITHUB_ENV
           echo "ANDROIDAPI=35" >> $GITHUB_ENV
           echo "ANDROIDMINAPI=26" >> $GITHUB_ENV
+
 
       - name: Build APK
         env:
           ANDROIDSDK: ${{ env.ANDROID_SDK_ROOT }}
           ANDROID_HOME: ${{ env.ANDROID_SDK_ROOT }}
         run: |
-          for i in 1 2 3; do
-            buildozer -v android debug && break
-            echo "Build failed, retrying in 30 seconds..."
-            sleep 30
-          done
+          buildozer -v android debug
 
 
       - name: List APKs
