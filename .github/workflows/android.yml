@@ -13,6 +13,9 @@ jobs:
   build:
     runs-on: ubuntu-22.04
 
+    env:
+      ANDROID_SDK_ROOT: /usr/local/lib/android/sdk
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v5
@@ -65,7 +68,7 @@ jobs:
           echo "JAVA_HOME=$JAVA_HOME_17_X64" >> $GITHUB_ENV
           echo "$JAVA_HOME_17_X64/bin" >> $GITHUB_PATH
 
-      - name: Install Android SDK command-line tools
+      - name: Install Android SDK packages
         run: |
           yes | $ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager --licenses
 
@@ -73,6 +76,12 @@ jobs:
             "platform-tools" \
             "platforms;android-35" \
             "build-tools;36.0.0"
+
+      - name: Verify SDK
+        run: |
+          echo "ANDROID_SDK_ROOT=$ANDROID_SDK_ROOT"
+          ls $ANDROID_SDK_ROOT
+          ls $ANDROID_SDK_ROOT/build-tools
 
       - name: Create database
         run: |
@@ -90,6 +99,9 @@ jobs:
           echo "$HOME/.local/bin" >> $GITHUB_PATH
 
       - name: Build APK
+        env:
+          ANDROIDSDK: ${{ env.ANDROID_SDK_ROOT }}
+          ANDROID_HOME: ${{ env.ANDROID_SDK_ROOT }}
         run: |
           for i in 1 2 3; do
             buildozer -v android debug && break
