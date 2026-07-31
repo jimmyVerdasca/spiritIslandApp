@@ -27,6 +27,8 @@ jobs:
 
       - name: Build APK
         id: build
+        env:
+          BUILDOZER_ALLOW_ROOT: 1
         run: |
           buildozer android debug
 
