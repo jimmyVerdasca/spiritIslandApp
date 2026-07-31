@@ -26,7 +26,7 @@ jobs:
           rm -rf ~/.gradle
 
       - name: Build APK
-        id: buildenv:
+        id: build
         env:
           ACCEPT_ANDROID_SDK_LICENSES: "y"
         run: |
