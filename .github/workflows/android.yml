@@ -2,12 +2,19 @@ name: Build Android APK
 
 on:
   workflow_dispatch:
+    inputs:
+      clean_build:
+        description: "Clean Buildozer cache"
+        required: false
+        type: boolean
+        default: false
 
 jobs:
   build:
     runs-on: ubuntu-latest
     container:
       image: ghcr.io/kivy/buildozer:latest
+
     steps:
       - uses: actions/checkout@v5
 
@@ -20,10 +27,11 @@ jobs:
 
       - name: Build APK
         id: build
-        with:
-          command: buildozer android debug
+        run: |
+          buildozer android debug
 
-      - uses: actions/upload-artifact@v5
+      - name: Upload APK
+        uses: actions/upload-artifact@v5
         with:
           name: spirit-island-debug-apk
-          path: ${{ steps.build.outputs.filename }}
+          path: bin/*.apk
