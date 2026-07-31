@@ -2,55 +2,60 @@ name: Build Android APK
 
 on:
   workflow_dispatch:
-
+    inputs:
+      clean_build:
+        description: "Remove Buildozer cache before building"
+        required: false
+        default: false
+        type: boolean
 
 jobs:
-
   build:
-
-    name: Build APK
     runs-on: ubuntu-22.04
 
+    env:
+      ANDROID_SDK_ROOT: /usr/local/lib/android/sdk
 
     steps:
-
       - name: Checkout repository
         uses: actions/checkout@v5
 
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
 
-      # Cache Android SDK, NDK, Gradle, Buildozer downloads
+      - name: Clean Buildozer cache
+        if: ${{ inputs.clean_build }}
+        run: |
+          rm -rf .buildozer
+          rm -rf ~/.buildozer
+          rm -rf ~/.gradle
+          rm -rf ~/.cache/pip
+          rm -rf bin
+
       - name: Cache Buildozer
         uses: actions/cache@v4
         with:
           path: |
+            .buildozer
             ~/.buildozer
             ~/.gradle
-          key: buildozer-${{ runner.os }}-${{ hashFiles('buildozer.spec') }}
-          restore-keys: |
-            buildozer-${{ runner.os }}-
-
-
-      # Cache Python packages
-      - name: Cache pip
-        uses: actions/cache@v4
-        with:
-          path: |
             ~/.cache/pip
-          key: pip-${{ runner.os }}-${{ hashFiles('buildozer.spec') }}
+          key: buildozer-${{ runner.os }}-py310-${{ hashFiles('buildozer.spec', 'requirements.txt') }}
           restore-keys: |
-            pip-${{ runner.os }}-
-
+            buildozer-${{ runner.os }}-py310-
 
       - name: Install system dependencies
         run: |
-          sudo apt update
-          sudo apt install -y \
-            python3-pip \
-            python3-venv \
+          sudo apt-get update
+          sudo apt-get install -y \
             git \
             zip \
             unzip \
             openjdk-17-jdk \
+            python3-pip \
+            python3-venv \
             autoconf \
             libtool \
             pkg-config \
@@ -58,36 +63,61 @@ jobs:
             libncurses-dev \
             cmake
 
-
       - name: Set Java 17
         run: |
           echo "JAVA_HOME=$JAVA_HOME_17_X64" >> $GITHUB_ENV
           echo "$JAVA_HOME_17_X64/bin" >> $GITHUB_PATH
 
+      - name: Install Android SDK packages
+        run: |
+          yes | $ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager --licenses
+
+          $ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager \
+            "platform-tools" \
+            "platforms;android-35" \
+            "build-tools;36.0.0"
+
+      - name: Verify SDK
+        run: |
+          echo "ANDROID_SDK_ROOT=$ANDROID_SDK_ROOT"
+          ls $ANDROID_SDK_ROOT
+          ls $ANDROID_SDK_ROOT/build-tools
+
+      - name: Create database
+        run: |
+          python -m database.init_db
 
       - name: Install Buildozer
         run: |
-          pip install --user buildozer
-
+          python -m pip install --upgrade pip setuptools wheel
+          python -m pip install --user \
+            buildozer==1.5.0 \
+            cython==0.29.36
 
       - name: Add Buildozer to PATH
         run: |
           echo "$HOME/.local/bin" >> $GITHUB_PATH
 
-
-
-
-
-
-
       - name: Build APK
         env:
-          ACCEPT_ANDROID_SDK_LICENSES: "yes"
+          ANDROIDSDK: ${{ env.ANDROID_SDK_ROOT }}
+          ANDROID_HOME: ${{ env.ANDROID_SDK_ROOT }}
         run: |
-          yes | buildozer android debug
+          for i in 1 2 3; do
+            buildozer -v android debug && break
+            echo "Build failed, retrying in 30 seconds..."
+            sleep 30
+          done
 
+      - name: List APKs
+        run: |
+          find . -name "*.apk"
 
       - name: Upload APK
         uses: actions/upload-artifact@v5
         with:
           name: spirit-island-debug-apk
+          path: |
+            bin/*.apk
+            ./.buildozer/**/*.apk
+          if-no-files-found: error
