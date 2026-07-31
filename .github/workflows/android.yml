@@ -17,6 +17,8 @@ jobs:
       ANDROID_SDK_ROOT: /usr/local/lib/android/sdk
       ANDROIDSDK: /usr/local/lib/android/sdk
       ANDROID_HOME: /usr/local/lib/android/sdk
+      ANDROIDAPI: 35
+      ANDROIDMINAPI: 26
 
     steps:
 
@@ -84,16 +86,13 @@ jobs:
 
           SDKMANAGER="$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager"
 
-          yes | $SDKMANAGER --licenses || true
+          yes | $SDKMANAGER --sdk_root=$ANDROID_SDK_ROOT --licenses || true
 
           $SDKMANAGER \
             --sdk_root=$ANDROID_SDK_ROOT \
             "platform-tools" \
             "platforms;android-35" \
             "build-tools;35.0.0"
-
-          echo "Installed build tools:"
-          ls $ANDROID_SDK_ROOT/build-tools
 
       - name: Export Android SDK tools
         run: |
@@ -111,14 +110,22 @@ jobs:
         run: |
           python -m database.init_db
 
+      - name: Configure Buildozer SDK paths
+        run: |
+          mkdir -p ~/.buildozer/android/platform
+
+          ln -s $ANDROID_SDK_ROOT ~/.buildozer/android/platform/android-sdk
+
+          echo "Buildozer SDK:"
+          ls -la ~/.buildozer/android/platform/
+
 
       - name: Install Buildozer
         run: |
           python -m pip install --upgrade "pip<25" setuptools wheel
           python -m pip install --user \
             buildozer==1.5.0 \
-            cython==0.29.36 \
-            python-for-android==2024.01.21
+            cython==0.29.36
 
 
       - name: Add Buildozer to PATH
@@ -138,17 +145,12 @@ jobs:
           echo "ANDROIDAPI=35" >> $GITHUB_ENV
           echo "ANDROIDMINAPI=26" >> $GITHUB_ENV
 
-      - name: Reset Buildozer Android SDK
-        run: |
-          rm -rf ~/.buildozer/android/platform/android-sdk
-          
       - name: Build APK
         env:
           ANDROIDSDK: ${{ env.ANDROID_SDK_ROOT }}
           ANDROID_HOME: ${{ env.ANDROID_SDK_ROOT }}
         run: |
           for i in 1 2 3; do
-            rm -rf ~/.buildozer/android/platform/android-sdk
             buildozer -v android debug && break
             echo "Build failed, retrying in 30 seconds..."
             sleep 30
