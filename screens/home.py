@@ -1,48 +1,67 @@
 from kivy.uix.screenmanager import Screen
-from kivy.uix.boxlayout import BoxLayout
-from kivy.uix.label import Label
-from kivy.uix.button import Button
 
-from engine.generator import generate_game
-from engine.formatter import format_game
+from kivymd.uix.boxlayout import MDBoxLayout
+from kivymd.uix.button import MDRaisedButton
+from kivymd.uix.card import MDCard
+from kivymd.uix.label import MDLabel
 
 
 class HomeScreen(Screen):
 
     def __init__(self, **kwargs):
+
         super().__init__(**kwargs)
 
-        layout = BoxLayout(
-            orientation="vertical"
+        layout = MDBoxLayout(
+            orientation="vertical",
+            spacing="20dp",
+            padding="20dp"
         )
 
-        self.result = Label(
-            text="Spirit Island Companion"
+        title = MDLabel(
+            text="Spirit Island Companion",
+            halign="center",
+            font_style="H4",
+            size_hint_y=None,
+            height="60dp"
         )
 
-        button = Button(
-            text="Generate Game"
-        )
+        layout.add_widget(title)
 
-        button.bind(
-            on_press=self.generate
-        )
+        menu = [
+            ("Current Games", "current"),
+            ("New Challenge", "new"),
+            ("Trophies", "trophies"),
+            ("History", "history")
+        ]
 
-        layout.add_widget(
-            self.result
-        )
+        for text, screen in menu:
 
-        layout.add_widget(
-            button
-        )
+            card = MDCard(
+                size_hint_y=None,
+                height="70dp",
+                padding="10dp",
+                radius=[20]
+            )
 
-        self.add_widget(
-            layout
-        )
+            button = MDRaisedButton(
+                text=text,
+                size_hint=(1, None),
+                height="50dp"
+            )
+
+            button.bind(
+                on_release=lambda instance, s=screen:
+                self.change_screen(s)
+            )
+
+            card.add_widget(button)
+
+            layout.add_widget(card)
+
+        self.add_widget(layout)
 
 
-    def generate(self, instance):
-
-        game = generate_game(        )
-
-        self.result.text = format_game(game)
+    def change_screen(self, screen):
+        print("Switching to", screen)
+        self.manager.current = screen

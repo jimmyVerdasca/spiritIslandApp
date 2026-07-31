@@ -119,6 +119,35 @@ def generate_game(
             players
         )
 
+        
+        # ----------------------------
+        # set quantity adversary & scenario to random pick
+        # ----------------------------
+
+        number_adversary = 0
+        if not adversary:
+
+            number_adversary = random.choice(
+                range(0,2)
+            )
+
+        number_scenario = 0
+        if not scenario:
+
+            number_scenario = random.choice(
+                range(0,2 - number_adversary)
+            )
+
+        
+        # ----------------------------
+        # set difficulty depending on number of adversary
+        # ----------------------------
+
+        if number_scenario > 1:
+            maximum = 4 if (maximum > 4) else maximum
+
+        if number_adversary > 1:
+            maximum -= number_adversary
 
         # ----------------------------
         # Adversaries
@@ -131,16 +160,17 @@ def generate_game(
 
 
         if adversary:
-
+            total_difficulty = 0
             for name in adversary:
-
+                chosen_difficulty = random.randint(
+                            minimum,
+                            maximum - total_difficulty
+                        )
+                total_difficulty += chosen_difficulty
                 chosen_adversaries.append(
                     {
                         "name": name,
-                        "difficulty": random.randint(
-                            minimum,
-                            maximum
-                        )
+                        "difficulty": chosen_difficulty
                     }
                 )
 
@@ -209,21 +239,15 @@ def generate_game(
             ]
         else:
 
-            if len(chosen_adversaries) < 2:
+            if number_scenario:
 
-                number = random.choice(
-                    [0,1,2]
-                )
-
-                if number:
-
-                    chosen_scenarios = [
-                        x["name"]
-                        for x in random.sample(
-                            all_scenarios,
-                            number
-                        )
-                    ]
+                chosen_scenarios = [
+                    x["name"]
+                    for x in random.sample(
+                        all_scenarios,
+                        number_scenario
+                    )
+                ]
 
 
         # ----------------------------
