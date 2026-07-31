@@ -14,7 +14,9 @@ jobs:
     runs-on: ubuntu-22.04
 
     env:
-      ANDROID_SDK_ROOT: /usr/local/lib/android/sdk
+  ANDROID_SDK_ROOT: /usr/local/lib/android/sdk
+  ANDROIDSDK: /usr/local/lib/android/sdk
+  ANDROID_HOME: /usr/local/lib/android/sdk
 
     steps:
 
@@ -80,13 +82,15 @@ jobs:
           mkdir -p ~/.android
           touch ~/.android/repositories.cfg
 
-          yes | $ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager --licenses || true
+          yes | sdkmanager --licenses || true
 
-          $ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager \
-            --sdk_root=$ANDROID_SDK_ROOT \
+          sdkmanager \
             "platform-tools" \
             "platforms;android-35" \
             "build-tools;35.0.0"
+
+          echo "Installed:"
+          ls $ANDROID_SDK_ROOT/build-tools
 
 
       - name: Verify SDK
@@ -114,20 +118,18 @@ jobs:
         run: |
           echo "$HOME/.local/bin" >> $GITHUB_PATH
 
-
-      - name: Prepare Buildozer SDK licenses
-        run: |
-          buildozer android update || true
-
-          if [ -f "$HOME/.buildozer/android/platform/android-sdk/tools/bin/sdkmanager" ]; then
-            yes | $HOME/.buildozer/android/platform/android-sdk/tools/bin/sdkmanager --licenses || true
-          fi
       
       - name: Configure Buildozer Android tools
         run: |
           mkdir -p ~/.buildozer/android/platform
           echo "build_tools_version = 35.0.0"
 
+      - name: Configure Buildozer environment
+        run: |
+          echo "ANDROIDSDK=$ANDROID_SDK_ROOT" >> $GITHUB_ENV
+          echo "ANDROID_HOME=$ANDROID_SDK_ROOT" >> $GITHUB_ENV
+          echo "ANDROIDAPI=35" >> $GITHUB_ENV
+          echo "ANDROIDMINAPI=26" >> $GITHUB_ENV
 
       - name: Build APK
         env:
@@ -135,6 +137,7 @@ jobs:
           ANDROID_HOME: ${{ env.ANDROID_SDK_ROOT }}
         run: |
           for i in 1 2 3; do
+            rm -rf ~/.buildozer/android/platform/android-sdk
             buildozer -v android debug && break
             echo "Build failed, retrying in 30 seconds..."
             sleep 30
