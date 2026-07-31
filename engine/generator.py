@@ -127,16 +127,11 @@ def generate_game(
         number_adversary = 0
         if not adversary:
 
-            number_adversary = random.choice(
-                range(0,2)
-            )
+            number_adversary = random.randint(0,2)
 
         number_scenario = 0
         if not scenario:
-
-            number_scenario = random.choice(
-                range(0,2 - number_adversary)
-            )
+            number_scenario = random.randint(0,2 - number_adversary)
 
         
         # ----------------------------
@@ -159,8 +154,8 @@ def generate_game(
         all_adversaries = get_adversaries(cursor)
 
 
+        total_difficulty = 0
         if adversary:
-            total_difficulty = 0
             for name in adversary:
                 chosen_difficulty = random.randint(
                             minimum,
@@ -176,41 +171,44 @@ def generate_game(
 
 
         elif adversaries is not None:
-
             for adv in random.sample(
                 all_adversaries,
                 adversaries
             ):
+                chosen_difficulty = random.randint(
+                            minimum,
+                            maximum - total_difficulty
+                        )
 
                 chosen_adversaries.append(
                     {
                         "name": adv["name"],
                         "difficulty": random.randint(
                             minimum,
-                            maximum
+                            chosen_difficulty
                         )
                     }
                 )
-        else:
+        else: # random  0-2 adversaries
 
-            if random.choice([True, False]):
-
-                number = random.choice([1,2])
-
-                for adv in random.sample(
-                    all_adversaries,
-                    number
-                ):
-
-                    chosen_adversaries.append(
-                        {
-                            "name": adv["name"],
-                            "difficulty": random.randint(
-                                minimum,
-                                maximum
-                            )
-                        }
+            for adv in random.sample(
+                all_adversaries,
+                number_adversary
+            ):
+                chosen_difficulty = random.randint(
+                        minimum,
+                        maximum - total_difficulty
                     )
+
+                chosen_adversaries.append(
+                    {
+                        "name": adv["name"],
+                        "difficulty": random.randint(
+                            minimum,
+                            chosen_difficulty
+                        )
+                    }
+                )
 
 
         # ----------------------------
@@ -239,15 +237,13 @@ def generate_game(
             ]
         else:
 
-            if number_scenario:
-
-                chosen_scenarios = [
-                    x["name"]
-                    for x in random.sample(
-                        all_scenarios,
-                        number_scenario
-                    )
-                ]
+            chosen_scenarios = [
+                x["name"]
+                for x in random.sample(
+                    all_scenarios,
+                    number_scenario
+                )
+            ]
 
 
         # ----------------------------
