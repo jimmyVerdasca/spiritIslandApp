@@ -2,164 +2,28 @@ name: Build Android APK
 
 on:
   workflow_dispatch:
-    inputs:
-      clean_build:
-        description: "Remove Buildozer cache before building"
-        required: false
-        default: false
-        type: boolean
-
 
 jobs:
   build:
-    runs-on: ubuntu-22.04
-
-    env:
-      ANDROIDAPI: 35
-      ANDROIDMINAPI: 26
-
+    runs-on: ubuntu-latest
 
     steps:
+      - uses: actions/checkout@v5
 
-      - name: Checkout repository
-        uses: actions/checkout@v5
-
-
-      - name: Setup Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.10"
-
-
-      - name: Clean Buildozer cache
+      - name: Clean cache
         if: ${{ inputs.clean_build }}
         run: |
-          rm -rf ~/.buildozer
           rm -rf .buildozer
-          rm -rf bin
-
-
-      - name: Install system dependencies
-        run: |
-          sudo apt-get update
-
-          sudo apt-get install -y \
-            git \
-            zip \
-            unzip \
-            openjdk-17-jdk \
-            python3-pip \
-            autoconf \
-            libtool \
-            pkg-config \
-            zlib1g-dev \
-            libncurses-dev \
-            cmake
-
-
-      - name: Set Java 17
-        run: |
-          echo "JAVA_HOME=$JAVA_HOME_17_X64" >> $GITHUB_ENV
-          echo "$JAVA_HOME_17_X64/bin" >> $GITHUB_PATH
-
-
-      #
-      # Install SDK exactly where Buildozer expects it
-      #
-      - name: Install Android SDK for Buildozer
-        run: |
-
-          mkdir -p ~/.android
-          touch ~/.android/repositories.cfg
-
-
-          SDK="$HOME/.buildozer/android/platform/android-sdk"
-
-          mkdir -p "$SDK"
-
-
-          # Copy Google's SDK already installed on runner
-          cp -r /usr/local/lib/android/sdk/* "$SDK/"
-
-
-          # Fix old Buildozer sdkmanager path
-          mkdir -p "$SDK/tools/bin"
-
-          ln -sf \
-          "$SDK/cmdline-tools/latest/bin/sdkmanager" \
-          "$SDK/tools/bin/sdkmanager"
-
-
-          SDKMANAGER="$SDK/tools/bin/sdkmanager"
-
-
-          yes | "$SDKMANAGER" \
-            --sdk_root="$SDK" \
-            --licenses || true
-
-
-          "$SDKMANAGER" \
-            --sdk_root="$SDK" \
-            "platform-tools" \
-            "platforms;android-35" \
-            "build-tools;35.0.0"
-
-
-
-          echo "SDK:"
-          ls "$SDK"
-
-          echo "Build tools:"
-          ls "$SDK/build-tools"
-
-
-
-      - name: Create database
-        run: |
-          python -m database.init_db
-
-
-      - name: Install Buildozer
-        run: |
-
-          python -m pip install --upgrade "pip<25" setuptools wheel
-
-          python -m pip install --user \
-            buildozer==1.5.0 \
-            cython==0.29.36
-
-
-      - name: Add Buildozer PATH
-        run: |
-          echo "$HOME/.local/bin" >> $GITHUB_PATH
-
+          rm -rf ~/.buildozer
+          rm -rf ~/.gradle
 
       - name: Build APK
-        env:
-          ANDROIDSDK: /home/runner/.buildozer/android/platform/android-sdk
-          ANDROID_HOME: /home/runner/.buildozer/android/platform/android-sdk
-
-        run: |
-
-          buildozer -v android debug
-
-
-
-      - name: List APKs
-        run: |
-          find . -name "*.apk"
-
-
-
-      - name: Upload APK
-        if: success()
-        uses: actions/upload-artifact@v5
+        id: build
+        uses: ArtemSBulgakov/buildozer-action@v1
         with:
+          command: buildozer android debug
 
+      - uses: actions/upload-artifact@v5
+        with:
           name: spirit-island-debug-apk
-
-          path: |
-            bin/*.apk
-            ./.buildozer/**/*.apk
-
-          if-no-files-found: error
+          path: ${{ steps.build.outputs.filename }}
