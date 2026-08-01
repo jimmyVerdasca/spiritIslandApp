@@ -28,15 +28,13 @@ jobs:
 
       - name: Accept Android licenses
         run: |
-          SDKMANAGER=$(find ~/.buildozer -name sdkmanager -type f | head -n 1)
-          echo "Using sdkmanager: $SDKMANAGER"
-          yes | $SDKMANAGER --licenses
+          SDK=$HOME/.buildozer/android/platform/android-sdk
+          yes | $SDK/tools/bin/sdkmanager --sdk_root=$SDK --licenses
 
       - name: Install Android packages
         run: |
-          SDKMANAGER=$(find ~/.buildozer -name sdkmanager -type f | head -n 1)
-
-          $SDKMANAGER \
+          SDK=$HOME/.buildozer/android/platform/android-sdk
+          $SDK/tools/bin/sdkmanager --sdk_root=$SDK \
             "platform-tools" \
             "platforms;android-33" \
             "build-tools;33.0.2"
