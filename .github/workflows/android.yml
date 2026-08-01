@@ -66,6 +66,16 @@ jobs:
             "platforms;android-35" \
             "build-tools;35.0.0"
 
+      - name: Pin python-for-android
+        run: |
+          rm -rf .buildozer/android/platform/python-for-android
+
+          git clone \
+            --branch 2024.01.21 \
+            --depth 1 \
+            https://github.com/kivy/python-for-android.git \
+            .buildozer/android/platform/python-for-android
+
       - name: Fix Buildozer SDK layout
         run: |
           mkdir -p /usr/local/lib/android/sdk/tools/bin
