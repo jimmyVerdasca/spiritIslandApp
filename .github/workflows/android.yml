@@ -13,7 +13,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     container:
-      image: ghcr.io/kivy/buildozer:1.6.0
+      image: ghcr.io/kivy/buildozer:latest
 
     steps:
       - uses: actions/checkout@v5
@@ -23,15 +23,18 @@ jobs:
         run: |
           rm -rf .buildozer
           rm -rf ~/.buildozer
-          rm -rf ~/.gradle
+          rm -rf ~/.gradle      
+
+      - name: Accept Android SDK licenses
+        run: |
+          mkdir -p ~/.buildozer/android/platform/android-sdk/licenses
+          echo "24333f8a63b6825ea9c5514f83c2829b004d8fee" > ~/.buildozer/android/platform/android-sdk/licenses/android-sdk-license
+          echo "84831b9409646a918e30573bab4c9c91346d8abd" >> ~/.buildozer/android/platform/android-sdk/licenses/android-sdk-license
 
       - name: Build APK
         id: build
-        env:
-          ACCEPT_ANDROID_SDK_LICENSES: "y"
         run: |
           buildozer android debug
-
 
       - name: Upload APK
         uses: actions/upload-artifact@v5
