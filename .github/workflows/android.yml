@@ -47,8 +47,8 @@ jobs:
         run: |
           pip install --user \
             buildozer==1.6.0 \
-            python-for-android==2024.01.21 \
-            cython==0.29.36
+            cython==0.29.36 \
+            "sh<2.0"
 
       - name: Add Buildozer to PATH
         run: |
