@@ -27,5 +27,5 @@ android.ndk_path = /usr/local/lib/android/sdk/ndk/27.3.13750724
 
 
 [buildozer]
-
+p4a.branch = 2024.01.21
 warn_on_root = 0
