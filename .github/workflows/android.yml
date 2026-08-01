@@ -9,13 +9,17 @@ on:
         type: boolean
         default: false
 
+
 jobs:
   build:
+
     runs-on: ubuntu-latest
 
     steps:
+
       - name: Checkout
         uses: actions/checkout@v5
+
 
       - name: Clean cache
         if: ${{ inputs.clean_build }}
@@ -24,13 +28,6 @@ jobs:
           rm -rf .buildozer
           rm -rf ~/.gradle
 
-      - name: Cache Buildozer
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.buildozer
-            ~/.gradle
-          key: buildozer-${{ runner.os }}-${{ hashFiles('buildozer.spec') }}
 
       - name: Install system dependencies
         run: |
@@ -43,6 +40,7 @@ jobs:
             zip \
             unzip
 
+
       - name: Install Buildozer
         run: |
           pip install --user \
@@ -50,31 +48,29 @@ jobs:
             cython==0.29.36 \
             "sh<2.0"
 
+
       - name: Add Buildozer to PATH
         run: |
           echo "$HOME/.local/bin" >> $GITHUB_PATH
 
-      - name: Prepare Android SDK
+
+      - name: Accept Android licenses
         run: |
-          SDK="$HOME/.buildozer/android/platform/android-sdk"
+          yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses
 
-          mkdir -p "$SDK/tools/bin"
 
-          ln -sf \
-            "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" \
-            "$SDK/tools/bin/sdkmanager"
-
-          yes | "$SDK/tools/bin/sdkmanager" --sdk_root="$SDK" --licenses
-
-          "$SDK/tools/bin/sdkmanager" \
-            --sdk_root="$SDK" \
+      - name: Install Android packages
+        run: |
+          $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager \
             "platform-tools" \
             "platforms;android-35" \
             "build-tools;35.0.0"
 
+
       - name: Build APK
         run: |
           buildozer android debug
+
 
       - name: Upload APK
         uses: actions/upload-artifact@v5
