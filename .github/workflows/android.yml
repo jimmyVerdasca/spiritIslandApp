@@ -2,95 +2,37 @@ name: Build Android APK
 
 on:
   workflow_dispatch:
-    inputs:
-      clean_build:
-        description: "Clean Buildozer cache"
-        required: false
-        type: boolean
-        default: false
-
 
 jobs:
   build:
-
     runs-on: ubuntu-22.04
 
     steps:
+      - uses: actions/checkout@v5
 
-      - name: Checkout
-        uses: actions/checkout@v5
-
-
-      - name: Clean cache
-        if: ${{ inputs.clean_build }}
-        run: |
-          rm -rf ~/.buildozer
-          rm -rf .buildozer
-          rm -rf ~/.gradle
-
-
-      - name: Install system dependencies
+      - name: Install dependencies
         run: |
           sudo apt update
           sudo apt install -y \
-            python3-pip \
-            python3-venv \
-            openjdk-17-jdk \
-            git \
-            zip \
-            unzip
+            git zip unzip openjdk-17-jdk python3-pip \
+            autoconf automake libtool pkg-config
 
-
-      - name: Install Buildozer
+      - name: Install latest Buildozer
         run: |
-          pip install --user \
-            buildozer==1.6.0 \
-            cython==0.29.36 \
-            "sh<2.0"
+          python3 -m pip install --upgrade pip
+          pip install buildozer
 
-
-      - name: Add Buildozer to PATH
-        run: |
-          echo "$HOME/.local/bin" >> $GITHUB_PATH
-
-
-      - name: Accept Android licenses
-        run: |
-          yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses
-
-
-      - name: Install Android packages
-        run: |
-          $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager \
-            "platform-tools" \
-            "platforms;android-35" \
-            "build-tools;35.0.0"
-
-      - name: Pin python-for-android
-        run: |
-          rm -rf .buildozer/android/platform/python-for-android
-
-          git clone \
-            --branch 2024.01.21 \
-            --depth 1 \
-            https://github.com/kivy/python-for-android.git \
-            .buildozer/android/platform/python-for-android
-
-      - name: Fix Buildozer SDK layout
-        run: |
-          mkdir -p /usr/local/lib/android/sdk/tools/bin
-
-          ln -sf \
-            /usr/local/lib/android/sdk/cmdline-tools/latest/bin/sdkmanager \
-            /usr/local/lib/android/sdk/tools/bin/sdkmanager
-
-      - name: Build APK
+      - name: Build
+        env:
+          ANDROIDSDK: ""
+          ANDROIDNDK: ""
+          ANDROID_HOME: ""
+          ANDROID_SDK_ROOT: ""
         run: |
           buildozer android debug
-
 
       - name: Upload APK
         uses: actions/upload-artifact@v5
         with:
-          name: spirit-island-debug-apk
+          name: apk
           path: bin/*.apk
