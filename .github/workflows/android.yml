@@ -66,6 +66,13 @@ jobs:
             "platforms;android-35" \
             "build-tools;35.0.0"
 
+      - name: Fix Buildozer SDK layout
+        run: |
+          mkdir -p /usr/local/lib/android/sdk/tools/bin
+
+          ln -sf \
+            /usr/local/lib/android/sdk/cmdline-tools/latest/bin/sdkmanager \
+            /usr/local/lib/android/sdk/tools/bin/sdkmanager
 
       - name: Build APK
         run: |
