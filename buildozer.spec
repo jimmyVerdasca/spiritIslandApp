@@ -35,5 +35,5 @@ android.python_version = 3.10
 
 warn_on_root = 0
 
-# Keep stable p4a branch
-p4a.branch = master
+p4a.commit = 5f8c5c9
+p4a.python_version = 3.10
