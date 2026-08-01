@@ -55,11 +55,19 @@ jobs:
             ~/.gradle
           key: buildozer-${{ runner.os }}-${{ hashFiles('buildozer.spec') }}
 
-      - name: Debug versions
+      - name: Inspect build environment
         run: |
+          python --version
+          which python
+
           buildozer --version
-          python -c "import pythonforandroid; print(pythonforandroid.__file__)"
-          pip show python-for-android
+
+          python -c "import sys; print(sys.executable)"
+          python -c "import sys; print(sys.version)"
+
+          find .buildozer -name "pyvenv.cfg" -exec echo "==== {} ====" \; -exec cat {} \; || true
+
+          find .buildozer -path "*build/venv*" -type d || true
 
       - name: Build APK
         run: |
