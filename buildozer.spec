@@ -34,6 +34,5 @@ android.python_version = 3.10
 [buildozer]
 
 warn_on_root = 0
-
-p4a.commit = 5f8c5c9
 p4a.python_version = 3.10
+p4a.commit = 5f8c5c9
