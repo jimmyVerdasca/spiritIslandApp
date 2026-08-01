@@ -27,3 +27,4 @@ android.build_tools_version = 33.0.2
 [buildozer]
 
 warn_on_root = 0
+android.ndk = 25b

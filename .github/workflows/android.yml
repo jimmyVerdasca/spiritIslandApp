@@ -8,7 +8,14 @@ jobs:
     runs-on: ubuntu-22.04
 
     steps:
-      - uses: actions/checkout@v5
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Clean Buildozer cache
+        if: ${{ inputs.clean_cache == true }}
+        run: |
+          rm -rf ~/.buildozer/android/platform/android-ndk-*
+          rm -rf .buildozer
 
       - name: Install dependencies
         run: |
@@ -20,24 +27,12 @@ jobs:
       - name: Install Buildozer
         run: |
           python3 -m pip install --upgrade pip
-          pip install buildozer cython==0.29.36
+          pip install buildozer==1.6.0 cython==0.29.36
 
-      - name: Initialize Buildozer Android SDK
+      - name: Set Java 17
         run: |
-          yes | buildozer android debug || true
-
-      - name: Accept Android licenses
-        run: |
-          SDK=$HOME/.buildozer/android/platform/android-sdk
-          yes | $SDK/tools/bin/sdkmanager --sdk_root=$SDK --licenses
-
-      - name: Install Android packages
-        run: |
-          SDK=$HOME/.buildozer/android/platform/android-sdk
-          $SDK/tools/bin/sdkmanager --sdk_root=$SDK \
-            "platform-tools" \
-            "platforms;android-33" \
-            "build-tools;33.0.2"
+          echo "JAVA_HOME=/usr/lib/jvm/temurin-17-jdk-amd64" >> $GITHUB_ENV
+          echo "/usr/lib/jvm/temurin-17-jdk-amd64/bin" >> $GITHUB_PATH
 
       - name: Cache Buildozer
         uses: actions/cache@v4
@@ -49,7 +44,7 @@ jobs:
 
       - name: Build APK
         run: |
-          buildozer android debug
+          yes | buildozer android debug
 
       - name: Upload APK
         uses: actions/upload-artifact@v5
