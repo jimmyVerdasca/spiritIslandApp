@@ -10,7 +10,7 @@ version = 0.1.0
 source.dir = .
 source.include_exts = py,png,jpg,kv,atlas,db,sql
 
-requirements = python3,kivy,kivymd
+requirements = python3,kivy==2.3.0,kivymd==1.1.1
 
 orientation = portrait
 fullscreen = 0

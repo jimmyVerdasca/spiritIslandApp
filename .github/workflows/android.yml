@@ -93,11 +93,15 @@ jobs:
           if [ -n "$P4A_DIR" ]; then
             grep -RIl "pip install -U pip" "$P4A_DIR" | xargs -r sed -i 's/pip install -U pip/pip install pip==23.3.2/g'
           fi
-          
+
       - name: Build APK
         env:
           PIP_VERSION: 23.3.2
+          PYTHONHOME: ""
+          PYTHONNOUSERSITE: "1"
         run: |
+          python --version
+          which python
           yes | buildozer -v android debug
 
       - name: Upload APK
