@@ -16,7 +16,7 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v5
-        
+
       - name: Clean cache
         if: ${{ inputs.clean_build }}
         run: |
@@ -24,7 +24,15 @@ jobs:
           rm -rf .buildozer
           rm -rf ~/.gradle
 
-      - name: Install dependencies
+      - name: Cache Buildozer
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.buildozer
+            ~/.gradle
+          key: buildozer-${{ runner.os }}-${{ hashFiles('buildozer.spec') }}
+
+      - name: Install system dependencies
         run: |
           sudo apt update
           sudo apt install -y \
@@ -37,24 +45,13 @@ jobs:
 
       - name: Install Buildozer
         run: |
-          pip install --user buildozer==1.6.0 cython==0.29.36
+          pip install --user \
+            buildozer==1.6.0 \
+            cython==0.29.36
 
       - name: Add Buildozer to PATH
         run: |
           echo "$HOME/.local/bin" >> $GITHUB_PATH
-
-      - name: Accept Android licenses
-        run: |
-          yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses
-
-
-      - name: Cache Buildozer
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.buildozer
-            ~/.gradle
-          key: buildozer-${{ runner.os }}-${{ hashFiles('buildozer.spec') }}
 
       - name: Build APK
         run: |
