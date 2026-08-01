@@ -55,6 +55,7 @@ jobs:
 
           python -m pip install \
             buildozer==1.6.0 \
+            python-for-android==2024.04.01 \
             cython==0.29.36
 
       - name: Verify Buildozer stack
