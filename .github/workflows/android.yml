@@ -55,23 +55,22 @@ jobs:
             ~/.gradle
           key: buildozer-${{ runner.os }}-${{ hashFiles('buildozer.spec') }}
 
-      - name: Inspect build environment
+      - name: Build (don't stop on error)
         run: |
-          python --version
-          which python
-
-          buildozer --version
-
-          python -c "import sys; print(sys.executable)"
-          python -c "import sys; print(sys.version)"
-
-          find .buildozer -name "pyvenv.cfg" -exec echo "==== {} ====" \; -exec cat {} \; || true
-
-          find .buildozer -path "*build/venv*" -type d || true
-
-      - name: Build APK
-        run: |
+          set +e
           yes | buildozer android debug
+          echo "Exit code: $?"
+
+          echo "===== Python executables ====="
+          find .buildozer -name python -type f
+
+          echo "===== pyvenv.cfg ====="
+          find .buildozer -name pyvenv.cfg -exec echo "==== {} ====" \; -exec cat {} \;
+
+          echo "===== venv ====="
+          find .buildozer -path "*venv*" | head -100
+
+          exit 1
 
       - name: Upload APK
         uses: actions/upload-artifact@v5
