@@ -20,10 +20,10 @@ fullscreen = 0
 android.api = 35
 android.minapi = 23
 android.ndk = 27c
+android.build_tools_version = 35.0.0
 android.archs = arm64-v8a,x86_64
 
 
-
-
 [buildozer]
+
 warn_on_root = 0
