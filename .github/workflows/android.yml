@@ -92,12 +92,58 @@ jobs:
         run: |
           python3 -m database.init_db
 
-      - name: Check environment
+      - name: Print build environment
         run: |
+          echo "===== OS ====="
+          lsb_release -a || true
+
+          echo
+          echo "===== Python ====="
           python --version
           pip --version
+
+          echo
+          echo "===== Buildozer ====="
           buildozer --version
+          pip show buildozer || true
+
+          echo
+          echo "===== Java ====="
           java -version
+          javac -version
+
+          echo
+          echo "===== Rust ====="
+          rustc --version
+          cargo --version
+
+          echo
+          echo "===== Android ====="
+          sdkmanager --version || true
+
+          echo
+          echo "===== Autotools ====="
+          autoconf --version | head -n1
+          automake --version | head -n1
+          libtool --version | head -n1
+          aclocal --version | head -n1
+          pkg-config --version
+
+          echo
+          echo "===== CMake ====="
+          cmake --version | head -n1
+
+          echo
+          echo "===== Buildozer Spec ====="
+          grep -E "android.api|android.minapi|android.ndk|android.archs|p4a.branch" buildozer.spec || true
+
+          echo
+          echo "===== Environment ====="
+          echo "ANDROID_HOME=$ANDROID_HOME"
+          echo "ANDROID_NDK_HOME=$ANDROID_NDK_HOME"
+          echo "ANDROID_NDK=$ANDROID_NDK"
+          echo "ANDROIDSDK=$ANDROIDSDK"
+          echo "ANDROIDNDK=$ANDROIDNDK"
 
       - name: Build APK
         run: |
