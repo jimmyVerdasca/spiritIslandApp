@@ -18,6 +18,10 @@ fullscreen = 0
 
 # Android
 android.api = 35
+android.sdk = 35
+android.build_tools = 35.0.0
+android.minapi = 26
+android.ndk = 27c
 android.archs = arm64-v8a,x86_64
 
 
