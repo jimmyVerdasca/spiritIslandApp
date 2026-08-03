@@ -4,39 +4,46 @@ on:
   workflow_dispatch:
     inputs:
       clean_build:
-        description: Clean Buildozer cache
+        description: "Remove Buildozer cache"
         type: boolean
         default: false
 
 jobs:
   build:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
+
+    container:
+      image: ghcr.io/kivy/buildozer:latest
 
     steps:
-      - name: Checkout source
-        uses: actions/checkout@v5
+      - uses: actions/checkout@v5
 
-      - name: Setup Python
-        uses: actions/setup-python@v5
+      - uses: actions/setup-python@v5
         with:
           python-version: "3.10.11"
 
+      - name: Clean cache
+        if: ${{ inputs.clean_build }}
+        run: |
+          rm -rf ~/.buildozer
+          rm -rf .buildozer
+          rm -rf bin
+
       - name: Restore Buildozer cache
-        if: ${{ !inputs.clean_build }}
         uses: actions/cache@v4
         with:
           path: |
-            .buildozer
             ~/.buildozer
+            .buildozer
           key: buildozer-${{ runner.os }}-${{ hashFiles('buildozer.spec') }}
 
       - name: Create database
-        run: python -m database.init_db
+        run: |
+          python -m database.init_db
 
       - name: Build APK
-        uses: ArtemSBulgakov/buildozer-action@v1
-        with:
-          command: buildozer android debug
+        run: |
+          buildozer android debug
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
