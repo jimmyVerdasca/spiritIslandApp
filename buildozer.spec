@@ -25,6 +25,5 @@ android.archs = arm64-v8a,x86_64
 
 
 [buildozer]
-p4a.branch = master
 warn_on_root = 0
 log_level = 2
