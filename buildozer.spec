@@ -10,7 +10,7 @@ version = 0.1.0
 source.dir = .
 source.include_exts = py,png,jpg,kv,atlas,db,sql
 
-requirements = python3,kivy,kivymd
+requirements = python3,kivy==2.3.0,kivymd==1.2.0
 
 orientation = portrait
 fullscreen = 0
@@ -19,7 +19,11 @@ fullscreen = 0
 # Android
 android.accept_sdk_license = True
 android.minapi = 26
+android.api = 36
+android.ndk = 29
 android.archs = arm64-v8a,x86_64
+
+p4a.branch = develop
 
 
 
