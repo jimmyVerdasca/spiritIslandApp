@@ -13,7 +13,7 @@ jobs:
     runs-on: ubuntu-latest
 
     container:
-      image: ghcr.io/kivy/buildozer:latest
+      image: ghcr.io/kivy/buildozer:1.5.0
 
     steps:
       - uses: actions/checkout@v5
