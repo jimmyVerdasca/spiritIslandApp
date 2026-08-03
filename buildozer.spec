@@ -17,6 +17,7 @@ fullscreen = 0
 
 
 # Android
+android.accept_sdk_license = False
 android.minapi = 26
 android.archs = arm64-v8a,x86_64
 
