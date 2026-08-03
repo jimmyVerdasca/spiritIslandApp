@@ -10,7 +10,7 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
 
     steps:
       - uses: actions/checkout@v5
@@ -27,10 +27,10 @@ jobs:
           sudo apt update
           sudo apt install -y \
             git zip unzip openjdk-17-jdk python3-pip \
-            python3-venv python3-virtualenv autoconf libtool \
-            pkg-config zlib1g-dev libncurses5-dev \
-            libncursesw5-dev libtinfo6 cmake libffi-dev \
-            libssl-dev automake autopoint gettext
+            python3-virtualenv autoconf libtool pkg-config \
+            zlib1g-dev libncurses5-dev libncursesw5-dev \
+            libtinfo6 cmake libffi-dev libssl-dev \
+            automake autopoint gettext
 
       - name: Select Java 17
         run: |
@@ -44,11 +44,12 @@ jobs:
 
       - name: Setup Buildozer environment
         run: |
-          python3 -m venv venv_p4a_develop
-          . venv_p4a_develop/bin/activate
+          python3 -m venv venv_p4a_master
+          . venv_p4a_master/bin/activate
 
           pip install --upgrade pip
           pip install git+https://github.com/kivy/buildozer
+          pip install python-for-android
           pip install legacy-cgi setuptools cython==0.29.34
 
       - name: Restore Buildozer cache
@@ -57,7 +58,7 @@ jobs:
           path: |
             ~/.buildozer
             .buildozer
-          key: buildozer-p4a-develop-${{ runner.os }}-${{ hashFiles('buildozer.spec') }}
+          key: buildozer-p4a-master-${{ runner.os }}-${{ hashFiles('buildozer.spec') }}
 
       - name: Create database
         run: |
@@ -65,7 +66,7 @@ jobs:
 
       - name: Check environment
         run: |
-          . venv_p4a_develop/bin/activate
+          . venv_p4a_master/bin/activate
           python --version
           pip --version
           buildozer --version
@@ -75,7 +76,7 @@ jobs:
         env:
           BUILDOZER_ALLOW_ROOT: 1
         run: |
-          . venv_p4a_develop/bin/activate
+          . venv_p4a_master/bin/activate
           buildozer android debug
 
       - name: Upload APK
