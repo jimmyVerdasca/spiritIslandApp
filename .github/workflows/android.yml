@@ -12,9 +12,6 @@ jobs:
   build:
     runs-on: ubuntu-latest
 
-    container:
-      image: ghcr.io/kivy/buildozer:latest
-
     steps:
       - uses: actions/checkout@v5
 
@@ -25,34 +22,60 @@ jobs:
           rm -rf .buildozer
           rm -rf bin
 
+      - name: Install system dependencies
+        run: |
+          sudo apt update
+          sudo apt install -y \
+            git zip unzip openjdk-17-jdk python3-pip \
+            python3-venv python3-virtualenv autoconf libtool \
+            pkg-config zlib1g-dev libncurses5-dev \
+            libncursesw5-dev libtinfo6 cmake libffi-dev \
+            libssl-dev automake autopoint gettext
+
+      - name: Select Java 17
+        run: |
+          sudo update-alternatives --set java /usr/lib/jvm/java-17-openjdk-amd64/bin/java
+          sudo update-alternatives --set javac /usr/lib/jvm/java-17-openjdk-amd64/bin/javac
+
+      - name: Install Rust
+        run: |
+          curl https://sh.rustup.rs -sSf | sh -s -- -y
+          echo "$HOME/.cargo/bin" >> $GITHUB_PATH
+
+      - name: Setup Buildozer environment
+        run: |
+          python3 -m venv venv_p4a_develop
+          . venv_p4a_develop/bin/activate
+
+          pip install --upgrade pip
+          pip install git+https://github.com/kivy/buildozer
+          pip install legacy-cgi setuptools cython==0.29.34
+
       - name: Restore Buildozer cache
         uses: actions/cache@v4
         with:
           path: |
             ~/.buildozer
             .buildozer
-          key: buildozer-${{ runner.os }}-${{ hashFiles('buildozer.spec') }}
+          key: buildozer-p4a-develop-${{ runner.os }}-${{ hashFiles('buildozer.spec') }}
 
       - name: Create database
         run: |
-          python -m database.init_db
+          python3 -m database.init_db
 
-      - name: Setup Buildozer environment
+      - name: Check environment
         run: |
-          python -m venv venv_p4a_master
-          . venv_p4a_master/bin/activate
-
-          pip install --upgrade pip
-          pip install buildozer setuptools cython==0.29.34
-
-      - name: Check Python
-        run: |
+          . venv_p4a_develop/bin/activate
           python --version
           pip --version
+          buildozer --version
+          java -version
 
       - name: Build APK
+        env:
+          BUILDOZER_ALLOW_ROOT: 1
         run: |
-          . venv_p4a_master/bin/activate
+          . venv_p4a_develop/bin/activate
           buildozer android debug
 
       - name: Upload APK
