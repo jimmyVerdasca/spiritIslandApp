@@ -1,25 +1,45 @@
-name: Build
-on: [push, pull_request]
+name: Build Android APK
+
+on:
+  workflow_dispatch:
+    inputs:
+      clean_build:
+        description: Clean Buildozer cache
+        type: boolean
+        default: false
 
 jobs:
-  # Build job. Builds app for Android with Buildozer
-  build-android:
-    name: Build for Android
-    runs-on: ubuntu-24.04
+  build:
+    runs-on: ubuntu-22.04
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - name: Checkout source
+        uses: actions/checkout@v5
 
-      - name: Build with Buildozer
-        uses: ArtemSBulgakov/buildozer-action@v1
-        id: buildozer
+      - name: Setup Python
+        uses: actions/setup-python@v5
         with:
-          workdir: test_app
-          buildozer_version: stable
+          python-version: "3.10.11"
 
-      - name: Upload artifacts
+      - name: Restore Buildozer cache
+        if: ${{ !inputs.clean_build }}
+        uses: actions/cache@v4
+        with:
+          path: |
+            .buildozer
+            ~/.buildozer
+          key: buildozer-${{ runner.os }}-${{ hashFiles('buildozer.spec') }}
+
+      - name: Create database
+        run: python -m database.init_db
+
+      - name: Build APK
+        uses: ArtemSBulgakov/buildozer-action@v1
+        with:
+          command: buildozer android debug
+
+      - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: package
-          path: ${{ steps.buildozer.outputs.filename }}
+          name: spirit-island-debug
+          path: bin/*.apk
