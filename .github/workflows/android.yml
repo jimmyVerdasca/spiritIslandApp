@@ -61,7 +61,7 @@ jobs:
       - name: Create Python virtual environment
         run: |
           cd
-          virtualenv venv_p4a_master
+          virtualenv --system-site-packages venv_p4a_master
           source venv_p4a_master/bin/activate
           echo "$HOME/venv_p4a_master/bin" >> $GITHUB_PATH
 
