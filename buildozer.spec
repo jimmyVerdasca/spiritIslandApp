@@ -22,6 +22,7 @@ android.api = 35
 android.minapi = 26
 android.archs = arm64-v8a
 
+p4a.branch = stable
 
 
 [buildozer]
