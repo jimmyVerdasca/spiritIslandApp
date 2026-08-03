@@ -18,11 +18,13 @@ fullscreen = 0
 
 # Android
 android.accept_sdk_license = True
-android.minapi = 35
+android.api = 35
+android.minapi = 26
 android.archs = arm64-v8a,x86_64
 
 
 
 [buildozer]
+p4a.branch = master
 warn_on_root = 0
 log_level = 2

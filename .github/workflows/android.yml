@@ -48,19 +48,22 @@ jobs:
 
       - name: Select Java 17
         run: |
-          sudo update-alternatives --config java
-          sudo update-alternatives --config javac
+          sudo update-alternatives --set java \
+            /usr/lib/jvm/java-17-openjdk-amd64/bin/java
+          sudo update-alternatives --set javac \
+            /usr/lib/jvm/java-17-openjdk-amd64/bin/javac
 
       - name: Install Rust
         run: |
           curl https://sh.rustup.rs -sSf | sh -s -- -y
-          echo ". $HOME/.cargo/bin" >> $GITHUB_PATH
+          echo "$HOME/.cargo/bin" >> $GITHUB_PATH
 
       - name: Create Python virtual environment
         run: |
           cd
           virtualenv venv_p4a_master
           source venv_p4a_master/bin/activate
+          echo "$HOME/venv_p4a_master/bin" >> $GITHUB_PATH
 
       - name: Install Buildozer dependencies
         run: |
