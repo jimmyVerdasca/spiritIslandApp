@@ -13,11 +13,11 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-22.04
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v5
+        uses: actions/checkout@v4
 
       - name: Clean Buildozer cache
         if: ${{ inputs.clean_build }}
@@ -29,56 +29,25 @@ jobs:
       - name: Install system dependencies
         run: |
           sudo apt update
-          sudo apt install -y git \
+          sudo apt install -y \
+            python3-pip \
+            python3-venv \
+            build-essential \
+            git \
             zip \
             unzip \
-            openjdk-17-jdk \
-            python3-pip \
-            python3-virtualenv \
-            autoconf \
-            libtool \
-            m4 \
-            libtool-bin \
-            pkg-config \
-            zlib1g-dev \
-            libncurses5-dev \
-            libncursesw5-dev \
-            libtinfo6 \
-            cmake \
-            libffi-dev \
-            libssl-dev \
-            automake \
-            autopoint \
-            gettext
+            openjdk-17-jdk
 
-      - name: Select Java 17
-        run: |
-          sudo update-alternatives --set java \
-            /usr/lib/jvm/java-17-openjdk-amd64/bin/java
-          sudo update-alternatives --set javac \
-            /usr/lib/jvm/java-17-openjdk-amd64/bin/javac
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
 
-      - name: Install Rust
+      - name: Install buildozer
         run: |
-          curl https://sh.rustup.rs -sSf | sh -s -- -y
-          echo "$HOME/.cargo/bin" >> $GITHUB_PATH
-
-      - name: Create Python virtual environment
-        run: |
-          cd
-          virtualenv --system-site-packages venv_p4a_master
-          source venv_p4a_master/bin/activate
-          echo "$HOME/venv_p4a_master/bin" >> $GITHUB_PATH
-
-      - name: Install Buildozer dependencies
-        run: |
-          pip install buildozer setuptools cython==0.29.34
-
-      - name: Refresh autotools
-        run: |
-          libtoolize --version
-          autoreconf --version
-          aclocal --version
+          pip install --upgrade pip
+          pip install buildozer==1.5.0
+          pip install cython==0.29.36
 
       - name: Restore Buildozer cache
         uses: actions/cache@v4
@@ -91,59 +60,6 @@ jobs:
       - name: Initialize database
         run: |
           python3 -m database.init_db
-
-      - name: Print build environment
-        run: |
-          echo "===== OS ====="
-          lsb_release -a || true
-
-          echo
-          echo "===== Python ====="
-          python --version
-          pip --version
-
-          echo
-          echo "===== Buildozer ====="
-          buildozer --version
-          pip show buildozer || true
-
-          echo
-          echo "===== Java ====="
-          java -version
-          javac -version
-
-          echo
-          echo "===== Rust ====="
-          rustc --version
-          cargo --version
-
-          echo
-          echo "===== Android ====="
-          sdkmanager --version || true
-
-          echo
-          echo "===== Autotools ====="
-          autoconf --version | head -n1
-          automake --version | head -n1
-          libtool --version | head -n1
-          aclocal --version | head -n1
-          pkg-config --version
-
-          echo
-          echo "===== CMake ====="
-          cmake --version | head -n1
-
-          echo
-          echo "===== Buildozer Spec ====="
-          grep -E "android.api|android.minapi|android.ndk|android.archs|p4a.branch" buildozer.spec || true
-
-          echo
-          echo "===== Environment ====="
-          echo "ANDROID_HOME=$ANDROID_HOME"
-          echo "ANDROID_NDK_HOME=$ANDROID_NDK_HOME"
-          echo "ANDROID_NDK=$ANDROID_NDK"
-          echo "ANDROIDSDK=$ANDROIDSDK"
-          echo "ANDROIDNDK=$ANDROIDNDK"
 
       - name: Build APK
         run: |

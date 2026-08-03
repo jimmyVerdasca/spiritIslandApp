@@ -10,19 +10,28 @@ version = 0.1.0
 source.dir = .
 source.include_exts = py,png,jpg,kv,atlas,db,sql
 
-requirements = python3,kivy,kivymd
+requirements = python3,kivy==2.2.1,kivymd
 
 orientation = portrait
 fullscreen = 0
 
 
 # Android
-android.accept_sdk_license = True
-android.api = 35
-android.minapi = 26
 android.archs = arm64-v8a
+android.api = 33
+android.minapi = 24
+android.ndk = 25b
+android.ndk_api = 24
 
-p4a.branch = stable
+android.accept_sdk_license = True
+
+android.release_artifact = aab
+android.debug_artifact = apk
+
+
+# python-for-android
+p4a.url = https://github.com/kivy/python-for-android
+p4a.branch = master
 
 
 [buildozer]
