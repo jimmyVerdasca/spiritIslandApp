@@ -1,41 +1,71 @@
 import random
 
+from models.game import Board, BoardConfiguration
+from models.converters import row_to_board, row_to_configuration
 
-def get_all(cursor):
+
+def get_all(cursor) -> list[Board]:
+
     cursor.execute(
         """
         SELECT id, name
         FROM boards
+        ORDER BY name
         """
     )
 
-    return cursor.fetchall()
+    return [
+        row_to_board(row)
+        for row in cursor.fetchall()
+    ]
 
 
 
-def get_id(cursor, name):
+def get_by_name(cursor, name) -> Board:
 
     cursor.execute(
         """
-        SELECT id
+        SELECT id, name
         FROM boards
         WHERE name=?
         """,
         (name,)
     )
 
-    result = cursor.fetchone()
+    row = cursor.fetchone()
 
-    if not result:
+    if row is None:
         raise ValueError(
             f"Board not found: {name}"
         )
 
-    return result[0]
+    return row_to_board(row)
+
+def get_by_id(cursor, game_id):
+    
+    cursor.execute(
+        """
+        SELECT
+            b.id,
+            b.name
+
+        FROM boards b
+
+        JOIN game_boards gb
+            ON gb.board_id = b.id
+
+        WHERE gb.game_id = ?
+
+        ORDER BY gb.position
+        """,
+        (game_id,)
+    )
+
+    return cursor.fetchall()
 
 
 
-def get_name(cursor, board_id):
+def get_name(cursor, board_id) -> str:
 
     cursor.execute(
         """
@@ -46,26 +76,32 @@ def get_name(cursor, board_id):
         (board_id,)
     )
 
-    result = cursor.fetchone()
+    row = cursor.fetchone()
 
-    if not result:
+    if row is None:
         raise ValueError(
             f"Board id not found: {board_id}"
         )
 
-    return result[0]
+    return row["name"]
 
 
 
-def get_configuration(cursor, name=None, players=None):
-
+def get_configuration(cursor, name=None, players=None) -> BoardConfiguration:
+    
     if name:
 
         cursor.execute(
             """
-            SELECT id, name
+            SELECT
+                id,
+                name,
+                min_players,
+                max_players
+
             FROM board_configurations
-            WHERE name=?
+
+            WHERE name = ?
             AND min_players <= ?
             AND max_players >= ?
             """,
@@ -80,8 +116,14 @@ def get_configuration(cursor, name=None, players=None):
 
         cursor.execute(
             """
-            SELECT id, name
+            SELECT
+                id,
+                name,
+                min_players,
+                max_players
+
             FROM board_configurations
+
             WHERE min_players <= ?
             AND max_players >= ?
             """,
@@ -92,21 +134,23 @@ def get_configuration(cursor, name=None, players=None):
         )
 
 
-    configurations = cursor.fetchall()
+    rows = cursor.fetchall()
 
-    if not configurations:
+    if not rows:
         raise Exception(
             "No compatible board configuration"
         )
 
-    row = random.choice(configurations)
-    return {
-        "id": row[0],
-        "name": row[1]
-    }
+    return row_to_configuration(
+        random.choice(rows)
+    )
 
 
-def get_available_boards(cursor, configuration_id):
+
+def get_available_boards(
+    cursor,
+    configuration_id
+) -> list[Board]:
 
     cursor.execute(
         """
@@ -124,16 +168,17 @@ def get_available_boards(cursor, configuration_id):
     )
 
     return [
-        {
-            "id": row[0],
-            "name": row[1]
-        }
+        row_to_board(row)
         for row in cursor.fetchall()
     ]
 
 
 
-def get_random_boards(cursor, available, quantity):
+def get_random_boards(
+    cursor,
+    available: list[Board],
+    quantity: int
+) -> list[Board]:
 
     return random.sample(
         available,

@@ -1,6 +1,10 @@
 from pathlib import Path
 import shutil
 import sqlite3
+from . import queries
+from models.game_status import GameStatus
+from models.game import Game
+from models.converters import row_to_game, row_to_adversary, row_to_board, row_to_scenario, row_to_spirit, row_to_game_adversary
 
 from contextlib import contextmanager
 
@@ -114,11 +118,14 @@ def database():
     finally:
         connection.close()
 
-def get_connection():
+def get_connection(row_factory=True):
     path = get_database_path()
     print(f"Database path: {path}")
 
     db = sqlite3.connect(path)
+
+    if row_factory:
+        db.row_factory = sqlite3.Row
 
     cursor = db.cursor()
 
@@ -131,8 +138,88 @@ def get_connection():
         print("WARNING: database version mismatch!")
         print(f"Expected: {DATABASE_VERSION}")
         print(f"Found:    {version}")
-
     else:
         print("Database version OK")
 
     return db
+
+def save_game(game: Game) -> int:
+    
+    db = get_connection()
+
+    try:
+        cursor = db.cursor()
+
+        game_id = queries.games.save_game(
+            cursor,
+            game
+        )
+
+        db.commit()
+
+        return game_id
+
+    except Exception:
+        db.rollback()
+        raise
+
+    finally:
+        db.close()
+
+
+def get_running_games() -> list[Game]:
+    
+    db = get_connection()
+
+    try:
+        cursor = db.cursor()
+
+        rows = queries.games.get_by_status(
+            cursor,
+            GameStatus.RUNNING
+        )
+
+        games = []
+
+        for row in rows:
+
+            game = row_to_game(row)
+
+            game.spirits = [
+                row_to_spirit(r)
+                for r in queries.spirits.get_by_id(
+                    cursor,
+                    game.id
+                )
+            ]
+
+            game.boards = [
+                row_to_board(r)
+                for r in queries.boards.get_by_id(
+                    cursor,
+                    game.id
+                )
+            ]
+
+            game.adversaries = [
+                row_to_game_adversary(r)
+                for r in queries.adversaries.get_by_id(
+                    cursor,
+                    game.id
+                )
+            ]
+
+            game.scenarios = [
+                row_to_scenario(r)
+                for r in queries.scenarios.get_by_id(
+                    cursor,
+                    game.id
+                )
+            ]
+
+            games.append(game)
+
+        return games
+
+    finally:
+        db.close()

@@ -1,4 +1,8 @@
-def get_all(cursor):
+from models.game import BoardConfiguration
+from models.converters import row_to_configuration
+
+
+def get_all(cursor) -> list[BoardConfiguration]:
 
     cursor.execute(
         """
@@ -14,11 +18,17 @@ def get_all(cursor):
         """
     )
 
-    return cursor.fetchall()
+    return [
+        row_to_configuration(row)
+        for row in cursor.fetchall()
+    ]
 
 
 
-def get_for_players(cursor, players):
+def get_for_players(
+    cursor,
+    players
+) -> list[BoardConfiguration]:
 
     cursor.execute(
         """
@@ -37,11 +47,17 @@ def get_for_players(cursor, players):
         (players,)
     )
 
-    return cursor.fetchall()
+    return [
+        row_to_configuration(row)
+        for row in cursor.fetchall()
+    ]
 
 
 
-def get_by_name(cursor, name):
+def get_by_name(
+    cursor,
+    name
+) -> BoardConfiguration:
 
     cursor.execute(
         """
@@ -58,4 +74,11 @@ def get_by_name(cursor, name):
         (name,)
     )
 
-    return cursor.fetchone()
+    row = cursor.fetchone()
+
+    if row is None:
+        raise ValueError(
+            f"Configuration not found: {name}"
+        )
+
+    return row_to_configuration(row)

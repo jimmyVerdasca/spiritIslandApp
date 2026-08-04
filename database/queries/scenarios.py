@@ -1,4 +1,7 @@
-def get_all(cursor):
+from models.game import Scenario
+from models.converters import row_to_scenario
+
+def get_all(cursor) -> list[Scenario]:
 
     cursor.execute(
         """
@@ -9,16 +12,12 @@ def get_all(cursor):
     )
 
     return [
-        {
-            "id": row[0],
-            "name": row[1]
-        }
+        row_to_scenario(row)
         for row in cursor.fetchall()
     ]
 
 
-
-def get_random(cursor):
+def get_random(cursor) -> Scenario:
 
     cursor.execute(
         """
@@ -29,11 +28,12 @@ def get_random(cursor):
         """
     )
 
-    return cursor.fetchone()
+    return row_to_scenario(
+        cursor.fetchone()
+    )
 
 
-
-def get_by_name(cursor, name):
+def get_by_name(cursor, name) -> Scenario:
 
     cursor.execute(
         """
@@ -44,4 +44,26 @@ def get_by_name(cursor, name):
         (name,)
     )
 
-    return cursor.fetchone()
+    return row_to_scenario(
+        cursor.fetchone()
+    )
+
+def get_by_id(cursor, game_id):
+    
+    cursor.execute(
+        """
+        SELECT
+            s.id,
+            s.name
+
+        FROM scenarios s
+
+        JOIN game_scenarios gs
+            ON gs.scenario_id = s.id
+
+        WHERE gs.game_id = ?
+        """,
+        (game_id,)
+    )
+
+    return cursor.fetchall()

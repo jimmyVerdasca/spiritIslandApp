@@ -1,6 +1,8 @@
 import random
 from datetime import datetime
-from database.database import database
+from database.database import database, save_game
+from models.game import *
+from models.game_status import GameStatus
 
 
 from database.queries.spirits import (
@@ -38,7 +40,7 @@ def generate_game(
 
     min_difficulty=None,
     max_difficulty=None
-):
+) -> Game:
 
     with database() as db:
 
@@ -80,7 +82,7 @@ def generate_game(
 
         available_boards = get_available_boards(
             cursor,
-            configuration["id"]
+            configuration.id
         )
 
 
@@ -150,64 +152,74 @@ def generate_game(
 
         chosen_adversaries = []
 
-
         all_adversaries = get_adversaries(cursor)
 
-
         total_difficulty = 0
+
+
         if adversary:
+
+            # explicit adversary names provided
             for name in adversary:
+
+                adversary_model = queries.adversaries.get_by_name(
+                    cursor,
+                    name
+                )
+
                 chosen_difficulty = random.randint(
-                            minimum,
-                            maximum - total_difficulty
-                        )
+                    minimum,
+                    maximum - total_difficulty
+                )
+
                 total_difficulty += chosen_difficulty
+
+
                 chosen_adversaries.append(
-                    {
-                        "name": name,
-                        "difficulty": chosen_difficulty
-                    }
+                    GameAdversary(
+                        adversary=adversary_model,
+                        difficulty=chosen_difficulty
+                    )
                 )
 
 
         elif adversaries is not None:
+
             for adv in random.sample(
                 all_adversaries,
                 adversaries
             ):
+
                 chosen_difficulty = random.randint(
-                            minimum,
-                            maximum - total_difficulty
-                        )
+                    minimum,
+                    maximum - total_difficulty
+                )
 
                 chosen_adversaries.append(
-                    {
-                        "name": adv["name"],
-                        "difficulty": random.randint(
-                            minimum,
-                            chosen_difficulty
-                        )
-                    }
+                    GameAdversary(
+                        adversary=adv,
+                        difficulty=chosen_difficulty
+                    )
                 )
-        else: # random  0-2 adversaries
+
+
+        else:
 
             for adv in random.sample(
                 all_adversaries,
                 number_adversary
             ):
+
                 chosen_difficulty = random.randint(
-                        minimum,
-                        maximum - total_difficulty
-                    )
+                    minimum,
+                    maximum - total_difficulty
+                )
 
                 chosen_adversaries.append(
-                    {
-                        "name": adv["name"],
-                        "difficulty": random.randint(
-                            minimum,
-                            chosen_difficulty
-                        )
-                    }
+                    GameAdversary(
+                        adversary=adv,
+                        difficulty=chosen_difficulty
+                    )
                 )
 
 
@@ -217,51 +229,56 @@ def generate_game(
 
         chosen_scenarios = []
 
-
         all_scenarios = get_scenarios(cursor)
 
 
         if scenario:
 
-            chosen_scenarios = scenario
+            # explicit scenario names provided
+            chosen_scenarios = [
+                queries.scenarios.get_by_name(
+                    cursor,
+                    name
+                )
+                for name in scenario
+            ]
 
 
         elif scenarios is not None:
 
-            chosen_scenarios = [
-                x["name"]
-                for x in random.sample(
-                    all_scenarios,
-                    scenarios
-                )
-            ]
+            chosen_scenarios = random.sample(
+                all_scenarios,
+                scenarios
+            )
+
+
         else:
 
-            chosen_scenarios = [
-                x["name"]
-                for x in random.sample(
-                    all_scenarios,
-                    number_scenario
-                )
-            ]
+            chosen_scenarios = random.sample(
+                all_scenarios,
+                number_scenario
+    )
 
 
         # ----------------------------
         # Result
         # ----------------------------
 
-        return {
+        gameObject = Game(
 
-            "players": players,
+            players=players,
 
-            "configuration": configuration["name"],
+            configuration=configuration.name,
 
-            "spirits": chosen_spirits,
+            spirits=chosen_spirits,
 
-            "boards": chosen_boards,
+            boards=chosen_boards,
 
-            "adversaries": chosen_adversaries,
+            adversaries=chosen_adversaries,
 
-            "scenarios": chosen_scenarios
+            scenarios=chosen_scenarios
+        )
 
-        }
+        save_game(gameObject)
+
+        return gameObject

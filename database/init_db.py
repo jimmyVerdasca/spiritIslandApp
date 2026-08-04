@@ -1,4 +1,7 @@
 import sqlite3
+from pathlib import Path
+import argparse
+import os
 
 from database.config import (
     DATABASE_VERSION,
@@ -106,15 +109,20 @@ boards = [
 
 ]
 
-def create_database():
+def create_database(path):
     ''' clean/create db table and populate it with initial datas '''
 
-    db = sqlite3.connect(DB_PATH)
+    db = sqlite3.connect(path)
 
     cursor = db.cursor()
 
 
     cursor.executescript("""
+    DROP TABLE IF EXISTS game_scenarios;
+    DROP TABLE IF EXISTS game_adversaries;
+    DROP TABLE IF EXISTS game_boards;
+    DROP TABLE IF EXISTS game_spirits;
+    DROP TABLE IF EXISTS games;
 
     DROP TABLE IF EXISTS configuration_boards;
     DROP TABLE IF EXISTS board_configurations;
@@ -354,21 +362,122 @@ def create_database():
                 position
             )
         )
+        
+    cursor.execute(
+        """
+        CREATE TABLE games(
+            id INTEGER PRIMARY KEY,
+            players INTEGER NOT NULL,
+            configuration_id INTEGER NOT NULL,
+            status TEXT NOT NULL DEFAULT 'RUNNING',
+            created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+        );"""
+    )
 
+    cursor.execute(
+        """
+        CREATE TABLE game_spirits(
+            game_id INTEGER NOT NULL,
+            spirit_id INTEGER NOT NULL,
+            position INTEGER NOT NULL
+        );"""
+    )
+
+    cursor.execute(
+        """
+        CREATE TABLE game_boards(
+            game_id INTEGER NOT NULL,
+            board_id INTEGER NOT NULL,
+            position INTEGER NOT NULL
+        );"""
+    )
+
+    cursor.execute(
+        """
+        CREATE TABLE game_adversaries(
+            game_id INTEGER NOT NULL,
+            adversary_id INTEGER NOT NULL,
+            difficulty_id INTEGER NOT NULL
+        );"""
+    )
+
+    cursor.execute(
+        """
+        CREATE TABLE game_scenarios(
+            game_id INTEGER NOT NULL,
+            scenario_id INTEGER NOT NULL
+        );
+        """
+    )
 
 
     db.commit()
+
+    cursor.execute(
+    """
+    SELECT name
+    FROM sqlite_master
+    WHERE type='table'
+    """
+    )
+
+    print(cursor.fetchall())
 
     db.close()
 
 
     print(
         "Database created:",
-        DB_PATH
+        path
     )
+
+
+    print("Database exists:", Path(path).exists())
+    print("Database size:", Path(path).stat().st_size)
+    print("Absolute path:", Path(path).resolve())
+
+    print(
+        "Database created:",
+        path
+    )
+
+def get_app_database_path():
+    
+    data_dir = (
+        Path.home()
+        / "AppData"
+        / "Roaming"
+        / "spiritisland"
+    )
+
+    data_dir.mkdir(
+        parents=True,
+        exist_ok=True
+    )
+
+    return data_dir / DB_NAME
 
 
 
 if __name__ == "__main__":
+    
+    parser = argparse.ArgumentParser()
 
-    create_database()
+    parser.add_argument(
+        "--app-data",
+        action="store_true",
+        help="Create database in application data directory"
+    )
+
+    args = parser.parse_args()
+
+    if args.app_data:
+
+        path = get_app_database_path()
+
+    else:
+        path = DB_PATH
+
+
+    print(f"try create db at {path}")
+    create_database(path)

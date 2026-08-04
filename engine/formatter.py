@@ -1,34 +1,39 @@
-def format_game(game):
+from models.game import Game
+
+
+def format_game(game: Game) -> str:
 
     text = []
 
     print(game)
 
     text.append(
-        f"Players: {game['players']}"
+        f"Players: {game.players}"
     )
 
     text.append(
-        f"Board: {game['configuration']}"
+        f"Board: {game.configuration}"
     )
 
     text.append("")
     text.append("Spirits:")
 
-    for (spirit, board) in zip(game["spirits"], game["boards"]):
+    for spirit, board in zip(game.spirits, game.boards):
         text.append(
-            f"- {spirit['name']} ({board['name']})"
+            f"- {spirit.name} ({board.name})"
         )
-        
+
+
     text.append("")
     text.append("Adversaries:")
 
-    if game["adversaries"]:
+    if game.adversaries:
 
-        for adversary in game["adversaries"]:
+        for game_adversary in game.adversaries:
             text.append(
-                f"- {adversary['name']} (level {adversary['difficulty']})"
-            )
+            f"- {game_adversary.adversary.name} "
+            f"(level {game_adversary.difficulty})"
+        )
 
     else:
 
@@ -40,17 +45,12 @@ def format_game(game):
     text.append("")
     text.append("Scenarios:")
 
-    if game["scenarios"]:
+    if game.scenarios:
 
-        for scenario in game["scenarios"]:
-            if isinstance(scenario, dict):
-                text.append(
-                    f"- {scenario['name']}"
-                )
-            else:
-                text.append(
-                    f"- {scenario}"
-                )
+        for scenario in game.scenarios:
+            text.append(
+                f"- {scenario.name}"
+            )
 
     else:
 
