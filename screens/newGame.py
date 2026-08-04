@@ -3,10 +3,13 @@ from .baseScreen import BaseScreen
 from kivy.metrics import dp
 
 from kivymd.uix.boxlayout import MDBoxLayout
+from kivymd.uix.scrollview import MDScrollView
+from kivymd.uix.card import MDCard
 from kivymd.uix.label import MDLabel
 from kivymd.uix.button import MDRaisedButton
+from kivymd.uix.menu import MDDropdownMenu
 
-
+from database.database import get_configurations
 from engine.generator import generate_game
 from engine.formatter import format_game
 
@@ -17,73 +20,221 @@ class NewGameScreen(BaseScreen):
 
         super().__init__(**kwargs)
 
+        self.players = None
+        self.configuration = None
 
         root = MDBoxLayout(
             orientation="vertical"
         )
 
-
-        # fixed top navigation
         self.add_top_bar(
             root,
             "Game Generator"
         )
 
+        scroll = MDScrollView()
 
-        # page content
         content = MDBoxLayout(
             orientation="vertical",
             spacing=dp(20),
-            padding=dp(20)
+            padding=dp(20),
+            adaptive_height=True
         )
 
+        # ----------------------------
+        # Players
+        # ----------------------------
 
-        self.result = MDLabel(
-            text="Press Generate",
-            halign="center",
-            font_style="H5",
-            valign="center"
+        content.add_widget(
+            MDLabel(
+                text="Players",
+                font_style="H6"
+            )
         )
 
+        self.players_button = MDRaisedButton(
+            text="Any"
+        )
 
-        button = MDRaisedButton(
+        self.players_button.bind(
+            on_release=self.open_players_menu
+        )
+
+        content.add_widget(
+            self.players_button
+        )
+
+        # ----------------------------
+        # Configuration
+        # ----------------------------
+
+        content.add_widget(
+            MDLabel(
+                text="Board Configuration",
+                font_style="H6"
+            )
+        )
+
+        self.configuration_button = MDRaisedButton(
+            text="Any"
+        )
+
+        self.configuration_button.bind(
+            on_release=self.open_configuration_menu
+        )
+
+        content.add_widget(
+            self.configuration_button
+        )
+
+        # ----------------------------
+        # Generate
+        # ----------------------------
+
+        generate = MDRaisedButton(
             text="Generate",
             pos_hint={
-                "center_x": 0.5
+                "center_x": .5
             }
         )
 
-
-        button.bind(
+        generate.bind(
             on_release=self.generate
         )
 
-
         content.add_widget(
+            generate
+        )
+
+        # ----------------------------
+        # Result
+        # ----------------------------
+
+        card = MDCard(
+            orientation="vertical",
+            padding="20dp",
+            adaptive_height=True,
+            radius=[20]
+        )
+
+        self.result = MDLabel(
+            text="Press Generate",
+            adaptive_height=True
+        )
+
+        card.add_widget(
             self.result
         )
 
         content.add_widget(
-            button
+            card
         )
 
-
-        root.add_widget(
+        scroll.add_widget(
             content
         )
 
+        root.add_widget(
+            scroll
+        )
 
         self.add_widget(
             root
         )
 
+    # ----------------------------------------------------
+    # Menus
+    # ----------------------------------------------------
+
+    def open_players_menu(self, instance):
+
+        items = [
+            {
+                "text": "Any",
+                "on_release": lambda: self.set_players(None)
+            }
+        ]
+
+        for i in range(2, 7):
+
+            items.append(
+                {
+                    "text": str(i),
+                    "on_release": lambda x=i: self.set_players(x)
+                }
+            )
+
+        self.players_menu = MDDropdownMenu(
+            caller=self.players_button,
+            items=items
+        )
+
+        self.players_menu.open()
+
+    def set_players(self, value):
+
+        self.players = value
+
+        self.players_button.text = (
+            "Any"
+            if value is None
+            else str(value)
+        )
+
+        self.players_menu.dismiss()
+
+    def open_configuration_menu(self, instance):
+
+        configurations = get_configurations()
+
+        items = [
+            {
+                "text": "Any",
+                "on_release": lambda: self.set_configuration(None)
+            }
+        ]
+
+        for configuration in configurations:
+
+            items.append(
+                {
+                    "text": configuration.name,
+                    "on_release": lambda c=configuration: self.set_configuration(c)
+                }
+            )
+
+        self.configuration_menu = MDDropdownMenu(
+            caller=self.configuration_button,
+            items=items
+        )
+
+        self.configuration_menu.open()
+
+    def set_configuration(self, configuration):
+
+        self.configuration = configuration
+
+        self.configuration_button.text = (
+            "Any"
+            if configuration is None
+            else configuration.name
+        )
+
+        self.configuration_menu.dismiss()
+
+    # ----------------------------------------------------
+    # Generate
+    # ----------------------------------------------------
 
     def generate(self, instance):
 
-        game = generate_game()
+        game = generate_game(
+            players=self.players,
+            board=(
+                None
+                if self.configuration is None
+                else self.configuration.name
+            )
+        )
 
-        text = format_game(game)
-
-        print(text)
-
-        self.result.text = text
+        self.result.text = format_game(game)

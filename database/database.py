@@ -223,3 +223,18 @@ def get_running_games() -> list[Game]:
 
     finally:
         db.close()
+
+def get_configurations():
+    db = get_connection()
+    
+    try:
+        cursor = db.cursor()
+
+        configurations = queries.configurations.get_all(
+            cursor
+        )
+
+        return configurations
+
+    finally:
+        db.close()
