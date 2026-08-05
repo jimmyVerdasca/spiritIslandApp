@@ -42,29 +42,6 @@ class NewGameScreen(BaseScreen):
         )
 
         # ----------------------------
-        # Players
-        # ----------------------------
-
-        content.add_widget(
-            MDLabel(
-                text="Players",
-                font_style="H6"
-            )
-        )
-
-        self.players_button = MDRaisedButton(
-            text="Any"
-        )
-
-        self.players_button.bind(
-            on_release=self.open_players_menu
-        )
-
-        content.add_widget(
-            self.players_button
-        )
-
-        # ----------------------------
         # Configuration
         # ----------------------------
 
@@ -85,6 +62,29 @@ class NewGameScreen(BaseScreen):
 
         content.add_widget(
             self.configuration_button
+        )
+
+        # ----------------------------
+        # Players
+        # ----------------------------
+
+        content.add_widget(
+            MDLabel(
+                text="Players",
+                font_style="H6"
+            )
+        )
+
+        self.players_button = MDRaisedButton(
+            text="Any"
+        )
+
+        self.players_button.bind(
+            on_release=self.open_players_menu
+        )
+
+        content.add_widget(
+            self.players_button
         )
 
         # ----------------------------
@@ -147,7 +147,13 @@ class NewGameScreen(BaseScreen):
     # ----------------------------------------------------
 
     def open_players_menu(self, instance):
-
+    
+        if (
+            self.configuration is not None
+            and self.configuration.min_players == self.configuration.max_players
+        ):
+            return
+        
         items = [
             {
                 "text": "Any",
@@ -155,8 +161,14 @@ class NewGameScreen(BaseScreen):
             }
         ]
 
-        for i in range(2, 7):
+        if self.configuration is None:
+            minimum = 2
+            maximum = 6
+        else:
+            minimum = self.configuration.min_players
+            maximum = self.configuration.max_players
 
+        for i in range(minimum, maximum + 1):
             items.append(
                 {
                     "text": str(i),
@@ -172,7 +184,7 @@ class NewGameScreen(BaseScreen):
         self.players_menu.open()
 
     def set_players(self, value):
-
+    
         self.players = value
 
         self.players_button.text = (
@@ -211,7 +223,7 @@ class NewGameScreen(BaseScreen):
         self.configuration_menu.open()
 
     def set_configuration(self, configuration):
-
+    
         self.configuration = configuration
 
         self.configuration_button.text = (
@@ -219,6 +231,27 @@ class NewGameScreen(BaseScreen):
             if configuration is None
             else configuration.name
         )
+
+        if configuration is None:
+            self.players = None
+            self.players_button.text = "Any"
+
+        elif configuration.min_players == configuration.max_players:
+            # Only one possible player count
+            self.players = configuration.min_players
+            self.players_button.text = str(configuration.min_players)
+
+        elif (
+            self.players is not None
+            and not (
+                configuration.min_players
+                <= self.players
+                <= configuration.max_players
+            )
+        ):
+            # Previous selection is no longer valid
+            self.players = None
+            self.players_button.text = "Any"
 
         self.configuration_menu.dismiss()
 
