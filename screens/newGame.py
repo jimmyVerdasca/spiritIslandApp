@@ -18,6 +18,8 @@ from database.database import (
 from engine.generator import generate_game
 from engine.formatter import format_game
 
+from widgets.selection_menu_item import SelectionMenuItem
+
 
 class NewGameScreen(BaseScreen):
 
@@ -347,65 +349,138 @@ class NewGameScreen(BaseScreen):
     
         spirits = get_spirits()
 
-        items = [
+        items = []
+
+        items.append(
             {
                 "text": "Any",
+                "item_state": "normal",
+                "viewclass": "SelectionMenuItem",
                 "on_release": lambda:
                     self.set_spirit(index, None)
             }
-        ]
+        )
+
 
         for spirit in spirits:
 
+            state = "normal"
+            label = spirit.name
+
+            for i, row in enumerate(self.player_rows):
+
+                if (
+                    i != index
+                    and row["spirit"] is not None
+                    and row["spirit"].id == spirit.id
+                ):
+                    state = "warning"
+                    label = (
+                        f"{spirit.name} "
+                        f"(Player {i + 1})"
+                    )
+
+
+                if (
+                    i == index
+                    and row["spirit"] is not None
+                    and row["spirit"].id == spirit.id
+                ):
+                    state = "selected"
+                    label = (
+                        f"{spirit.name}"
+                    )
+
+
             items.append(
                 {
-                    "text": spirit.name,
+                    "text": label,
+                    "item_state": state,
+                    "viewclass": "SelectionMenuItem",
                     "on_release": lambda s=spirit:
                         self.set_spirit(index, s)
                 }
             )
 
 
+
         self.spirit_menu = MDDropdownMenu(
             caller=self.player_rows[index]["spirit_button"],
-            items=items
         )
+
+        self.spirit_menu.items = items
 
         self.spirit_menu.open()
 
 
 
     def open_board_menu(self, index):
-
+    
         boards = get_boards()
 
         items = [
             {
                 "text": "Any",
+                "item_state": "normal",
+                "viewclass": "SelectionMenuItem",
                 "on_release": lambda:
                     self.set_board(index, None)
             }
         ]
 
+
         for board in boards:
+
+            state = "normal"
+            label = board.name
+
+
+            for i, row in enumerate(self.player_rows):
+
+                if (
+                    i != index
+                    and row["board"] is not None
+                    and row["board"].id == board.id
+                ):
+                    state = "warning"
+                    label = (
+                        f"⚠ {board.name} "
+                        f"(Player {i + 1})"
+                    )
+
+
+                if (
+                    i == index
+                    and row["board"] is not None
+                    and row["board"].id == board.id
+                ):
+                    state = "selected"
+                    label = (
+                        f"✓ {board.name}"
+                    )
+
 
             items.append(
                 {
-                    "text": board.name,
-                    "on_release": lambda b=board:
-                        self.set_board(index, b)
+                    "text": label,
+                    "item_state": state,
+                    "viewclass": "SelectionMenuItem",
+                    "on_release": lambda s=board:
+                        self.set_board(index, s)
                 }
             )
 
 
         self.board_menu = MDDropdownMenu(
             caller=self.player_rows[index]["board_button"],
-            items=items
         )
+
+        self.board_menu.items = items
 
         self.board_menu.open()
 
     def set_spirit(self, index, spirit):
+        print("SELECTED SPIRIT:", index, spirit)
     
         # Remove this spirit from another player
         if spirit is not None:
