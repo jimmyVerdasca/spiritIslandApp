@@ -12,7 +12,7 @@ def format_game(game: Game) -> str:
     )
 
     text.append(
-        f"Board: {game.configuration}"
+        f"Board: {game.configuration.name}"
     )
 
     text.append("")

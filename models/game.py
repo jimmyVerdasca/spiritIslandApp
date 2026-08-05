@@ -44,7 +44,7 @@ class GameAdversary:
 class Game:
     id: int | None = None
     players: int = 0
-    configuration: str = ""
+    configuration: BoardConfiguration | None = None
 
     spirits: list[Spirit] = field(default_factory=list)
     boards: list[Board] = field(default_factory=list)

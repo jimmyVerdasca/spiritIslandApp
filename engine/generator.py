@@ -26,259 +26,236 @@ from database.queries.scenarios import (
 
 
 def generate_game(
-    players=None,
+    players: int | None = None,
 
-    board=None,
-    boards=None,
+    configuration: BoardConfiguration | None = None,
+    spirits: list[Spirit | None] | None = None,
+    boards: list[Board | None] | None = None,
 
-    adversaries=None,
-    scenarios=None,
+    adversaries: list[Adversary] | None = None,
+    adversary_count: int | None = None,
 
-    adversary=None,
-    difficulty=None,
-    scenario=None,
+    scenarios: list[Scenario] | None = None,
+    scenario_count: int | None = None,
 
-    min_difficulty=None,
-    max_difficulty=None
+    difficulty: int | None = None,
+    min_difficulty: int | None = None,
+    max_difficulty: int | None = None,
 ) -> Game:
+
+    print(players)
+    print(configuration)
 
     with database() as db:
 
         cursor = db.cursor()
         # ----------------------------
-        # Players
+        # Board configuration
         # ----------------------------
 
-        if players is None:
-            players = random.randint(2,6)
-
-
-        if players < 2 or players > 6:
-            raise ValueError(
-                "Players must be between 2 and 6"
+        if configuration is None:
+            configuration = get_configuration(
+                cursor,
+                players=players
             )
-
-
-        minimum = min_difficulty or 1
-        maximum = max_difficulty or 6
-
-
-        if minimum > maximum:
-            raise ValueError(
-                "Invalid difficulty range"
-            )
-
-
-        # ----------------------------
-        # Board
-        # ----------------------------
-
-        configuration = get_configuration(
-            cursor,
-            name=board,
-            players=players
-        )
-
 
         available_boards = get_available_boards(
             cursor,
             configuration.id
         )
 
-
-        if len(available_boards) < players:
-            raise Exception(
-                "Not enough boards available for this configuration"
+        if players is None:
+            players = random.randint(
+                configuration.min_players,
+                configuration.max_players
             )
 
+        # ----------------------------
+        # Boards
+        # ----------------------------
 
-        chosen_boards = random.sample(
-            available_boards,
-            players
-        )
-
-
-        if boards:
-
-            # exact boards requested
-
-            chosen_boards = boards
-
-        else:
-
+        if boards is None:
+    
             chosen_boards = random.sample(
                 available_boards,
                 players
             )
+
+        else:
+
+            chosen_boards = []
+
+            selected_boards = [
+                board
+                for board in boards
+                if board is not None
+            ]
+
+
+            chosen_boards.extend(
+                selected_boards
+            )
+
+
+            missing = players - len(chosen_boards)
+
+
+            if missing > 0:
+
+                available = [
+                    board
+                    for board in available_boards
+                    if board not in chosen_boards
+                ]
+
+                chosen_boards.extend(
+                    random.sample(
+                        available,
+                        missing
+                    )
+                )
 
 
         # ----------------------------
         # Spirits
         # ----------------------------
 
-        chosen_spirits = get_random_spirits(
-            cursor,
-            players
-        )
+        if spirits is None:
 
-        
+            # completely random
+            chosen_spirits = get_random_spirits(
+                cursor,
+                players
+            )
+
+        else:
+
+            all_spirits = get_spirits(cursor)
+
+            chosen_spirits = []
+
+            already_selected = [
+                spirit
+                for spirit in spirits
+                if spirit is not None
+            ]
+
+
+            # keep selected spirits
+            chosen_spirits.extend(
+                already_selected
+            )
+
+
+            missing = players - len(chosen_spirits)
+
+
+            if missing > 0:
+
+                available = [
+                    spirit
+                    for spirit in all_spirits
+                    if spirit not in chosen_spirits
+                ]
+
+                chosen_spirits.extend(
+                    random.sample(
+                        available,
+                        missing
+                    )
+                )
+
+
         # ----------------------------
-        # set quantity adversary & scenario to random pick
+        # Random counts
         # ----------------------------
 
-        number_adversary = 0
-        if not adversary:
+        if adversary_count is None and adversaries is None:
+            adversary_count = random.randint(0, 2)
 
-            number_adversary = random.randint(0,2)
+        if scenario_count is None and scenarios is None:
+            scenario_count = random.randint(
+                0,
+                2 - (adversary_count or 0)
+            )
 
-        number_scenario = 0
-        if not scenario:
-            number_scenario = random.randint(0,2 - number_adversary)
 
-        
         # ----------------------------
-        # set difficulty depending on number of adversary
+        # Difficulty limits
         # ----------------------------
 
-        if number_scenario > 1:
-            maximum = 4 if (maximum > 4) else maximum
+        minimum = min_difficulty or 1
+        maximum = max_difficulty or 6
 
-        if number_adversary > 1:
-            maximum -= number_adversary
+        if (scenario_count or 0) > 1:
+            maximum = min(maximum, 4)
+
+        if (adversary_count or 0) > 1:
+            maximum -= adversary_count
+
 
         # ----------------------------
         # Adversaries
         # ----------------------------
 
-        chosen_adversaries = []
+        chosen_adversaries: list[GameAdversary] = []
 
         all_adversaries = get_adversaries(cursor)
 
         total_difficulty = 0
 
+        if adversaries is None:
 
-        if adversary:
-
-            # explicit adversary names provided
-            for name in adversary:
-
-                adversary_model = queries.adversaries.get_by_name(
-                    cursor,
-                    name
-                )
-
-                chosen_difficulty = random.randint(
-                    minimum,
-                    maximum - total_difficulty
-                )
-
-                total_difficulty += chosen_difficulty
-
-
-                chosen_adversaries.append(
-                    GameAdversary(
-                        adversary=adversary_model,
-                        difficulty=chosen_difficulty
-                    )
-                )
-
-
-        elif adversaries is not None:
-
-            for adv in random.sample(
+            adversaries = random.sample(
                 all_adversaries,
-                adversaries
-            ):
+                adversary_count
+            )
 
-                chosen_difficulty = random.randint(
-                    minimum,
-                    maximum - total_difficulty
+        for adv in adversaries:
+
+            upper = maximum - total_difficulty
+
+            chosen_difficulty = random.randint(
+                minimum,
+                upper
+            )
+
+            total_difficulty += chosen_difficulty
+
+            chosen_adversaries.append(
+                GameAdversary(
+                    adversary=adv,
+                    difficulty=chosen_difficulty
                 )
-
-                chosen_adversaries.append(
-                    GameAdversary(
-                        adversary=adv,
-                        difficulty=chosen_difficulty
-                    )
-                )
-
-
-        else:
-
-            for adv in random.sample(
-                all_adversaries,
-                number_adversary
-            ):
-
-                chosen_difficulty = random.randint(
-                    minimum,
-                    maximum - total_difficulty
-                )
-
-                chosen_adversaries.append(
-                    GameAdversary(
-                        adversary=adv,
-                        difficulty=chosen_difficulty
-                    )
-                )
+            )
 
 
         # ----------------------------
         # Scenarios
         # ----------------------------
 
-        chosen_scenarios = []
-
         all_scenarios = get_scenarios(cursor)
 
-
-        if scenario:
-
-            # explicit scenario names provided
-            chosen_scenarios = [
-                queries.scenarios.get_by_name(
-                    cursor,
-                    name
-                )
-                for name in scenario
-            ]
-
-
-        elif scenarios is not None:
+        if scenarios is None:
 
             chosen_scenarios = random.sample(
                 all_scenarios,
-                scenarios
+                scenario_count
             )
-
 
         else:
 
-            chosen_scenarios = random.sample(
-                all_scenarios,
-                number_scenario
-    )
+            chosen_scenarios = scenarios
 
-
-        # ----------------------------
-        # Result
-        # ----------------------------
-
-        gameObject = Game(
-
+        game = Game(
             players=players,
-
-            configuration=configuration.name,
-
+            configuration=configuration,
             spirits=chosen_spirits,
-
             boards=chosen_boards,
-
             adversaries=chosen_adversaries,
-
-            scenarios=chosen_scenarios
+            scenarios=chosen_scenarios,
         )
 
-        save_game(gameObject)
+        save_game(game)
 
-        return gameObject
+        return game

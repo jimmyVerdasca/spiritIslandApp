@@ -5,10 +5,7 @@ from models.game_status import GameStatus
 
 def save_game(cursor, game: Game) -> int:
 
-    configuration = queries.configurations.get_by_name(
-        cursor,
-        game.configuration
-    )
+    configuration = game.configuration
 
     cursor.execute(
         """

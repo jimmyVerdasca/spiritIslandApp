@@ -88,8 +88,25 @@ def get_name(cursor, board_id) -> str:
 
 
 def get_configuration(cursor, name=None, players=None) -> BoardConfiguration:
+    print(name)
+    print(players)
     
     if name:
+    
+        cursor.execute(
+            """
+            SELECT
+                id,
+                name,
+                min_players,
+                max_players
+            FROM board_configurations
+            WHERE name = ?
+            """,
+            (name,)
+        )
+
+    elif players is not None:
 
         cursor.execute(
             """
@@ -98,15 +115,11 @@ def get_configuration(cursor, name=None, players=None) -> BoardConfiguration:
                 name,
                 min_players,
                 max_players
-
             FROM board_configurations
-
-            WHERE name = ?
-            AND min_players <= ?
+            WHERE min_players <= ?
             AND max_players >= ?
             """,
             (
-                name,
                 players,
                 players
             )
@@ -121,16 +134,8 @@ def get_configuration(cursor, name=None, players=None) -> BoardConfiguration:
                 name,
                 min_players,
                 max_players
-
             FROM board_configurations
-
-            WHERE min_players <= ?
-            AND max_players >= ?
-            """,
-            (
-                players,
-                players
-            )
+            """
         )
 
 

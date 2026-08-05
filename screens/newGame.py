@@ -9,7 +9,12 @@ from kivymd.uix.label import MDLabel
 from kivymd.uix.button import MDRaisedButton
 from kivymd.uix.menu import MDDropdownMenu
 
-from database.database import get_configurations
+from database.database import (
+    get_configurations,
+    get_spirits,
+    get_boards
+)
+
 from engine.generator import generate_game
 from engine.formatter import format_game
 
@@ -85,6 +90,22 @@ class NewGameScreen(BaseScreen):
 
         content.add_widget(
             self.players_button
+        )
+
+        # ----------------------------
+        # Per-player selection
+        # ----------------------------
+
+        self.player_rows = []
+
+        self.players_container = MDBoxLayout(
+            orientation="vertical",
+            spacing=dp(12),
+            adaptive_height=True
+        )
+
+        content.add_widget(
+            self.players_container
         )
 
         # ----------------------------
@@ -193,6 +214,8 @@ class NewGameScreen(BaseScreen):
             else str(value)
         )
 
+        self.refresh_player_rows()
+
         self.players_menu.dismiss()
 
     def open_configuration_menu(self, instance):
@@ -253,7 +276,187 @@ class NewGameScreen(BaseScreen):
             self.players = None
             self.players_button.text = "Any"
 
+        self.refresh_player_rows()
         self.configuration_menu.dismiss()
+
+    def refresh_player_rows(self):
+
+        self.players_container.clear_widgets()
+
+        self.player_rows = []
+
+        if self.players is None:
+            return
+
+        for i in range(self.players):
+
+            card = MDCard(
+                orientation="vertical",
+                padding="10dp",
+                spacing="10dp",
+                adaptive_height=True,
+                radius=[16]
+            )
+
+            card.add_widget(
+                MDLabel(
+                    text=f"Player {i + 1}",
+                    font_style="H6"
+                )
+            )
+
+            row = MDBoxLayout(
+                orientation="horizontal",
+                spacing=dp(10),
+                adaptive_height=True
+            )
+
+            spirit_button = MDRaisedButton(
+                text="Spirit: Any",
+                size_hint_x=.75
+            )
+
+            board_button = MDRaisedButton(
+                text="Board: Any",
+                size_hint_x=.25
+            )
+
+            spirit_button.bind(
+                on_release=lambda x, idx=i: self.open_spirit_menu(idx)
+            )
+
+            board_button.bind(
+                on_release=lambda x, idx=i: self.open_board_menu(idx)
+            )
+
+            row.add_widget(spirit_button)
+            row.add_widget(board_button)
+
+            card.add_widget(row)
+
+            self.players_container.add_widget(card)
+
+            self.player_rows.append({
+                "spirit": None,
+                "board": None,
+                "spirit_button": spirit_button,
+                "board_button": board_button
+            })
+
+    def open_spirit_menu(self, index):
+    
+        spirits = get_spirits()
+
+        items = [
+            {
+                "text": "Any",
+                "on_release": lambda:
+                    self.set_spirit(index, None)
+            }
+        ]
+
+        for spirit in spirits:
+
+            items.append(
+                {
+                    "text": spirit.name,
+                    "on_release": lambda s=spirit:
+                        self.set_spirit(index, s)
+                }
+            )
+
+
+        self.spirit_menu = MDDropdownMenu(
+            caller=self.player_rows[index]["spirit_button"],
+            items=items
+        )
+
+        self.spirit_menu.open()
+
+
+
+    def open_board_menu(self, index):
+
+        boards = get_boards()
+
+        items = [
+            {
+                "text": "Any",
+                "on_release": lambda:
+                    self.set_board(index, None)
+            }
+        ]
+
+        for board in boards:
+
+            items.append(
+                {
+                    "text": board.name,
+                    "on_release": lambda b=board:
+                        self.set_board(index, b)
+                }
+            )
+
+
+        self.board_menu = MDDropdownMenu(
+            caller=self.player_rows[index]["board_button"],
+            items=items
+        )
+
+        self.board_menu.open()
+
+    def set_spirit(self, index, spirit):
+    
+        # Remove this spirit from another player
+        if spirit is not None:
+
+            for i, row in enumerate(self.player_rows):
+
+                if i != index and row["spirit"] == spirit:
+
+                    row["spirit"] = None
+
+                    row["spirit_button"].text = "Spirit: Any"
+
+
+        self.player_rows[index]["spirit"] = spirit
+
+        button = self.player_rows[index]["spirit_button"]
+
+        button.text = (
+            "Spirit: Any"
+            if spirit is None
+            else spirit.name
+        )
+
+        self.spirit_menu.dismiss()
+
+
+
+    def set_board(self, index, board):
+        # Remove this board from another player
+        if board is not None:
+
+            for i, row in enumerate(self.player_rows):
+
+                if i != index and row["board"] == board:
+
+                    row["board"] = None
+
+                    row["board_button"].text = "Board: Any"
+
+
+        self.player_rows[index]["board"] = board
+
+        button = self.player_rows[index]["board_button"]
+
+        button.text = (
+            "Board: Any"
+            if board is None
+            else board.name
+        )
+
+        self.board_menu.dismiss()
 
     # ----------------------------------------------------
     # Generate
@@ -261,13 +464,23 @@ class NewGameScreen(BaseScreen):
 
     def generate(self, instance):
 
+        spirits = [
+            row["spirit"]
+            for row in self.player_rows
+        ]
+
+
+        boards = [
+            row["board"]
+            for row in self.player_rows
+        ]
+
+
         game = generate_game(
             players=self.players,
-            board=(
-                None
-                if self.configuration is None
-                else self.configuration.name
-            )
+            configuration=self.configuration,
+            spirits=spirits,
+            boards=boards
         )
 
         self.result.text = format_game(game)

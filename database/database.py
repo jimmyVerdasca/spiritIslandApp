@@ -238,3 +238,33 @@ def get_configurations():
 
     finally:
         db.close()
+
+def get_spirits():
+    db = get_connection()
+    
+    try:
+        cursor = db.cursor()
+
+        spirits = queries.spirits.get_all(
+            cursor
+        )
+
+        return spirits
+
+    finally:
+        db.close()
+
+def get_boards():
+    db = get_connection()
+    
+    try:
+        cursor = db.cursor()
+
+        boards = queries.boards.get_all(
+            cursor
+        )
+
+        return boards
+
+    finally:
+        db.close()
