@@ -181,6 +181,7 @@ def generate_game(
 
         user_selected_scenarios = (
             scenarios is not None
+            and len(scenarios) > 0
         )
 
 
@@ -345,8 +346,10 @@ def generate_game(
 
         all_scenarios = get_scenarios(cursor)
 
+
         if scenarios is None:
 
+            # No user input -> random amount
             chosen_scenarios = random.sample(
                 all_scenarios,
                 scenario_count
@@ -354,7 +357,36 @@ def generate_game(
 
         else:
 
-            chosen_scenarios = scenarios
+            chosen_scenarios = []
+
+            selected_scenarios = [
+                s
+                for s in scenarios
+                if s is not None
+            ]
+
+            chosen_scenarios.extend(
+                selected_scenarios
+            )
+
+
+            missing = len(scenarios) - len(chosen_scenarios)
+
+
+            if missing > 0:
+
+                available = [
+                    s
+                    for s in all_scenarios
+                    if s not in chosen_scenarios
+                ]
+
+                chosen_scenarios.extend(
+                    random.sample(
+                        available,
+                        missing
+                    )
+                )
 
         game = Game(
             players=players,

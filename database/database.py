@@ -298,3 +298,18 @@ def get_difficulties():
 
     finally:
         db.close()
+
+def get_scenarios():
+    db = get_connection()
+    
+    try:
+        cursor = db.cursor()
+
+        scenarios = queries.scenarios.get_all(
+            cursor
+        )
+
+        return scenarios
+
+    finally:
+        db.close()

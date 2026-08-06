@@ -14,7 +14,8 @@ from database.database import (
     get_spirits,
     get_boards,
     get_adversaries,
-    get_difficulties
+    get_difficulties,
+    get_scenarios
 )
 
 from engine.generator import generate_game
@@ -32,6 +33,7 @@ class NewGameScreen(BaseScreen):
         self.players = None
         self.configuration = None
         self.adversary_rows = []
+        self.scenario_rows = []
 
         root = MDBoxLayout(
             orientation="vertical"
@@ -161,6 +163,41 @@ class NewGameScreen(BaseScreen):
         remove_button = MDIconButton(
             icon="close",
             size_hint_x=.1,
+        )
+
+        # ----------------------------
+        # Scenario selection
+        # ----------------------------
+
+        content.add_widget(
+            MDLabel(
+                text="Scenarios",
+                font_style="H6",
+            )
+        )
+
+
+        self.add_scenario_button = MDRaisedButton(
+            text="+ Add Scenario",
+        )
+
+        self.add_scenario_button.bind(
+            on_release=self.add_scenario_row
+        )
+
+        content.add_widget(
+            self.add_scenario_button
+        )
+
+
+        self.scenarios_container = MDBoxLayout(
+            orientation="vertical",
+            spacing=dp(10),
+            adaptive_height=True,
+        )
+
+        content.add_widget(
+            self.scenarios_container
         )
 
         # ----------------------------
@@ -458,6 +495,183 @@ class NewGameScreen(BaseScreen):
                 on_release=lambda x, idx=i: self.open_level_menu(idx)
             )
         self.update_adversary_button_state()
+
+    def set_scenario(self,index,scenario):
+    
+        self.scenario_rows[index]["scenario"] = scenario
+
+
+        self.scenario_rows[index]["scenario_button"].text = (
+            "Scenario: Any"
+            if scenario is None
+            else scenario.name
+        )
+
+
+        self.scenario_menu.dismiss()
+
+    def remove_scenario_row(self,index):
+    
+        if index >= len(self.scenario_rows):
+            return
+
+
+        row = self.scenario_rows.pop(index)
+
+
+        self.scenarios_container.remove_widget(
+            row["row"]
+        )
+
+
+        for i,row in enumerate(self.scenario_rows):
+
+            row["scenario_button"].unbind(
+                on_release=None
+            )
+
+            row["scenario_button"].bind(
+                on_release=lambda x,idx=i:
+                    self.open_scenario_menu(idx)
+            )
+
+
+        self.update_scenario_button_state()
+
+    def update_scenario_button_state(self):
+    
+        max_scenarios = len(get_scenarios())
+
+        self.add_scenario_button.disabled = (
+            len(self.scenario_rows)
+            >= max_scenarios
+        )
+
+    def open_scenario_menu(self, index):
+    
+        scenarios = get_scenarios()
+
+
+        items = [
+            {
+                "text": "Any",
+                "viewclass": "SelectionMenuItem",
+                "on_release":
+                    lambda:
+                    self.set_scenario(index, None)
+            }
+        ]
+
+
+        selected = [
+            row["scenario"]
+            for i,row in enumerate(self.scenario_rows)
+            if i != index
+            and row["scenario"] is not None
+        ]
+
+
+        for scenario in scenarios:
+
+            if scenario in selected:
+                continue
+
+
+            state = (
+                "selected"
+                if self.scenario_rows[index]["scenario"] == scenario
+                else "normal"
+            )
+
+
+            items.append(
+                {
+                    "text": scenario.name,
+                    "item_state": state,
+                    "viewclass": "SelectionMenuItem",
+                    "on_release":
+                        lambda s=scenario:
+                        self.set_scenario(index,s)
+                }
+            )
+
+
+        self.scenario_menu = MDDropdownMenu(
+            caller=
+            self.scenario_rows[index]["scenario_button"],
+            items=items
+        )
+
+
+        self.scenario_menu.open()
+
+    def add_scenario_row(self, *args):
+    
+        row = MDBoxLayout(
+            orientation="horizontal",
+            spacing=dp(10),
+            adaptive_height=True,
+        )
+
+
+        scenario_button = MDRaisedButton(
+            text="Scenario: Any",
+            size_hint_x=.85,
+        )
+
+
+        remove_button = MDIconButton(
+            icon="close",
+            size_hint_x=.15,
+        )
+
+
+        index = len(self.scenario_rows)
+
+
+        scenario_button.bind(
+            on_release=lambda x, i=index:
+                self.open_scenario_menu(i)
+        )
+
+
+        row.add_widget(
+            scenario_button
+        )
+
+        row.add_widget(
+            remove_button
+        )
+
+
+        self.scenarios_container.add_widget(
+            row
+        )
+
+
+        self.scenario_rows.append(
+            {
+                "row": row,
+                "scenario": None,
+                "scenario_button": scenario_button,
+                "remove_button": remove_button,
+            }
+        )
+
+
+        remove_button.bind(
+            on_release=lambda x, r=row:
+                self.remove_scenario_row(
+                    next(
+                        i
+                        for i,item in enumerate(self.scenario_rows)
+                        if item["row"] == r
+                    )
+                )
+        )
+
+
+        self.update_scenario_button_state()
 
     def set_players(self, value):
     
@@ -818,7 +1032,14 @@ class NewGameScreen(BaseScreen):
             for row in self.adversary_rows
         ]
 
-        print("SCREEN ADV:", adversaries)
+        scenarios = None
+
+        if len(self.scenario_rows) > 0:
+
+            scenarios = [
+                row["scenario"]
+                for row in self.scenario_rows
+            ]
 
         game = generate_game(
             players=self.players,
@@ -826,6 +1047,7 @@ class NewGameScreen(BaseScreen):
             spirits=spirits,
             boards=boards,
             adversaries=adversaries,
+            scenarios=scenarios,
         )
 
         self.result.text = format_game(game)
