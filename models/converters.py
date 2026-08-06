@@ -6,7 +6,8 @@ from models.game import (
     Scenario,
     GameAdversary,
     BoardConfiguration,
-    Difficulty
+    Difficulty,
+    AdversaryDifficulty
 )
 
 from models.game_status import GameStatus
@@ -55,7 +56,8 @@ def row_to_game_adversary(row) -> GameAdversary:
 def row_to_scenario(row) -> Scenario:
     return Scenario(
         id=row["id"],
-        name=row["name"]
+        name=row["name"],
+        score_difficulty=row["score_difficulty"]
     )
 
 def row_to_configuration(row) -> BoardConfiguration:
@@ -75,6 +77,24 @@ def row_to_game(row) -> Game:
         players=row["players"],
         configuration=row["configuration"],
         status=GameStatus(row["status"])
+    )
+
+def row_to_adversary_difficulty(row):
+    
+    adversary = Adversary(
+        id=row["adversary_id"],
+        name=row["adversary_name"]
+    )
+
+    difficulty = Difficulty(
+        id=row["difficulty_id"],
+        level=row["difficulty_level"]
+    )
+
+    return AdversaryDifficulty(
+        adversary=adversary,
+        difficulty=difficulty,
+        score_difficulty=row["score_difficulty"]
     )
 
 def build_game(

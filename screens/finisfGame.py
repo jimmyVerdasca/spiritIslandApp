@@ -8,6 +8,8 @@ from kivymd.uix.button import MDRaisedButton
 from kivymd.uix.scrollview import MDScrollView
 
 from engine.formatter import format_game
+from engine.scoring import calculate_score
+from database.database import finish_game, get_adversary_difficulty, get_scenario_difficulty
 
 import kivymd
 print(kivymd.__version__)
@@ -124,14 +126,67 @@ class FinishGameScreen(BaseScreen):
         self.game_label.text = format_game(game)
 
     def save_result(self, *args):
+    
+        if self.game is None:
+            return
 
-        print(self.result)
-        print(self.invader_cards.text)
-        print(self.dahan.text)
-        print(self.blight.text)
 
-        # Save result to database
-        # self.manager.current = "current"
+        invader_cards = int(
+            self.invader_cards.text or 0
+        )
+
+        dahan = int(
+            self.dahan.text or 0
+        )
+
+        blight = int(
+            self.blight.text or 0
+        )
+
+        adversary_difficulty = 0
+        for adv in self.game.adversaries:
+            adversary_difficulty += get_adversary_difficulty(
+                adv.id,
+                adv.difficulty.id
+            )
+
+        scenario_difficulty = 0
+        for scenario in self.game.adversaries:
+            scenario_difficulty += get_scenario_difficulty(
+                scenario
+            )
+
+
+        score = calculate_score(
+            result=self.result,
+            scenario_difficulty=scenario_difficulty,
+            adversary_difficulty=adversary_difficulty,
+            players=self.game.players,
+            invader_cards=invader_cards,
+            dahan=dahan,
+            blight=blight
+        )
+
+
+        finish_game(
+            game_id=self.game.id,
+            result=self.result,
+            score=score,
+            invader_cards=invader_cards,
+            dahan=dahan,
+            blight=blight
+        )
+
+
+        print(
+            "Finished:",
+            self.result,
+            "score:",
+            score
+        )
+
+
+        self.manager.current = "current"
 
     def set_result(self, result):
     

@@ -60,41 +60,89 @@ spirits = [
 ]
 
 
-adversaries = [
-    "Angleterre",
-    "Suède",
-    "France",
-    "BrandebourgPrusse",
-    "Ecosse",
-    "Russie",
-    "MonarchieDesHabsbourg",
-    "Minier",
+adversary_difficulties = [
+
+    ("Angleterre", 1, 2),
+    ("Angleterre", 2, 3),
+    ("Angleterre", 3, 6),
+    ("Angleterre", 4, 7),
+    ("Angleterre", 5, 9),
+    ("Angleterre", 6, 11),
+
+    ("Suède", 1, 2),
+    ("Suède", 2, 3),
+    ("Suède", 3, 5),
+    ("Suède", 4, 6),
+    ("Suède", 5, 7),
+    ("Suède", 6, 8),
+
+    ("France", 1, 3),
+    ("France", 2, 5),
+    ("France", 3, 7),
+    ("France", 4, 8),
+    ("France", 5, 9),
+    ("France", 6, 10),
+
+    ("BrandebourgPrusse", 1, 2),
+    ("BrandebourgPrusse", 2, 4),
+    ("BrandebourgPrusse", 3, 6),
+    ("BrandebourgPrusse", 4, 8),
+    ("BrandebourgPrusse", 5, 10),
+    ("BrandebourgPrusse", 6, 12),
+
+    ("Ecosse", 1, 2),
+    ("Ecosse", 2, 4),
+    ("Ecosse", 3, 6),
+    ("Ecosse", 4, 8),
+    ("Ecosse", 5, 10),
+    ("Ecosse", 6, 11),
+
+    ("Russie", 1, 3),
+    ("Russie", 2, 5),
+    ("Russie", 3, 7),
+    ("Russie", 4, 9),
+    ("Russie", 5, 10),
+    ("Russie", 6, 11),
+
+    ("MonarchieDesHabsbourg", 1, 3),
+    ("MonarchieDesHabsbourg", 2, 5),
+    ("MonarchieDesHabsbourg", 3, 6),
+    ("MonarchieDesHabsbourg", 4, 8),
+    ("MonarchieDesHabsbourg", 5, 9),
+    ("MonarchieDesHabsbourg", 6, 10),
+
+    ("Minier", 1, 2),
+    ("Minier", 2, 4),
+    ("Minier", 3, 6),
+    ("Minier", 4, 7),
+    ("Minier", 5, 9),
+    ("Minier", 6, 10),
 ]
 
 
 scenarios = [
 
-    "Blitz",
-    "ProtectionDuCoeurDeLÎle",
-    "RituelsDeTerreur",
-    "InsurrectionDesDahans",
+    ("Blitz", 0),
+    ("ProtectionDuCoeurDeLÎle", 1),
+    ("RituelsDeTerreur", 2),
+    ("InsurrectionDesDahans", 4),
 
-    "DeuxièmeVague",
-    "PuissanceImmemoriale",
-    "ProtégerLesRivages",
-    "RituelsDePurification",
+    ("DeuxièmeVague", 2),
+    ("PuissanceImmemoriale", 3),
+    ("ProtégerLesRivages", 1),
+    ("RituelsDePurification", 2),
 
-    "InvocationÉlémentaire",
-    "PlaceDansUnMusée",
-    "DeLautreCotéDuFleuve",
+    ("InvocationÉlémentaire", 2),
+    ("PlaceDansUnMusée", 1),
+    ("DeLautreCotéDuFleuve", 1),
 
-    "DiversitéDesEsprits",
-    "TerrainsHétérogène",
+    ("DiversitéDesEsprits", 2),
+    ("TerrainsHétérogène", 1),
 
-    "DestinSeRévèle",
-    "VaguesDeColonisation",
+    ("DestinSeRévèle", 2),
+    ("VaguesDeColonisation", 3),
 
-    "SaintValentin",
+    ("SaintValentin", 0),
 ]
 
 
@@ -133,6 +181,7 @@ def create_database(path):
     DROP TABLE IF EXISTS difficulties;
     DROP TABLE IF EXISTS boards;
     DROP TABLE IF EXISTS database_info;
+    DROP TABLE IF EXISTS adversary_difficulties;
 
     CREATE TABLE database_info(
         version INTEGER NOT NULL
@@ -152,7 +201,8 @@ def create_database(path):
 
     CREATE TABLE scenarios(
         id INTEGER PRIMARY KEY,
-        name TEXT UNIQUE NOT NULL
+        name TEXT UNIQUE NOT NULL,
+        score_difficulty INTEGER NOT NULL
     );
 
 
@@ -165,6 +215,14 @@ def create_database(path):
     CREATE TABLE boards(
         id INTEGER PRIMARY KEY,
         name TEXT UNIQUE NOT NULL
+    );
+
+    CREATE TABLE adversary_difficulties(
+        adversary_id INTEGER NOT NULL,
+        difficulty_id INTEGER NOT NULL,
+        score_difficulty INTEGER NOT NULL,
+
+        PRIMARY KEY(adversary_id, difficulty_id)
     );
 
 
@@ -216,6 +274,11 @@ def create_database(path):
         )
 
 
+    adversaries = sorted({
+        name
+        for name, _, _ in adversary_difficulties
+    })
+    
     for name in adversaries:
 
         cursor.execute(
@@ -227,14 +290,14 @@ def create_database(path):
         )
 
 
-    for name in scenarios:
+    for name, score_difficulty in scenarios:
 
         cursor.execute(
             """
-            INSERT INTO scenarios(name)
-            VALUES(?)
+            INSERT INTO scenarios(name, score_difficulty)
+            VALUES(?, ?)
             """,
-            (name,)
+            (name, score_difficulty)
         )
 
 
@@ -304,7 +367,32 @@ def create_database(path):
 
     etoile_id = cursor.lastrowid
 
+    def get_adversary_id(name):
+        
+        cursor.execute(
+            """
+            SELECT id
+            FROM adversaries
+            WHERE name = ?
+            """,
+            (name,)
+        )
 
+        return cursor.fetchone()[0]
+
+
+    def get_difficulty_id(level):
+
+        cursor.execute(
+            """
+            SELECT id
+            FROM difficulties
+            WHERE level = ?
+            """,
+            (level,)
+        )
+
+        return cursor.fetchone()[0]
 
     def get_board_id(name):
 
@@ -319,7 +407,23 @@ def create_database(path):
 
         return cursor.fetchone()[0]
 
-
+    for adversary_name, level, score_difficulty in adversary_difficulties:
+    
+        cursor.execute(
+            """
+            INSERT INTO adversary_difficulties(
+                adversary_id,
+                difficulty_id,
+                score_difficulty
+            )
+            VALUES (?, ?, ?)
+            """,
+            (
+                get_adversary_id(adversary_name),
+                get_difficulty_id(level),
+                score_difficulty,
+            )
+        )
 
     for position, board in enumerate(
         boards,
@@ -370,6 +474,11 @@ def create_database(path):
             players INTEGER NOT NULL,
             configuration_id INTEGER NOT NULL,
             status TEXT NOT NULL DEFAULT 'RUNNING',
+            result TEXT,
+            score INTEGER,
+            invader_cards_remaining INTEGER,
+            dahan_remaining INTEGER,
+            blight_remaining INTEGER,
             created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
         );"""
     )

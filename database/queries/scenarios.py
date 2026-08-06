@@ -5,7 +5,7 @@ def get_all(cursor) -> list[Scenario]:
 
     cursor.execute(
         """
-        SELECT id, name
+        SELECT id, name, score_difficulty
         FROM scenarios
         ORDER BY name
         """
@@ -21,7 +21,7 @@ def get_random(cursor) -> Scenario:
 
     cursor.execute(
         """
-        SELECT id, name
+        SELECT id, name, score_difficulty
         FROM scenarios
         ORDER BY RANDOM()
         LIMIT 1
@@ -37,7 +37,7 @@ def get_by_name(cursor, name) -> Scenario:
 
     cursor.execute(
         """
-        SELECT id, name
+        SELECT id, name, score_difficulty
         FROM scenarios
         WHERE name = ?
         """,
@@ -54,7 +54,8 @@ def get_by_id(cursor, game_id):
         """
         SELECT
             s.id,
-            s.name
+            s.name,
+            s.score_difficulty
 
         FROM scenarios s
 
@@ -67,3 +68,26 @@ def get_by_id(cursor, game_id):
     )
 
     return cursor.fetchall()
+
+def get_scenario_difficulty(cursor, scenario_id):
+    
+    cursor.execute(
+        """
+        SELECT
+            s.id,
+            s.name,
+            s.score_difficulty
+
+        FROM scenarios s
+
+        JOIN game_scenarios gs
+            ON gs.scenario_id = s.id
+
+        WHERE gs.game_id = ?
+        """,
+        (scenario_id,)
+    )
+
+    return row_to_scenario(
+        cursor.fetchone()
+    )

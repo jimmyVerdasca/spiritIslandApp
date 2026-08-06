@@ -34,16 +34,23 @@ class Adversary:
 class Scenario:
     id: int
     name: str
-
-@dataclass
-class GameAdversary:
-    adversary: Adversary
-    difficulty: int
+    score_difficulty: int
 
 @dataclass
 class Difficulty:
     id: int
     level: int
+
+@dataclass
+class GameAdversary:
+    adversary: Adversary
+    difficulty: Difficulty
+
+@dataclass
+class AdversaryDifficulty:
+    adversary: Adversary
+    difficulty: Difficulty
+    score_difficulty: int
 
 @dataclass
 class Game:

@@ -337,3 +337,71 @@ def abandon_game(game_id):
 
     finally:
         db.close()
+
+
+
+def finish_game(
+    game_id,
+    result,
+    score,
+    invader_cards,
+    dahan,
+    blight
+):
+
+    db = get_connection()
+
+    try:
+
+        cursor = db.cursor()
+
+        queries.games.finish_game(
+            cursor,
+            game_id,
+            result,
+            score,
+            invader_cards,
+            dahan,
+            blight
+        )
+
+        db.commit()
+
+    finally:
+
+        db.close()
+
+def get_adversary_difficulty(adversary_id, difficulty_id):
+    
+    db = get_connection()
+
+    try:
+        cursor = db.cursor()
+
+        adversary_difficulty = queries.adversary_difficulty.get_adversary_difficulty(
+            cursor,
+            adversary_id,
+            difficulty_id
+        )
+
+        return adversary_difficulty
+
+    finally:
+        db.close()
+
+def get_scenario_difficulty(game_id):
+    
+    db = get_connection()
+
+    try:
+        cursor = db.cursor()
+
+        scenario_difficulty = queries.scenarios.get_scenario_difficulty(
+            cursor,
+            scenario_id
+        )
+
+        return scenario_difficulty
+
+    finally:
+        db.close()

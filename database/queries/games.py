@@ -201,3 +201,38 @@ def abandon_game(cursor, game_id):
             GameStatus.RUNNING.value
         )
     )
+
+def finish_game(
+    cursor,
+    game_id,
+    result,
+    score,
+    invader_cards,
+    dahan,
+    blight
+):
+
+    cursor.execute(
+        """
+        UPDATE games
+
+        SET
+            status = 'FINISHED',
+            result = ?,
+            score = ?,
+            invader_cards_remaining = ?,
+            dahan_remaining = ?,
+            blight_remaining = ?
+
+        WHERE id = ?
+
+        """,
+        (
+            result,
+            score,
+            invader_cards,
+            dahan,
+            blight,
+            game_id
+        )
+    )
