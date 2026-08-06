@@ -156,7 +156,19 @@ class CurrentGamesScreen(BaseScreen):
                 self.confirm_abandon(game_id)
         )
 
+        finish_button = MDIconButton(
+            icon="flag-checkered",
+            size_hint_x=None,
+            width="40dp"
+        )
+
+        finish_button.bind(
+            on_release=lambda x, g=game:
+                self.open_finish_game(g)
+        )
+
         header_row.add_widget(header)
+        header_row.add_widget(finish_button)
         header_row.add_widget(abandon_button)
 
 
@@ -209,3 +221,11 @@ class CurrentGamesScreen(BaseScreen):
         )
 
         self.dialog.open()
+
+    def open_finish_game(self, game):
+    
+        self.navigate_to(
+            "finish",
+            previous="current",
+            game=game
+        )

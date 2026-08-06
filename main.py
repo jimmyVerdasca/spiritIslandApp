@@ -6,6 +6,7 @@ from screens.currentGames import CurrentGamesScreen
 from screens.newGame import NewGameScreen
 from screens.trophies import TrophyScreen
 from screens.history import HistoryScreen
+from screens.finisfGame import FinishGameScreen
 
 
 class SpiritIslandApp(MDApp):
@@ -35,6 +36,10 @@ class SpiritIslandApp(MDApp):
 
         manager.add_widget(
             HistoryScreen(name="history")
+        )
+
+        manager.add_widget(
+            FinishGameScreen(name="finish")
         )
 
         return manager

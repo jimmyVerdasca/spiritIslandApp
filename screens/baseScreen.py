@@ -8,6 +8,13 @@ from kivy.metrics import dp
 
 class BaseScreen(MDScreen):
 
+    def __init__(self, **kwargs):
+
+        super().__init__(**kwargs)
+
+        self.previous_screen = "home"
+
+
     def add_top_bar(self, layout, title):
 
         bar = MDBoxLayout(
@@ -19,15 +26,15 @@ class BaseScreen(MDScreen):
         )
 
 
-        home_button = MDIconButton(
+        back_button = MDIconButton(
             icon="arrow-left",
             theme_icon_color="Custom",
             icon_color=(1, 1, 1, 1),
             md_bg_color=(0.2, 0.6, 0.2, 1)
         )
 
-        home_button.bind(
-            on_release=self.go_home
+        back_button.bind(
+            on_release=self.go_back
         )
 
 
@@ -38,14 +45,34 @@ class BaseScreen(MDScreen):
         )
 
 
-        bar.add_widget(home_button)
-
+        bar.add_widget(back_button)
         bar.add_widget(title_label)
-
 
         layout.add_widget(bar)
 
 
-    def go_home(self, instance):
 
-        self.manager.current = "home"
+    def go_back(self, instance):
+
+        self.manager.current = self.previous_screen
+
+
+
+    def navigate_to(self, screen_name, previous=None, **kwargs):
+
+        screen = self.manager.get_screen(screen_name)
+
+
+        # Define where the back button returns
+        if previous:
+            screen.previous_screen = previous
+        else:
+            screen.previous_screen = self.name
+
+
+        # Pass data to destination screen
+        for key, value in kwargs.items():
+            setattr(screen, key, value)
+
+
+        self.manager.current = screen_name
