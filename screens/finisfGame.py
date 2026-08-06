@@ -6,6 +6,7 @@ from kivymd.uix.label import MDLabel
 from kivymd.uix.textfield import MDTextField
 from kivymd.uix.button import MDRaisedButton
 from kivymd.uix.scrollview import MDScrollView
+from kivymd.uix.dialog import MDDialog
 
 from engine.formatter import format_game
 from engine.scoring import calculate_score
@@ -105,12 +106,34 @@ class FinishGameScreen(BaseScreen):
 
         self.card.add_widget(self.blight)
 
-        save_button = MDRaisedButton(
+        self.invader_cards.bind(
+            text=self.update_preview
+        )
+
+        self.dahan.bind(
+            text=self.update_preview
+        )
+
+        self.blight.bind(
+            text=self.update_preview
+        )
+
+        self.score_label = MDLabel(
+            text="Score preview: -",
+            halign="center",
+            adaptive_height=True,
+        )
+
+        self.card.add_widget(self.score_label)
+
+
+        self.save_button = MDRaisedButton(
             text="Save Result",
+            disabled=True,
             on_release=self.save_result,
         )
 
-        self.card.add_widget(save_button)
+        self.card.add_widget(self.save_button)
 
         scroll.add_widget(self.card)
         layout.add_widget(scroll)
@@ -146,14 +169,14 @@ class FinishGameScreen(BaseScreen):
         adversary_difficulty = 0
         for adv in self.game.adversaries:
             adversary_difficulty += get_adversary_difficulty(
-                adv.id,
+                adv.adversary.id,
                 adv.difficulty.id
-            )
+            ).score_difficulty
 
         scenario_difficulty = 0
-        for scenario in self.game.adversaries:
+        for scenario in self.game.scenarios:
             scenario_difficulty += get_scenario_difficulty(
-                scenario
+                scenario.id
             )
 
 
@@ -178,15 +201,7 @@ class FinishGameScreen(BaseScreen):
         )
 
 
-        print(
-            "Finished:",
-            self.result,
-            "score:",
-            score
-        )
-
-
-        self.manager.current = "current"
+        self.show_saved_dialog(score)
 
     def set_result(self, result):
     
@@ -228,3 +243,79 @@ class FinishGameScreen(BaseScreen):
     
         if self.game:
             self.game_label.text = format_game(self.game)
+
+    def update_preview(self, *args):
+    
+        filled = all([
+            self.invader_cards.text,
+            self.dahan.text,
+            self.blight.text,
+        ])
+
+        self.save_button.disabled = not filled
+
+        if not filled or self.game is None:
+            self.score_label.text = "Score preview: -"
+            return
+
+
+        invader_cards = int(self.invader_cards.text)
+        dahan = int(self.dahan.text)
+        blight = int(self.blight.text)
+
+
+        adversary_difficulty = 0
+
+        for adv in self.game.adversaries:
+            adversary_difficulty += get_adversary_difficulty(
+                adv.adversary.id,
+                adv.difficulty.id
+            ).score_difficulty
+
+
+        scenario_difficulty = 0
+
+        for scenario in self.game.scenarios:
+            scenario_difficulty += get_scenario_difficulty(
+                scenario.id
+            )
+
+
+        score = calculate_score(
+            result=self.result,
+            scenario_difficulty=scenario_difficulty,
+            adversary_difficulty=adversary_difficulty,
+            players=self.game.players,
+            invader_cards=invader_cards,
+            dahan=dahan,
+            blight=blight
+        )
+
+
+        self.score_label.text = f"Score preview: {score}"
+
+    def show_saved_dialog(self, score):
+    
+        self.dialog = MDDialog(
+            title="Game saved",
+            text=f"""
+                Result: {self.result}
+                Score: {score}
+
+                Your game has been recorded.
+                """,
+            buttons=[
+                MDRaisedButton(
+                    text="OK",
+                    on_release=self.close_dialog
+                )
+            ],
+        )
+
+        self.dialog.open()
+
+
+    def close_dialog(self, *args):
+
+        self.dialog.dismiss()
+        self.manager.current = "current"

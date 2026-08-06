@@ -1,5 +1,5 @@
-from models.game import Adversary, GameAdversary
-from models.converters import row_to_game_adversary, row_to_adversary
+from models.game import Adversary
+from models.converters import row_to_adversary
 
 
 def get_all(cursor) -> list[Adversary]:
@@ -54,9 +54,11 @@ def get_by_id(cursor, game_id):
     cursor.execute(
         """
         SELECT
-            a.id,
-            a.name,
-            d.level AS difficulty
+            a.id AS adversary_id,
+            a.name AS adversary_name,
+
+            d.id AS difficulty_id,
+            d.level AS difficulty_level
 
         FROM adversaries a
 

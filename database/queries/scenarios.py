@@ -74,20 +74,20 @@ def get_scenario_difficulty(cursor, scenario_id):
     cursor.execute(
         """
         SELECT
-            s.id,
-            s.name,
-            s.score_difficulty
+            id,
+            name,
+            score_difficulty
 
-        FROM scenarios s
+        FROM scenarios
 
-        JOIN game_scenarios gs
-            ON gs.scenario_id = s.id
-
-        WHERE gs.game_id = ?
+        WHERE id = ?
         """,
         (scenario_id,)
     )
 
-    return row_to_scenario(
-        cursor.fetchone()
-    )
+    row = cursor.fetchone()
+
+    if row is None:
+        return None
+
+    return row_to_scenario(row)

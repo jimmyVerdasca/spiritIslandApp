@@ -43,13 +43,31 @@ def row_to_game_adversary(row) -> GameAdversary:
     
     return GameAdversary(
         adversary=Adversary(
-            id=row["id"],
-            name=row["name"]
+            id=row["adversary_id"],
+            name=row["adversary_name"]
         ),
         difficulty=Difficulty(
-            id=row["id"],
-            level=row["difficulty"]
+            id=row["difficulty_id"],
+            level=row["difficulty_level"]
         )
+    )
+
+def row_to_adversary_difficulty(row) -> AdversaryDifficulty:
+    
+    adversary = Adversary(
+        id=row["adversary_id"],
+        name=row["adversary_name"]
+    )
+
+    difficulty = Difficulty(
+        id=row["difficulty_id"],
+        level=row["difficulty_level"]
+    )
+
+    return AdversaryDifficulty(
+        adversary=adversary,
+        difficulty=difficulty,
+        score_difficulty=row["score_difficulty"]
     )
 
 

@@ -389,7 +389,13 @@ def get_adversary_difficulty(adversary_id, difficulty_id):
     finally:
         db.close()
 
-def get_scenario_difficulty(game_id):
+def get_scenario_difficulty(scenario_id):
+    
+    print(
+        "SCENARIO DEBUG:",
+        scenario_id,
+        type(scenario_id)
+    )
     
     db = get_connection()
 
@@ -401,7 +407,7 @@ def get_scenario_difficulty(game_id):
             scenario_id
         )
 
-        return scenario_difficulty
+        return scenario_difficulty.score_difficulty
 
     finally:
         db.close()

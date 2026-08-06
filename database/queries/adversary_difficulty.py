@@ -1,9 +1,7 @@
-from models.game import AdversaryDifficulty, Adversary, Difficulty
 from models.converters import row_to_adversary_difficulty
 
-
-def get_game_difficulty(cursor, game_id):
-
+def get_adversary_difficulty(cursor, adversary_id, difficulty_id):
+    
     cursor.execute(
         """
         SELECT
@@ -15,31 +13,27 @@ def get_game_difficulty(cursor, game_id):
 
             ad.score_difficulty
 
-        FROM game_adversaries ga
+        FROM adversary_difficulties ad
 
         JOIN adversaries a
-            ON a.id = ga.adversary_id
+            ON a.id = ad.adversary_id
 
         JOIN difficulties d
-            ON d.id = ga.difficulty_id
+            ON d.id = ad.difficulty_id
 
-        JOIN adversary_difficulties ad
-            ON ad.adversary_id = ga.adversary_id
-            AND ad.difficulty_id = ga.difficulty_id
-
-        WHERE ga.game_id = ?
+        WHERE ad.adversary_id = ?
+        AND ad.difficulty_id = ?
 
         """,
         (
-            game_id,
+            adversary_id,
+            difficulty_id,
         )
     )
 
     row = cursor.fetchone()
 
-
     if row is None:
         return None
-
 
     return row_to_adversary_difficulty(row)
