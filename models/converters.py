@@ -5,7 +5,8 @@ from models.game import (
     Adversary,
     Scenario,
     GameAdversary,
-    BoardConfiguration
+    BoardConfiguration,
+    Difficulty
 )
 
 from models.game_status import GameStatus
@@ -29,6 +30,12 @@ def row_to_adversary(row) -> Adversary:
     return Adversary(
         id=row["id"],
         name=row["name"]
+    )
+
+def row_to_difficulty(row) -> Difficulty:
+    return Difficulty(
+        id=row["id"],
+        level=row["level"],
     )
 
 def row_to_game_adversary(row) -> GameAdversary:

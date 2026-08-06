@@ -268,3 +268,33 @@ def get_boards():
 
     finally:
         db.close()
+
+def get_adversaries():
+    db = get_connection()
+    
+    try:
+        cursor = db.cursor()
+
+        adversaries = queries.adversaries.get_all(
+            cursor
+        )
+
+        return adversaries
+
+    finally:
+        db.close()
+
+def get_difficulties():
+    db = get_connection()
+    
+    try:
+        cursor = db.cursor()
+
+        difficulties = queries.difficulties.get_all(
+            cursor
+        )
+
+        return difficulties
+
+    finally:
+        db.close()

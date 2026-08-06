@@ -6,13 +6,15 @@ from kivymd.uix.boxlayout import MDBoxLayout
 from kivymd.uix.scrollview import MDScrollView
 from kivymd.uix.card import MDCard
 from kivymd.uix.label import MDLabel
-from kivymd.uix.button import MDRaisedButton
+from kivymd.uix.button import MDRaisedButton, MDIconButton
 from kivymd.uix.menu import MDDropdownMenu
 
 from database.database import (
     get_configurations,
     get_spirits,
-    get_boards
+    get_boards,
+    get_adversaries,
+    get_difficulties
 )
 
 from engine.generator import generate_game
@@ -29,6 +31,7 @@ class NewGameScreen(BaseScreen):
 
         self.players = None
         self.configuration = None
+        self.adversary_rows = []
 
         root = MDBoxLayout(
             orientation="vertical"
@@ -108,6 +111,56 @@ class NewGameScreen(BaseScreen):
 
         content.add_widget(
             self.players_container
+        )
+        
+        # ----------------------------
+        # adversary selection
+        # ----------------------------
+
+        content.add_widget(
+            MDLabel(
+                text="Adversaries",
+                font_style="H6",
+            )
+        )
+
+        self.add_adversary_button = MDRaisedButton(
+            text="+ Add Adversary",
+        )
+
+        self.add_adversary_button.bind(
+            on_release=self.add_adversary_row
+        )
+
+        content.add_widget(self.add_adversary_button)
+
+        self.adversaries_container = MDBoxLayout(
+            orientation="vertical",
+            spacing=dp(10),
+            adaptive_height=True,
+        )
+
+        content.add_widget(self.adversaries_container)
+
+        row = MDBoxLayout(
+            orientation="horizontal",
+            spacing=dp(10),
+            adaptive_height=True,
+        )
+
+        adversary_button = MDRaisedButton(
+            text="Adversary: None",
+            size_hint_x=.65,
+        )
+
+        level_button = MDRaisedButton(
+            text="Difficulty: Any",
+            size_hint_x=.25,
+        )
+
+        remove_button = MDIconButton(
+            icon="close",
+            size_hint_x=.1,
         )
 
         # ----------------------------
@@ -205,6 +258,206 @@ class NewGameScreen(BaseScreen):
         )
 
         self.players_menu.open()
+
+    def add_adversary_row(self, *args):
+        row = MDBoxLayout(
+            orientation="horizontal",
+            spacing=dp(10),
+            adaptive_height=True,
+        )
+
+        adversary_button = MDRaisedButton(
+            text="Adversary: None",
+            size_hint_x=.6,
+        )
+
+        level_button = MDRaisedButton(
+            text="Difficulty: Any",
+            size_hint_x=.25,
+        )
+
+        remove_button = MDIconButton(
+            icon="close",
+            size_hint_x=.15,
+        )
+
+        index = len(self.adversary_rows)
+
+        adversary_button.bind(
+            on_release=lambda x, i=index: self.open_adversary_menu(i)
+        )
+
+        level_button.bind(
+            on_release=lambda x, i=index: self.open_level_menu(i)
+        )
+
+        row.add_widget(adversary_button)
+        row.add_widget(level_button)
+        row.add_widget(remove_button)
+
+        self.adversaries_container.add_widget(row)
+
+        self.adversary_rows.append({
+            "row": row,
+            "adversary": None,
+            "level": None,
+            "adversary_button": adversary_button,
+            "level_button": level_button,
+            "remove_button": remove_button,
+        })
+
+
+        remove_button.bind(
+            on_release=lambda x, r=row:
+                self.remove_adversary_row(
+                    next(
+                        i
+                        for i, item in enumerate(self.adversary_rows)
+                        if item["row"] == r
+                    )
+                )
+        )
+
+        self.update_adversary_button_state()
+
+    def open_adversary_menu(self, index):
+    
+        adversaries = get_adversaries()
+
+        selected = [
+            row["adversary"]
+            for i, row in enumerate(self.adversary_rows)
+            if i != index and row["adversary"] is not None
+        ]
+
+        items = [
+            {
+                "text": "Any",
+                "item_state": "normal",
+                "viewclass": "SelectionMenuItem",
+                "on_release": lambda: self.set_adversary(index, None),
+            }
+        ]
+
+
+        for adversary in adversaries:
+
+            # Remove already selected adversaries
+            if adversary in selected:
+                continue
+
+
+            state = (
+                "selected"
+                if self.adversary_rows[index]["adversary"] == adversary
+                else "normal"
+            )
+
+
+            items.append(
+                {
+                    "text": adversary.name,
+                    "item_state": state,
+                    "viewclass": "SelectionMenuItem",
+                    "on_release": lambda a=adversary:
+                        self.set_adversary(index, a),
+                }
+            )
+
+
+        self.adversary_menu = MDDropdownMenu(
+            caller=self.adversary_rows[index]["adversary_button"],
+            items=items,
+        )
+
+        self.adversary_menu.open()
+
+    def set_adversary(self, index, adversary):
+    
+        self.adversary_rows[index]["adversary"] = adversary
+
+        self.adversary_rows[index]["adversary_button"].text = (
+            "Adversary: Any"
+            if adversary is None
+            else adversary.name
+        )
+
+        self.adversary_menu.dismiss()
+
+    def open_level_menu(self, index):
+        
+        difficulties = get_difficulties()
+
+        items = [
+            {
+                "text": "Any",
+                "item_state": "normal",
+                "viewclass": "SelectionMenuItem",
+                "on_release": lambda: self.set_level(index, None),
+            }
+        ]
+
+        current = self.adversary_rows[index]["level"]
+
+        for difficulty in difficulties:
+
+            state = (
+                "selected"
+                if current is not None and current.id == difficulty.id
+                else "normal"
+            )
+
+            items.append(
+                {
+                    "text": str(difficulty.level),
+                    "item_state": state,
+                    "viewclass": "SelectionMenuItem",
+                    "on_release": lambda d=difficulty: self.set_level(index, d),
+                }
+            )
+
+        self.level_menu = MDDropdownMenu(
+            caller=self.adversary_rows[index]["level_button"],
+            items=items,
+        )
+
+        self.level_menu.open()
+
+    def set_level(self, index, difficulty):
+    
+        self.adversary_rows[index]["level"] = difficulty
+
+        self.adversary_rows[index]["level_button"].text = (
+            "Difficulty: Any"
+            if difficulty is None
+            else str(difficulty.level)
+        )
+
+        self.level_menu.dismiss()
+
+    def remove_adversary_row(self, index):
+    
+        if index >= len(self.adversary_rows):
+            return
+
+        row = self.adversary_rows.pop(index)
+
+        self.adversaries_container.remove_widget(row["row"])
+
+        # Rebind buttons because indices have changed
+        for i, row in enumerate(self.adversary_rows):
+
+            row["adversary_button"].unbind(on_release=None)
+            row["level_button"].unbind(on_release=None)
+
+            row["adversary_button"].bind(
+                on_release=lambda x, idx=i: self.open_adversary_menu(idx)
+            )
+
+            row["level_button"].bind(
+                on_release=lambda x, idx=i: self.open_level_menu(idx)
+            )
+        self.update_adversary_button_state()
 
     def set_players(self, value):
     
@@ -533,29 +786,46 @@ class NewGameScreen(BaseScreen):
 
         self.board_menu.dismiss()
 
+    def update_adversary_button_state(self):
+    
+        max_adversaries = len(get_adversaries())
+
+        self.add_adversary_button.disabled = (
+            len(self.adversary_rows) >= max_adversaries
+        )
+
     # ----------------------------------------------------
     # Generate
     # ----------------------------------------------------
 
     def generate(self, instance):
-
+    
         spirits = [
             row["spirit"]
             for row in self.player_rows
         ]
-
 
         boards = [
             row["board"]
             for row in self.player_rows
         ]
 
+        adversaries = [
+            (
+                row["adversary"],
+                row["level"]
+            )
+            for row in self.adversary_rows
+        ]
+
+        print("SCREEN ADV:", adversaries)
 
         game = generate_game(
             players=self.players,
             configuration=self.configuration,
             spirits=spirits,
-            boards=boards
+            boards=boards,
+            adversaries=adversaries,
         )
 
         self.result.text = format_game(game)

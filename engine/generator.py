@@ -23,6 +23,10 @@ from database.queries.scenarios import (
     get_all as get_scenarios
 )
 
+from database.queries.difficulties import (
+    get_all as get_difficulties
+)
+
 
 
 def generate_game(
@@ -32,7 +36,7 @@ def generate_game(
     spirits: list[Spirit | None] | None = None,
     boards: list[Board | None] | None = None,
 
-    adversaries: list[Adversary] | None = None,
+    adversaries: list[tuple[Adversary, Difficulty]] | None = None,
     adversary_count: int | None = None,
 
     scenarios: list[Scenario] | None = None,
@@ -170,14 +174,51 @@ def generate_game(
         # Random counts
         # ----------------------------
 
-        if adversary_count is None and adversaries is None:
-            adversary_count = random.randint(0, 2)
+        user_selected_adversaries = (
+            adversaries is not None
+            and len(adversaries) > 0
+        )
 
-        if scenario_count is None and scenarios is None:
+        user_selected_scenarios = (
+            scenarios is not None
+        )
+
+
+        # User did not define either
+        if not user_selected_adversaries and not user_selected_scenarios:
+
+            remaining = random.randint(0, 2)
+
+            adversary_count = random.randint(
+                0,
+                remaining
+            )
+
+            scenario_count = remaining - adversary_count
+
+
+        # User selected scenarios only
+        elif not user_selected_adversaries and user_selected_scenarios:
+
+            adversary_count = random.randint(
+                0,
+                max(0, 2 - len(scenarios))
+            )
+
+
+        # User selected adversaries only
+        elif user_selected_adversaries and not user_selected_scenarios:
+
             scenario_count = random.randint(
                 0,
-                2 - (adversary_count or 0)
+                max(0, 2 - len(adversaries))
             )
+
+
+        else:
+            # User selected both
+            adversary_count = len(adversaries)
+            scenario_count = len(scenarios)
 
 
         # ----------------------------
@@ -190,42 +231,110 @@ def generate_game(
         if (scenario_count or 0) > 1:
             maximum = min(maximum, 4)
 
-        if (adversary_count or 0) > 1:
-            maximum -= adversary_count
-
 
         # ----------------------------
         # Adversaries
         # ----------------------------
 
-        chosen_adversaries: list[GameAdversary] = []
+        chosen_adversaries = []
 
         all_adversaries = get_adversaries(cursor)
+        all_difficulties = get_difficulties(cursor)
+
+        available_adversaries = all_adversaries.copy()
+
+
+        random_adversaries = (
+            adversaries is None
+            or len(adversaries) == 0
+        )
+
+
+        if random_adversaries:
+
+            adversaries = [
+                (None, None)
+                for _ in range(adversary_count)
+            ]
+
+
+        respect_total_difficulty = len(adversaries) <= 6
+
 
         total_difficulty = 0
 
-        if adversaries is None:
 
-            adversaries = random.sample(
-                all_adversaries,
-                adversary_count
-            )
+        for index, (adv, difficulty) in enumerate(adversaries):
 
-        for adv in adversaries:
+            if adv is None:
 
-            upper = maximum - total_difficulty
+                adv = random.choice(
+                    available_adversaries
+                )
 
-            chosen_difficulty = random.randint(
-                minimum,
-                upper
-            )
+                available_adversaries.remove(
+                    adv
+                )
 
-            total_difficulty += chosen_difficulty
+
+            # User selected a difficulty -> keep it
+            if difficulty is None:
+
+                if respect_total_difficulty:
+
+                    remaining_points = (
+                        maximum
+                        - total_difficulty
+                    )
+
+                    remaining_adversaries = (
+                        len(adversaries)
+                        - index
+                        - 1
+                    )
+
+                    max_for_this_adversary = (
+                        remaining_points
+                        - remaining_adversaries
+                    )
+
+                    possible_difficulties = [
+                        d
+                        for d in all_difficulties
+                        if (
+                            minimum
+                            <= d.level
+                            <= max_for_this_adversary
+                        )
+                    ]
+
+                    # User choices may have made the remaining
+                    # distribution impossible
+                    if possible_difficulties:
+                        difficulty = random.choice(
+                            possible_difficulties
+                        )
+                    else:
+                        difficulty = random.choice(
+                            all_difficulties
+                        )
+
+                else:
+
+                    # More than 6 adversaries:
+                    # no balancing, just random difficulty
+                    difficulty = random.choice(
+                        all_difficulties
+                    )
+
+
+            total_difficulty += difficulty.level
+
 
             chosen_adversaries.append(
                 GameAdversary(
                     adversary=adv,
-                    difficulty=chosen_difficulty
+                    difficulty=difficulty
                 )
             )
 

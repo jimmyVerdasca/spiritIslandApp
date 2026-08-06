@@ -28,12 +28,19 @@ def format_game(game: Game) -> str:
     text.append("Adversaries:")
 
     if game.adversaries:
-
+    
         for game_adversary in game.adversaries:
+
+            difficulty = (
+                f"level {game_adversary.difficulty.level}"
+                if game_adversary.difficulty is not None
+                else "any level"
+            )
+
             text.append(
-            f"- {game_adversary.adversary.name} "
-            f"(level {game_adversary.difficulty})"
-        )
+                f"- {game_adversary.adversary.name} "
+                f"({difficulty})"
+            )
 
     else:
 

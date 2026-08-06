@@ -87,11 +87,7 @@ def save_game(cursor, game: Game) -> int:
     for game_adversary in game.adversaries:
     
         adversary = game_adversary.adversary
-
-        difficulty_row = queries.difficulties.get_by_level(
-            cursor,
-            game_adversary.difficulty
-        )
+        difficulty = game_adversary.difficulty
 
         cursor.execute(
             """
@@ -106,7 +102,7 @@ def save_game(cursor, game: Game) -> int:
             (
                 game_id,
                 adversary.id,
-                difficulty_row["id"]
+                difficulty.id,
             )
         )
 

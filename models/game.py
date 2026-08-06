@@ -41,6 +41,11 @@ class GameAdversary:
     difficulty: int
 
 @dataclass
+class Difficulty:
+    id: int
+    level: int
+
+@dataclass
 class Game:
     id: int | None = None
     players: int = 0
