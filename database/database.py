@@ -4,7 +4,7 @@ import sqlite3
 from . import queries
 from models.game_status import GameStatus
 from models.game import Game
-from models.converters import row_to_game, row_to_adversary, row_to_board, row_to_scenario, row_to_spirit, row_to_game_adversary
+from models.converters import row_to_game, row_to_adversary, row_to_board, row_to_scenario, row_to_spirit, row_to_game_adversary, row_to_configuration
 
 from contextlib import contextmanager
 
@@ -182,8 +182,14 @@ def get_running_games() -> list[Game]:
         games = []
 
         for row in rows:
+            print("GAME DB ROW:", dict(row))
 
             game = row_to_game(row)
+
+            game.configuration = queries.configurations.get_by_name(
+                    cursor,
+                    game.configuration
+                )
 
             game.spirits = [
                 row_to_spirit(r)

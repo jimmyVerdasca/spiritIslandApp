@@ -82,3 +82,16 @@ def get_by_name(
         )
 
     return row_to_configuration(row)
+
+def get_by_id(cursor, configuration_id):
+    
+    cursor.execute(
+        """
+        SELECT *
+        FROM board_configurations
+        WHERE id = ?
+        """,
+        (configuration_id,)
+    )
+
+    return cursor.fetchone()

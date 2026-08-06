@@ -45,7 +45,10 @@ def row_to_game_adversary(row) -> GameAdversary:
             id=row["id"],
             name=row["name"]
         ),
-        difficulty=row["difficulty"]
+        difficulty=Difficulty(
+            id=row["id"],
+            level=row["difficulty"]
+        )
     )
 
 
