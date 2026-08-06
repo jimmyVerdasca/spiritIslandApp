@@ -8,6 +8,7 @@ from kivymd.uix.card import MDCard
 from kivymd.uix.label import MDLabel
 from kivymd.uix.button import MDRaisedButton, MDIconButton
 from kivymd.uix.menu import MDDropdownMenu
+from kivymd.uix.dialog import MDDialog
 
 from database.database import (
     get_configurations,
@@ -57,11 +58,12 @@ class NewGameScreen(BaseScreen):
         # Configuration
         # ----------------------------
 
-        content.add_widget(
-            MDLabel(
-                text="Board Configuration",
-                font_style="H6"
-            )
+        self.add_section_title(
+            content,
+            "Board Configuration",
+            "The board configuration determines the island layout and "
+            "the number of players supported. Leave it as Any to let "
+            "the generator choose a valid configuration automatically."
         )
 
         self.configuration_button = MDRaisedButton(
@@ -80,11 +82,12 @@ class NewGameScreen(BaseScreen):
         # Players
         # ----------------------------
 
-        content.add_widget(
-            MDLabel(
-                text="Players",
-                font_style="H6"
-            )
+        self.add_section_title(
+            content,
+            "Players",
+            "Select the number of players for the game. If left as Any, "
+            "the generator will randomly choose a valid player count "
+            "based on the selected board configuration."
         )
 
         self.players_button = MDRaisedButton(
@@ -119,11 +122,12 @@ class NewGameScreen(BaseScreen):
         # adversary selection
         # ----------------------------
 
-        content.add_widget(
-            MDLabel(
-                text="Adversaries",
-                font_style="H6",
-            )
+        self.add_section_title(
+            content,
+            "Adversaries",
+            "Adversaries increase the challenge of the game. You can select "
+            "specific adversaries and difficulty levels, or leave them as Any "
+            "to allow the generator to choose randomly it will try to get a maximum total difficulty of 6 if possible."
         )
 
         self.add_adversary_button = MDRaisedButton(
@@ -169,11 +173,12 @@ class NewGameScreen(BaseScreen):
         # Scenario selection
         # ----------------------------
 
-        content.add_widget(
-            MDLabel(
-                text="Scenarios",
-                font_style="H6",
-            )
+        self.add_section_title(
+            content,
+            "Scenarios",
+            "Scenarios modify the game setup. "
+            "You can select specific scenarios or leave it as Any "
+            "to let the generator choose randomly."
         )
 
 
@@ -767,11 +772,13 @@ class NewGameScreen(BaseScreen):
                 radius=[16]
             )
 
-            card.add_widget(
-                MDLabel(
-                    text=f"Player {i + 1}",
-                    font_style="H6"
-                )
+            self.add_section_title(
+                card,
+                f"Player {i + 1} - Spirits",
+                f"Choose specific spirits and board for Player {i + 1}. "
+                "Leave a spirit as Any to let the generator randomly select one. "
+                "The generator will avoid duplicate spirits. "
+                "Red indicates spirits already selected by another player."
             )
 
             row = MDBoxLayout(
@@ -1051,3 +1058,54 @@ class NewGameScreen(BaseScreen):
         )
 
         self.result.text = format_game(game)
+
+    def show_help(self, title, text):
+    
+        self.help_dialog = MDDialog(
+            title=title,
+            text=text,
+            buttons=[
+                MDRaisedButton(
+                    text="OK",
+                    on_release=lambda x: self.help_dialog.dismiss()
+                )
+            ]
+        )
+
+        self.help_dialog.open()
+
+    def add_section_title(self, parent, title, help_text):
+
+        row = MDBoxLayout(
+            orientation="horizontal",
+            adaptive_height=True,
+            spacing=dp(5),
+            size_hint_x=None,
+            width=dp(250),
+        )
+
+        label = MDLabel(
+            text=title,
+            font_style="H6",
+            size_hint_x=None,
+            width=dp(180),
+        )
+
+        info = MDIconButton(
+            icon="information-outline",
+            size_hint_x=None,
+            width=dp(40),
+        )
+
+        info.bind(
+            on_release=lambda x:
+                self.show_help(
+                    title,
+                    help_text
+                )
+        )
+
+        row.add_widget(label)
+        row.add_widget(info)
+
+        parent.add_widget(row)
