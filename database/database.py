@@ -184,7 +184,6 @@ def get_running_games(limit=20, offset=0) -> list[Game]:
         games = []
 
         for row in rows:
-            print("GAME DB ROW:", dict(row))
 
             game = row_to_game(row)
 
@@ -318,6 +317,23 @@ def get_scenarios():
         )
 
         return scenarios
+
+    finally:
+        db.close()
+
+def abandon_game(game_id):
+    
+    db = get_connection()
+
+    try:
+        cursor = db.cursor()
+
+        queries.games.abandon_game(
+            cursor,
+            game_id
+        )
+
+        db.commit()
 
     finally:
         db.close()

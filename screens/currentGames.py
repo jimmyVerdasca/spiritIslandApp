@@ -4,8 +4,12 @@ from kivymd.uix.card import MDCard
 from kivymd.uix.label import MDLabel
 from kivymd.uix.boxlayout import MDBoxLayout
 from kivymd.uix.scrollview import MDScrollView
+from kivymd.uix.button import MDIconButton
+from kivymd.uix.dialog import MDDialog
+from kivymd.uix.button import MDFlatButton
+from kivymd.uix.button import MDRaisedButton
 
-from database.database import get_running_games
+from database.database import get_running_games, abandon_game as db_abandon_game
 from engine.formatter import format_game
 
 
@@ -117,22 +121,44 @@ class CurrentGamesScreen(BaseScreen):
         self.loading = False
 
     def add_game_card(self, game):
-        
+    
         card = MDCard(
             orientation="vertical",
-            padding=["20dp","15dp"],
+            padding=["20dp", "15dp"],
             spacing="10dp",
             size_hint_y=None,
             adaptive_height=True,
             radius=[20]
         )
 
+        # Header row
+        header_row = MDBoxLayout(
+            orientation="horizontal",
+            size_hint_y=None,
+            height="40dp",
+        )
+
         header = MDLabel(
             text=f"Game #{game.id}",
             font_style="H6",
-            size_hint_y=None,
-            height="35dp"
+            valign="center",
+            size_hint_x=1
         )
+
+        abandon_button = MDIconButton(
+            icon="close-circle-outline",
+            size_hint_x=None,
+            width="40dp"
+        )
+
+        abandon_button.bind(
+            on_release=lambda x, game_id=game.id:
+                self.confirm_abandon(game_id)
+        )
+
+        header_row.add_widget(header)
+        header_row.add_widget(abandon_button)
+
 
         details = MDLabel(
             text=format_game(game),
@@ -146,7 +172,40 @@ class CurrentGamesScreen(BaseScreen):
             texture_size=details.setter("size")
         )
 
-        card.add_widget(header)
+
+        card.add_widget(header_row)
         card.add_widget(details)
 
         self.games_layout.add_widget(card)
+
+    def abandon_game(self, game_id):
+    
+        self.dialog.dismiss()
+
+        db_abandon_game(game_id)
+
+        self.refresh_games()
+
+    def confirm_abandon(self, game_id):
+    
+        self.dialog = MDDialog(
+            title="Abandon game?",
+            text=(
+                "This will remove this game from your running games.\n"
+                "You will not be able to see it anymore."
+            ),
+            buttons=[
+                MDFlatButton(
+                    text="CANCEL",
+                    on_release=lambda x:
+                        self.dialog.dismiss()
+                ),
+                MDFlatButton(
+                    text="ABANDON",
+                    on_release=lambda x:
+                        self.abandon_game(game_id)
+                ),
+            ],
+        )
+
+        self.dialog.open()

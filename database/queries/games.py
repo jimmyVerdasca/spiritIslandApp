@@ -185,3 +185,19 @@ def get_by_status(cursor, status: GameStatus, limit, offset):
     )
 
     return cursor.fetchall()
+
+def abandon_game(cursor, game_id):
+
+    cursor.execute(
+        """
+        UPDATE games
+        SET status = ?
+        WHERE id = ?
+        AND status = ?
+        """,
+        (
+            GameStatus.ABANDONED.value,
+            game_id,
+            GameStatus.RUNNING.value
+        )
+    )
