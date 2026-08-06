@@ -14,6 +14,10 @@ class CurrentGamesScreen(BaseScreen):
     def __init__(self, **kwargs):
 
         super().__init__(**kwargs)
+        self.page_size = 20
+        self.current_offset = 0
+        self.loading = False
+        self.finished_loading = False
 
 
         layout = MDBoxLayout(
@@ -50,7 +54,17 @@ class CurrentGamesScreen(BaseScreen):
 
         self.add_widget(layout)
 
+        scroll.bind(
+            scroll_y=self.check_scroll
+        )
 
+    def check_scroll(self, instance, value):
+
+        if self.finished_loading:
+            return
+        
+        if value < 0.1:
+            self.load_more_games()
 
     def on_enter(self):
 
@@ -59,75 +73,80 @@ class CurrentGamesScreen(BaseScreen):
 
 
     def refresh_games(self):
+    
+        self.current_offset = 0
 
         self.games_layout.clear_widgets()
 
+        self.load_more_games()
 
-        games = get_running_games()
+    def load_more_games(self):
+    
+        if self.loading:
+            return
 
+        self.loading = True
+
+        games = get_running_games(
+            limit=self.page_size,
+            offset=self.current_offset
+        )
 
         if not games:
 
-            self.games_layout.add_widget(
-                MDLabel(
-                    text="No running games",
-                    halign="center",
-                    size_hint_y=None,
-                    height="50dp"
+            if self.current_offset == 0:
+                self.games_layout.add_widget(
+                    MDLabel(
+                        text="No running games",
+                        halign="center",
+                        size_hint_y=None,
+                        height="50dp"
+                    )
                 )
-            )
 
+            self.loading = False
             return
 
 
-
         for game in games:
+            self.add_game_card(game)
 
 
-            card = MDCard(
-                orientation="vertical",
+        self.current_offset += len(games)
 
-                padding=[
-                    "20dp",
-                    "15dp",
-                    "20dp",
-                    "15dp"
-                ],
+        self.loading = False
 
-                size_hint_y=None,
+    def add_game_card(self, game):
+        
+        card = MDCard(
+            orientation="vertical",
+            padding=["20dp","15dp"],
+            spacing="10dp",
+            size_hint_y=None,
+            adaptive_height=True,
+            radius=[20]
+        )
 
-                adaptive_height=True,
+        header = MDLabel(
+            text=f"Game #{game.id}",
+            font_style="H6",
+            size_hint_y=None,
+            height="35dp"
+        )
 
-                radius=[
-                    20,
-                    20,
-                    20,
-                    20
-                ],
+        details = MDLabel(
+            text=format_game(game),
+            size_hint_y=None,
+            adaptive_height=True,
+            halign="left",
+            valign="top"
+        )
 
-                elevation=4
-            )
+        details.bind(
+            texture_size=details.setter("size")
+        )
 
+        card.add_widget(header)
+        card.add_widget(details)
 
-            header = MDLabel(
-                text=f"Game #{game.id}",
-                font_style="H6",
-                size_hint_y=None,
-                height="35dp"
-            )
-
-
-            details = MDLabel(
-                text=format_game(game),
-                halign="left",
-                valign="top",
-                size_hint_y=None,
-                adaptive_height=True
-            )
-
-
-            card.add_widget(header)
-            card.add_widget(details)
-
-
-            self.games_layout.add_widget(card)
+        self.games_layout.add_widget(card)

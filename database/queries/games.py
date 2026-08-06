@@ -153,7 +153,7 @@ def finish_game(cursor, game_id: int):
 
 
 
-def get_by_status(cursor, status: GameStatus):
+def get_by_status(cursor, status: GameStatus, limit, offset):
 
     cursor.execute(
         """
@@ -173,9 +173,14 @@ def get_by_status(cursor, status: GameStatus):
         WHERE g.status = ?
 
         ORDER BY g.created_at DESC
+
+        LIMIT ?
+        OFFSET ?
         """,
         (
             status.value,
+            limit,
+            offset
         )
     )
 

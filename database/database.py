@@ -167,7 +167,7 @@ def save_game(game: Game) -> int:
         db.close()
 
 
-def get_running_games() -> list[Game]:
+def get_running_games(limit=20, offset=0) -> list[Game]:
     
     db = get_connection()
 
@@ -176,7 +176,9 @@ def get_running_games() -> list[Game]:
 
         rows = queries.games.get_by_status(
             cursor,
-            GameStatus.RUNNING
+            GameStatus.RUNNING,
+            limit,
+            offset
         )
 
         games = []
