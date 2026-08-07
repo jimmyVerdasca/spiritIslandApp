@@ -71,3 +71,18 @@ class Game:
     dahan_remaining: int | None = None
     blight_remaining: int | None = None
     created_at: str | None = None
+
+@dataclass
+class Trophy:
+
+    id: int
+    name: str
+    description: str
+
+    locked_image: str
+    unlocked_image: str
+
+    sql_condition: str | None
+    python_condition: str | None
+
+    unlocked: bool = False

@@ -7,7 +7,8 @@ from models.game import (
     GameAdversary,
     BoardConfiguration,
     Difficulty,
-    AdversaryDifficulty
+    AdversaryDifficulty,
+    Trophy
 )
 
 from models.game_status import GameStatus
@@ -137,3 +138,15 @@ def build_game(
     game.scenarios = scenarios
 
     return game
+
+def row_to_trophy(row):
+
+    return Trophy(
+        id=row["id"],
+        name=row["name"],
+        description=row["description"],
+        locked_image=row["locked_image"],
+        unlocked_image=row["unlocked_image"],
+        sql_condition=row["sql_condition"],
+        python_condition=row["python_condition"],
+    )

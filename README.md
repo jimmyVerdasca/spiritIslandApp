@@ -138,7 +138,7 @@ pip install -r requirements.txt
 # (When using the Microsoft Store version of Python, the database is created under:
 # C:\Users\<Username>\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.10_qbz5n2kfra8p0\LocalCache\Roaming\spiritisland\spirit_island.db)
 
-python -m database.init_db --app-user
+python -m database.init_db --app-data
 
 # or
 

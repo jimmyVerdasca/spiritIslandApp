@@ -5,7 +5,7 @@ from . import queries
 from models.game_status import GameStatus
 from models.game import Game
 from models.converters import row_to_game, row_to_adversary, row_to_board, row_to_scenario, row_to_spirit, row_to_game_adversary, row_to_configuration
-
+from engine.trophy_conditions import CONDITIONS
 from contextlib import contextmanager
 
 from kivy.app import App
@@ -454,3 +454,62 @@ def get_scenario_difficulty(scenario_id):
 
     finally:
         db.close()
+
+def get_trophies():
+    
+    db = get_connection()
+
+    try:
+
+        cursor = db.cursor()
+
+        trophies = queries.trophies.get_all(cursor)
+
+        for trophy in trophies:
+
+            trophy.unlocked = check_trophy_condition(
+                cursor,
+                trophy
+            )
+
+        return trophies
+
+    finally:
+        db.close()
+
+def check_trophy_condition(cursor, trophy):
+    
+    if trophy.sql_condition:
+
+        cursor.execute(
+            trophy.sql_condition
+        )
+
+        return bool(
+            cursor.fetchone()[0]
+        )
+
+
+    if trophy.python_condition:
+
+        return check_python_condition(
+            trophy.python_condition
+        )
+
+
+    return False
+
+def check_python_condition(
+    condition_name
+):
+
+    games = get_finished_games()
+
+    condition = CONDITIONS.get(
+        condition_name
+    )
+
+    if condition is None:
+        return False
+
+    return condition(games)

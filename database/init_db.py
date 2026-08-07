@@ -3,6 +3,8 @@ from pathlib import Path
 import argparse
 import os
 
+from database.seed_trophies import seed_trophies
+
 from database.config import (
     DATABASE_VERSION,
     DB_NAME,
@@ -182,6 +184,7 @@ def create_database(path):
     DROP TABLE IF EXISTS boards;
     DROP TABLE IF EXISTS database_info;
     DROP TABLE IF EXISTS adversary_difficulties;
+    DROP TABLE IF EXISTS trophies;
 
     CREATE TABLE database_info(
         version INTEGER NOT NULL
@@ -245,6 +248,25 @@ def create_database(path):
         board_id INTEGER,
 
         position INTEGER
+    );
+
+    CREATE TABLE trophies (
+        id INTEGER PRIMARY KEY,
+
+        name TEXT NOT NULL,
+        description TEXT NOT NULL,
+
+        locked_image TEXT NOT NULL,
+        unlocked_image TEXT NOT NULL,
+
+        sql_condition TEXT,
+        python_condition TEXT,
+
+        CHECK (
+            (sql_condition IS NOT NULL AND python_condition IS NULL)
+            OR
+            (sql_condition IS NULL AND python_condition IS NOT NULL)
+        )
     );
 
 
@@ -518,6 +540,8 @@ def create_database(path):
         );
         """
     )
+
+    seed_trophies(cursor)
 
 
     db.commit()

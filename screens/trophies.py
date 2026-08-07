@@ -3,11 +3,19 @@ from .baseScreen import BaseScreen
 from kivy.metrics import dp
 
 from kivymd.uix.boxlayout import MDBoxLayout
+from kivymd.uix.scrollview import MDScrollView
+from kivymd.uix.gridlayout import MDGridLayout
 from kivymd.uix.label import MDLabel
+
+from database.database import get_trophies
+
+from widgets.trophy_card import TrophyCard
+
+from kivymd.uix.progressbar import MDProgressBar
 
 
 class TrophyScreen(BaseScreen):
-
+    
     def __init__(self, **kwargs):
 
         super().__init__(**kwargs)
@@ -15,8 +23,8 @@ class TrophyScreen(BaseScreen):
 
         layout = MDBoxLayout(
             orientation="vertical",
-            spacing=dp(10),
-            padding=dp(20)
+            padding=dp(20),
+            spacing=dp(10)
         )
 
 
@@ -26,27 +34,95 @@ class TrophyScreen(BaseScreen):
         )
 
 
-        title = MDLabel(
-            text="Trophies",
-            halign="center",
-            font_style="H4",
-            size_hint_y=None,
-            height=dp(60)
+        self.progress_label = MDLabel(
+            text="Trophies: 0 / 0",
+            adaptive_height=True,
+            halign="center"
         )
-
-
-        self.trophies = MDLabel(
-            text="No trophies unlocked yet.",
-            halign="left",
-            valign="top"
-        )
-
-
-        layout.add_widget(title)
 
         layout.add_widget(
-            self.trophies
+            self.progress_label
         )
 
 
-        self.add_widget(layout)
+        self.progress = MDProgressBar(
+            value=0,
+            max=100,
+            size_hint_y=None,
+            height=dp(15)
+        )
+
+
+        layout.add_widget(
+            self.progress
+        )
+
+
+        scroll = MDScrollView()
+
+
+        self.container = MDGridLayout(
+            cols=3,
+            spacing=dp(15),
+            padding=dp(10),
+            adaptive_height=True
+        )
+
+
+        scroll.add_widget(
+            self.container
+        )
+
+
+        layout.add_widget(
+            scroll
+        )
+
+
+        self.add_widget(
+            layout
+        )
+
+
+    def on_enter(self):
+
+        self.refresh_trophies()
+
+
+
+    def refresh_trophies(self):
+
+        self.container.clear_widgets()
+
+
+        trophies = get_trophies()
+
+
+        total = len(trophies)
+
+        unlocked = len(
+            [
+                t
+                for t in trophies
+                if t.unlocked
+            ]
+        )
+
+
+        self.progress_label.text = (
+            f"Trophies: {unlocked} / {total}"
+        )
+
+
+        if total:
+
+            self.progress.value = (
+                unlocked / total * 100
+            )
+
+
+        for trophy in trophies:
+
+            self.container.add_widget(
+                TrophyCard(trophy)
+            )
