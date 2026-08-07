@@ -167,8 +167,13 @@ def save_game(game: Game) -> int:
         db.close()
 
 
-def get_running_games(limit=20, offset=0) -> list[Game]:
-    
+def _get_games_by_status(
+    status: GameStatus,
+    result=None,
+    limit=20,
+    offset=0
+) -> list[Game]:
+
     db = get_connection()
 
     try:
@@ -176,7 +181,8 @@ def get_running_games(limit=20, offset=0) -> list[Game]:
 
         rows = queries.games.get_by_status(
             cursor,
-            GameStatus.RUNNING,
+            status,
+            result,
             limit,
             offset
         )
@@ -188,9 +194,9 @@ def get_running_games(limit=20, offset=0) -> list[Game]:
             game = row_to_game(row)
 
             game.configuration = queries.configurations.get_by_name(
-                    cursor,
-                    game.configuration
-                )
+                cursor,
+                game.configuration
+            )
 
             game.spirits = [
                 row_to_spirit(r)
@@ -230,6 +236,43 @@ def get_running_games(limit=20, offset=0) -> list[Game]:
 
     finally:
         db.close()
+
+
+def get_running_games(
+    limit=20,
+    offset=0
+) -> list[Game]:
+
+    return _get_games_by_status(
+        GameStatus.RUNNING,
+        limit=limit,
+        offset=offset
+    )
+
+
+def get_finished_games(
+    result=None,
+    limit=20,
+    offset=0
+) -> list[Game]:
+
+    return _get_games_by_status(
+        GameStatus.FINISHED,
+        result=result,
+        limit=limit,
+        offset=offset
+    )
+
+def get_abandoned_games(
+    limit=20,
+    offset=0
+) -> list[Game]:
+
+    return _get_games_by_status(
+        GameStatus.ABANDONED,
+        limit,
+        offset
+    )
 
 def get_configurations():
     db = get_connection()

@@ -94,7 +94,13 @@ def row_to_game(row) -> Game:
         id=row["id"],
         players=row["players"],
         configuration=row["configuration"],
-        status=GameStatus(row["status"])
+        status=GameStatus(row["status"]),
+        result=row["result"],
+        score=row["score"],
+        invader_cards_remaining=row["invader_cards_remaining"],
+        dahan_remaining=row["dahan_remaining"],
+        blight_remaining=row["blight_remaining"],
+        created_at=row["created_at"],
     )
 
 def row_to_adversary_difficulty(row):

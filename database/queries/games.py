@@ -153,14 +153,24 @@ def finish_game(cursor, game_id: int):
 
 
 
-def get_by_status(cursor, status: GameStatus, limit, offset):
+def get_by_status(
+    cursor,
+    status: GameStatus,
+    result,
+    limit,
+    offset
+):
 
-    cursor.execute(
-        """
+    sql = """
         SELECT
             g.id,
             g.players,
             g.status,
+            g.result,
+            g.score,
+            g.invader_cards_remaining,
+            g.dahan_remaining,
+            g.blight_remaining,
             g.created_at,
 
             bc.name AS configuration
@@ -171,18 +181,29 @@ def get_by_status(cursor, status: GameStatus, limit, offset):
             ON bc.id = g.configuration_id
 
         WHERE g.status = ?
+    """
 
+    params = [status.value]
+
+    if result is not None:
+        sql += """
+            AND g.result = ?
+        """
+        params.append(result)
+
+    sql += """
         ORDER BY g.created_at DESC
 
         LIMIT ?
         OFFSET ?
-        """,
-        (
-            status.value,
-            limit,
-            offset
-        )
-    )
+    """
+
+    params.extend([
+        limit,
+        offset
+    ])
+
+    cursor.execute(sql, params)
 
     return cursor.fetchall()
 

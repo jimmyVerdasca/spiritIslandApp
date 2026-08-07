@@ -64,3 +64,10 @@ class Game:
     scenarios: list[Scenario] = field(default_factory=list)
 
     status: GameStatus = GameStatus.RUNNING
+
+    result: str | None = None
+    score: int | None = None
+    invader_cards_remaining: int | None = None
+    dahan_remaining: int | None = None
+    blight_remaining: int | None = None
+    created_at: str | None = None
