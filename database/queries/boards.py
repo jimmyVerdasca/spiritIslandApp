@@ -152,33 +152,6 @@ def get_configuration(cursor, name=None, players=None) -> BoardConfiguration:
 
 
 
-def get_available_boards(
-    cursor,
-    configuration_id
-) -> list[Board]:
-
-    cursor.execute(
-        """
-        SELECT 
-            boards.id,
-            boards.name
-        FROM boards
-        JOIN configuration_boards
-            ON boards.id = configuration_boards.board_id
-        WHERE configuration_boards.configuration_id=?
-        """,
-        (
-            configuration_id,
-        )
-    )
-
-    return [
-        row_to_board(row)
-        for row in cursor.fetchall()
-    ]
-
-
-
 def get_random_boards(
     cursor,
     available: list[Board],

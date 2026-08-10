@@ -12,7 +12,7 @@ from database.queries.spirits import (
 
 from database.queries.boards import (
     get_configuration,
-    get_available_boards
+    get_all as get_boards
 )
 
 from database.queries.adversaries import (
@@ -63,9 +63,8 @@ def generate_game(
                 players=players
             )
 
-        available_boards = get_available_boards(
-            cursor,
-            configuration.id
+        available_boards = get_boards(
+            cursor
         )
 
         if players is None:

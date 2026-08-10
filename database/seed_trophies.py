@@ -85,7 +85,7 @@ TROPHIES = [
                             ON s.id = gs.scenario_id
                         WHERE gs.game_id = g.id
                     )
-                    = {i}
+                    >= {i}
             )
             """,
             None,

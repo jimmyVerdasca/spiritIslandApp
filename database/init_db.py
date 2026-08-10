@@ -15,136 +15,133 @@ from database.config import (
 
 # DATA inital of the DB
 spirits = [
-
-    # Base
-    "FrappeFoudroyanteDeLEclair",
-    "RivièreDéverseSesFlotsEnPleinJour",
-    "ForceVitaleDeLaTerre",
-    "OmbresFlamboyantes",
-    "UnePropagationDeVerdureRampante",
-    "TonnerreParleÀTraversLesArbres",
-
-    # Branche et Griffes
-    "GardienneDesÎlesOubliées",
-    "CoeurDuFeuSacré",
-    "PorteurDesRêvesEtDesCauchemars",
-    "SerpentSomnolentSousLaSurfaceDuMonde",
-
-    # Jagged Earth
-    "BourrasqueDeFoudreDansante",
-    "FléauDesOcéansDéchaînés",
-    "VolcanQuiSurgitDesProfondeurs",
-    "AubeAuxYeuxOuverts",
-    "PluieDeLumièreEtDeChaleur",
-    "FrissonsDansLesBois",
-    "DévorationDesContréesDévastées",
-    "RacinesQuiS'ÉtendentPartout",
-
-    # Nature Incarnate
-    "GriffesDeLaNatureSauvage",
-    "GardienDesSentiersInexplorés",
-    "PrésenceÉternelleDeLaForêt",
-    "FaimInsatiableDeLIntérieurDeLaTerre",
-    "ChantDeLaTerreEnColère",
-    "LaSourceDeLaVie",
-    "RêveurDeLaContréeÉternelle",
-
-    # Horizons
-    "NuageDeRêvesQuiDansent",
-    "LézardDeLaFlammeÉternelle",
-    "EspritDeLaMontagneÉlevée",
-    "ÂmeDeLaForêtProfonde",
-    "BrumeQuiS'ÉpaissitEtDisparaît",
-
-    # Custom
-    "Dragon",
-    "Moisissure",
+    "Frappe Cinglante de l'Éclair",
+    "Jaillissement de la Rivière Étincelante",
+    "Force Vitale de la Terre",
+    "Ombre Vacillante de la Flamme",
+    "Prolifération de la Verdure Rampante",
+    "Voix du Tonnerre",
+    "Poigne Vorace de l'Océan",
+    "Gardien des Contrées Interdites",
+    "Coeur du Feu Sauvage",
+    "Porteur de Rêves et de Cauchemars",
+    "Serpent Someillant dans les Profondeurs",
+    "Jours Brisées qui Déchirent les Cieux",
+    "Fascination des Contrées Sauvages",
+    "Volcan Dominant l'Île",
+    "Regard Implacable du Soleil",
+    "Pluie Diluvienne qui Arrose le Monde",
+    "Starlight Seeks its Form",
+    "Souffle Ténébreux Descendant votre Épine Dorsale",
+    "Béhémoth aux Yeux de Braise",
+    "Crocs Acérés Tapis sous les Feuilles",
+    "Dénicheur de Chemins Imperceptibles",
+    "Danse Jusqu'à Faire Trembler la Terre",
+    "L'Inébranlable Ténacité de la Pierre",
+    "Mémoire du Fond des Âges",
+    "Eaux Blessées qui Saignent",
+    "Voix Errante qui Attise le Délire",
+    "Nuées Accordées à l'Unisson",
+    "Fléau Ardent de la Vengeance",
+    "Gredin qui Prépare un Mauvais Coup",
+    "Sentinelle des Foyers",
+    "Linceul de Brume Silencieuse",
+    "Convoiteur de Fragments Étincelants de la Terre",
+    "La Pourriture qui se Répand régénèrant la terre",
 ]
 
 
 adversary_difficulties = [
 
-    ("Angleterre", 1, 2),
-    ("Angleterre", 2, 3),
-    ("Angleterre", 3, 6),
-    ("Angleterre", 4, 7),
-    ("Angleterre", 5, 9),
-    ("Angleterre", 6, 11),
+    ("Le Royaume d'Angleterre", 0, 1),
+    ("Le Royaume d'Angleterre", 1, 3),
+    ("Le Royaume d'Angleterre", 2, 4),
+    ("Le Royaume d'Angleterre", 3, 6),
+    ("Le Royaume d'Angleterre", 4, 7),
+    ("Le Royaume d'Angleterre", 5, 9),
+    ("Le Royaume d'Angleterre", 6, 11),
 
-    ("Suède", 1, 2),
-    ("Suède", 2, 3),
-    ("Suède", 3, 5),
-    ("Suède", 4, 6),
-    ("Suède", 5, 7),
-    ("Suède", 6, 8),
+    ("Le Royaume de Suède", 0, 1),
+    ("Le Royaume de Suède", 1, 2),
+    ("Le Royaume de Suède", 2, 3),
+    ("Le Royaume de Suède", 3, 5),
+    ("Le Royaume de Suède", 4, 6),
+    ("Le Royaume de Suède", 5, 7),
+    ("Le Royaume de Suède", 6, 8),
 
-    ("France", 1, 3),
-    ("France", 2, 5),
-    ("France", 3, 7),
-    ("France", 4, 8),
-    ("France", 5, 9),
-    ("France", 6, 10),
+    ("Le Royaume de France (Colonie de Plantations)", 0, 2),
+    ("Le Royaume de France (Colonie de Plantations)", 1, 3),
+    ("Le Royaume de France (Colonie de Plantations)", 2, 5),
+    ("Le Royaume de France (Colonie de Plantations)", 3, 7),
+    ("Le Royaume de France (Colonie de Plantations)", 4, 8),
+    ("Le Royaume de France (Colonie de Plantations)", 5, 9),
+    ("Le Royaume de France (Colonie de Plantations)", 6, 10),
 
-    ("BrandebourgPrusse", 1, 2),
-    ("BrandebourgPrusse", 2, 4),
-    ("BrandebourgPrusse", 3, 6),
-    ("BrandebourgPrusse", 4, 8),
-    ("BrandebourgPrusse", 5, 10),
-    ("BrandebourgPrusse", 6, 12),
+    ("Le Royaume de Brandebourg-Prusse", 0, 1),
+    ("Le Royaume de Brandebourg-Prusse", 1, 2),
+    ("Le Royaume de Brandebourg-Prusse", 2, 4),
+    ("Le Royaume de Brandebourg-Prusse", 3, 6),
+    ("Le Royaume de Brandebourg-Prusse", 4, 7),
+    ("Le Royaume de Brandebourg-Prusse", 5, 9),
+    ("Le Royaume de Brandebourg-Prusse", 6, 10),
 
-    ("Ecosse", 1, 2),
-    ("Ecosse", 2, 4),
-    ("Ecosse", 3, 6),
-    ("Ecosse", 4, 8),
-    ("Ecosse", 5, 10),
-    ("Ecosse", 6, 11),
+    ("Le Royaume d'Écosse", 0, 1),
+    ("Le Royaume d'Écosse", 1, 3),
+    ("Le Royaume d'Écosse", 2, 4),
+    ("Le Royaume d'Écosse", 3, 6),
+    ("Le Royaume d'Écosse", 4, 7),
+    ("Le Royaume d'Écosse", 5, 8),
+    ("Le Royaume d'Écosse", 6, 10),
 
-    ("Russie", 1, 3),
-    ("Russie", 2, 5),
-    ("Russie", 3, 7),
-    ("Russie", 4, 9),
-    ("Russie", 5, 10),
-    ("Russie", 6, 11),
+    ("Le Tsarat de Russie", 0, 1),
+    ("Le Tsarat de Russie", 1, 3),
+    ("Le Tsarat de Russie", 2, 4),
+    ("Le Tsarat de Russie", 3, 6),
+    ("Le Tsarat de Russie", 4, 7),
+    ("Le Tsarat de Russie", 5, 9),
+    ("Le Tsarat de Russie", 6, 11),
 
-    ("MonarchieDesHabsbourg", 1, 3),
-    ("MonarchieDesHabsbourg", 2, 5),
-    ("MonarchieDesHabsbourg", 3, 6),
-    ("MonarchieDesHabsbourg", 4, 8),
-    ("MonarchieDesHabsbourg", 5, 9),
-    ("MonarchieDesHabsbourg", 6, 10),
+    ("La Monarchie de Habsbourg (Colonie d'Éleveurs)", 0, 2),
+    ("La Monarchie de Habsbourg (Colonie d'Éleveurs)", 1, 3),
+    ("La Monarchie de Habsbourg (Colonie d'Éleveurs)", 2, 5),
+    ("La Monarchie de Habsbourg (Colonie d'Éleveurs)", 3, 6),
+    ("La Monarchie de Habsbourg (Colonie d'Éleveurs)", 4, 8),
+    ("La Monarchie de Habsbourg (Colonie d'Éleveurs)", 5, 9),
+    ("La Monarchie de Habsbourg (Colonie d'Éleveurs)", 6, 10),
 
-    ("Minier", 1, 2),
-    ("Minier", 2, 4),
-    ("Minier", 3, 6),
-    ("Minier", 4, 7),
-    ("Minier", 5, 9),
-    ("Minier", 6, 10),
+    ("L'Expédition Minière des Habsbourg", 0, 1),
+    ("L'Expédition Minière des Habsbourg", 1, 3),
+    ("L'Expédition Minière des Habsbourg", 2, 4),
+    ("L'Expédition Minière des Habsbourg", 3, 5),
+    ("L'Expédition Minière des Habsbourg", 4, 7),
+    ("L'Expédition Minière des Habsbourg", 5, 9),
+    ("L'Expédition Minière des Habsbourg", 6, 10),
 ]
 
 
 scenarios = [
 
     ("Blitz", 0),
-    ("ProtectionDuCoeurDeLÎle", 1),
-    ("RituelsDeTerreur", 2),
-    ("InsurrectionDesDahans", 4),
+    ("Protection du Coeur de l'Île", 0),
+    ("Rituels de Terreur", 3),
+    ("L'Insurrection des Dahans", 4),
 
-    ("DeuxièmeVague", 2),
-    ("PuissanceImmemoriale", 3),
-    ("ProtégerLesRivages", 1),
-    ("RituelsDePurification", 2),
+    ("Deuxième Vague", 1),
+    ("Puissance Immémoriales", 1),
+    ("Protection des Rivages", 2),
+    ("Rituels de Purification par les Flammes", 3),
 
-    ("InvocationÉlémentaire", 2),
-    ("PlaceDansUnMusée", 1),
-    ("DeLautreCotéDuFleuve", 1),
+    ("Invocation Élémentaire", 1),
+    ("Sa Place est dans un Musée !", 2),
+    ("De l'Autre Côté du Fleuve", 3),
 
-    ("DiversitéDesEsprits", 2),
-    ("TerrainsHétérogène", 1),
+    ("Une Diversité d'Esprits", 0),
+    ("Terrains Hétérogène", 2),
 
-    ("DestinSeRévèle", 2),
-    ("VaguesDeColonisation", 3),
+    ("Le Destin se Révèle", -1),
+    ("Vagues de Colonisation", 2),
 
-    ("SaintValentin", 0),
+    ("Protection de la Flamme Sacrée", 1),
 ]
 
 
@@ -152,10 +149,10 @@ boards = [
 
     "Est",
     "Ouest",
-    "NordEst",
-    "NordOuest",
-    "SudEst",
-    "SudOuest",
+    "Nord-Est",
+    "Nord-Ouest",
+    "Sud-Est",
+    "Sud-Ouest",
 
 ]
 
@@ -174,7 +171,6 @@ def create_database(path):
     DROP TABLE IF EXISTS game_spirits;
     DROP TABLE IF EXISTS games;
 
-    DROP TABLE IF EXISTS configuration_boards;
     DROP TABLE IF EXISTS board_configurations;
 
     DROP TABLE IF EXISTS spirits;
@@ -238,16 +234,6 @@ def create_database(path):
         min_players INTEGER NOT NULL,
 
         max_players INTEGER NOT NULL
-    );
-
-
-    CREATE TABLE configuration_boards(
-
-        configuration_id INTEGER,
-
-        board_id INTEGER,
-
-        position INTEGER
     );
 
     CREATE TABLE trophies (
@@ -334,7 +320,7 @@ def create_database(path):
         )
 
 
-    for level in range(1,7):
+    for level in range(0,7):
 
         cursor.execute(
             """
@@ -444,48 +430,6 @@ def create_database(path):
                 get_adversary_id(adversary_name),
                 get_difficulty_id(level),
                 score_difficulty,
-            )
-        )
-
-    for position, board in enumerate(
-        boards,
-        start=1
-    ):
-
-        cursor.execute(
-            """
-            INSERT INTO configuration_boards
-            VALUES(?,?,?)
-            """,
-            (
-                normal_id,
-                get_board_id(board),
-                position
-            )
-        )
-
-
-
-    for position, board in enumerate(
-        [
-            "Est",
-            "NordEst",
-            "NordOuest",
-            "Ouest",
-            "SudEst"
-        ],
-        start=1
-    ):
-
-        cursor.execute(
-            """
-            INSERT INTO configuration_boards
-            VALUES(?,?,?)
-            """,
-            (
-                etoile_id,
-                get_board_id(board),
-                position
             )
         )
         
