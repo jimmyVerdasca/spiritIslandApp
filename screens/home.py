@@ -81,18 +81,32 @@ class HomeScreen(Screen):
         header = MDBoxLayout(
             orientation="vertical",
             size_hint_y=None,
-            height=dp(135),
             spacing=dp(2),
+        )
+
+        header.bind(
+            minimum_height=lambda instance, value:
+            setattr(instance, "height", value)
         )
 
         title = MDLabel(
             text="Spirit Island Companion",
             halign="center",
-            font_style="H3",
+            valign="middle",
+            font_style="H4",
             theme_text_color="Custom",
             text_color=(1, 1, 1, 1),
             size_hint_y=None,
-            height=dp(55),
+        )
+
+        title.bind(
+            width=lambda instance, value:
+            setattr(instance, "text_size", (value, None))
+        )
+
+        title.bind(
+            texture_size=lambda instance, value:
+            setattr(instance, "height", value[1] + dp(10))
         )
 
         description = MDLabel(

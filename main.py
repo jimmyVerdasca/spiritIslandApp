@@ -12,6 +12,7 @@ from screens.finisfGame import FinishGameScreen
 
 
 class SpiritIslandApp(MDApp):
+    icon = "assets/home/logoApp.png"
     
     def build(self):
 

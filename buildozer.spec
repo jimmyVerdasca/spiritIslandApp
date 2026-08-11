@@ -8,7 +8,7 @@ package.domain = org.spiritisland
 version = 0.1.0
 
 source.dir = .
-source.include_exts = py,png,jpg,kv,atlas,db,sql
+source.include_exts = py,png,jpg,kv,atlas,db,sql,mp3
 
 requirements = python3==3.10.11,hostpython3==3.10.11,kivy==2.2.1,kivymd==1.2.0
 
