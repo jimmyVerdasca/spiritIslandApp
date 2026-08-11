@@ -9,6 +9,8 @@ from kivymd.uix.label import MDLabel
 from kivymd.uix.button import MDRaisedButton, MDIconButton
 from kivymd.uix.menu import MDDropdownMenu
 from kivymd.uix.dialog import MDDialog
+from kivy.uix.floatlayout import FloatLayout
+from kivy.uix.image import Image
 
 from database.database import (
     get_configurations,
@@ -756,68 +758,237 @@ class NewGameScreen(BaseScreen):
     def refresh_player_rows(self):
 
         self.players_container.clear_widgets()
-
         self.player_rows = []
 
         if self.players is None:
             return
 
+        # Normal spirit artwork ratio: 198 x 128
+        image_ratio = 198 / 128
+
         for i in range(self.players):
+
+            # ------------------------------------------------
+            # Player card
+            # ------------------------------------------------
 
             card = MDCard(
                 orientation="vertical",
-                padding="10dp",
-                spacing="10dp",
-                adaptive_height=True,
-                radius=[16]
+                size_hint_y=None,
+                padding=0,
+                radius=[16],
+                elevation=2,
             )
 
-            self.add_section_title(
-                card,
-                f"Player {i + 1} - Spirits",
-                f"Choose specific spirits and board for Player {i + 1}. "
-                "Leave a spirit as Any to let the generator randomly select one. "
-                "The generator will avoid duplicate spirits. "
-                "Red indicates spirits already selected by another player."
+            def update_card_height(card, width, ratio=image_ratio):
+                if width > 0:
+                    card.height = width / ratio
+
+            card.bind(
+                width=update_card_height
             )
 
-            row = MDBoxLayout(
+            # ------------------------------------------------
+            # Background artwork
+            # ------------------------------------------------
+
+            background = FloatLayout(
+                size_hint=(1, 1),
+            )
+
+            spirit_image = Image(
+                source="assets/spirits/Any.png",
+                size_hint=(1, 1),
+                pos_hint={"x": 0, "y": 0},
+                fit_mode="cover",
+            )
+
+            background.add_widget(
+                spirit_image
+            )
+
+            # ------------------------------------------------
+            # Dark overlay
+            # ------------------------------------------------
+
+            overlay = MDBoxLayout(
+                orientation="vertical",
+                size_hint=(1, 1),
+                pos_hint={"x": 0, "y": 0},
+                padding=dp(10),
+                spacing=dp(4),
+            )
+
+            overlay.md_bg_color = (
+                0,
+                0,
+                0,
+                0.30,
+            )
+
+            # ------------------------------------------------
+            # Player title
+            # ------------------------------------------------
+
+            player_title = MDLabel(
+                text=f"Player {i + 1}",
+                size_hint_y=None,
+                height=dp(30),
+
+                theme_text_color="Custom",
+                text_color=(1, 1, 1, 1),
+
+                font_style="H6",
+            )
+
+            overlay.add_widget(
+                player_title
+            )
+
+            # ------------------------------------------------
+            # Spirit name
+            # ------------------------------------------------
+
+            spirit_name_label = MDLabel(
+                text="",
+                size_hint_y=None,
+                height=dp(30),
+
+                theme_text_color="Custom",
+                text_color=(1, 1, 1, 1),
+
+                font_style="Subtitle1",
+
+                # Allow long spirit names to wrap
+                halign="left",
+                valign="middle",
+            )
+
+            spirit_name_label.bind(
+                width=lambda instance, value:
+                    setattr(instance, "text_size", (value, None))
+            )
+
+            overlay.add_widget(
+                spirit_name_label
+            )
+
+            # ------------------------------------------------
+            # Board name
+            # ------------------------------------------------
+
+            board_name_label = MDLabel(
+                text="",
+                size_hint_y=None,
+                height=dp(28),
+
+                theme_text_color="Custom",
+                text_color=(1, 1, 1, 1),
+
+                font_style="Body1",
+
+                halign="left",
+                valign="middle",
+            )
+
+            board_name_label.bind(
+                width=lambda instance, value:
+                    setattr(instance, "text_size", (value, None))
+            )
+
+            overlay.add_widget(
+                board_name_label
+            )
+
+            # ------------------------------------------------
+            # Spacer
+            # ------------------------------------------------
+
+            overlay.add_widget(
+                MDBoxLayout()
+            )
+
+            # ------------------------------------------------
+            # Buttons
+            # ------------------------------------------------
+
+            button_row = MDBoxLayout(
                 orientation="horizontal",
-                spacing=dp(10),
-                adaptive_height=True
+
+                size_hint_x=1,
+                size_hint_y=None,
+                height=dp(45),
+
+                spacing=dp(8),
             )
 
             spirit_button = MDRaisedButton(
-                text="Spirit: Any",
-                size_hint_x=.75
+                text="Choose Spirit",
+                size_hint_x=0.55,
             )
 
             board_button = MDRaisedButton(
-                text="Board: Any",
-                size_hint_x=.25
+                text="Choose Board",
+                size_hint_x=0.45,
             )
 
             spirit_button.bind(
-                on_release=lambda x, idx=i: self.open_spirit_menu(idx)
+                on_release=lambda x, idx=i:
+                    self.open_spirit_menu(idx)
             )
 
             board_button.bind(
-                on_release=lambda x, idx=i: self.open_board_menu(idx)
+                on_release=lambda x, idx=i:
+                    self.open_board_menu(idx)
             )
 
-            row.add_widget(spirit_button)
-            row.add_widget(board_button)
+            button_row.add_widget(
+                spirit_button
+            )
 
-            card.add_widget(row)
+            button_row.add_widget(
+                board_button
+            )
 
-            self.players_container.add_widget(card)
+            overlay.add_widget(
+                button_row
+            )
+
+            # ------------------------------------------------
+            # Assemble
+            # ------------------------------------------------
+
+            background.add_widget(
+                overlay
+            )
+
+            card.add_widget(
+                background
+            )
+
+            self.players_container.add_widget(
+                card
+            )
+
+            # ------------------------------------------------
+            # Store state
+            # ------------------------------------------------
 
             self.player_rows.append({
                 "spirit": None,
                 "board": None,
+
                 "spirit_button": spirit_button,
-                "board_button": board_button
+                "board_button": board_button,
+
+                "spirit_name_label": spirit_name_label,
+                "board_name_label": board_name_label,
+
+                "spirit_image": spirit_image,
             })
+
+
+
 
     def open_spirit_menu(self, index):
     
@@ -954,58 +1125,126 @@ class NewGameScreen(BaseScreen):
         self.board_menu.open()
 
     def set_spirit(self, index, spirit):
+
         print("SELECTED SPIRIT:", index, spirit)
-    
+
+        # ------------------------------------------------
         # Remove this spirit from another player
+        # ------------------------------------------------
+
         if spirit is not None:
 
             for i, row in enumerate(self.player_rows):
 
-                if i != index and row["spirit"] == spirit:
+                if (
+                    i != index
+                    and row["spirit"] == spirit
+                ):
 
                     row["spirit"] = None
 
-                    row["spirit_button"].text = "Spirit: Any"
+                    # Reset their labels
+                    row["spirit_name_label"].text = "Choose Spirit"
 
+                    # Reset their button
+                    row["spirit_button"].text = "Choose Spirit"
 
-        self.player_rows[index]["spirit"] = spirit
+                    # Reset their artwork
+                    row["spirit_image"].source = (
+                        "assets/spirits/Any.png"
+                    )
 
-        button = self.player_rows[index]["spirit_button"]
+        # ------------------------------------------------
+        # Update current player
+        # ------------------------------------------------
 
-        button.text = (
-            "Spirit: Any"
-            if spirit is None
-            else spirit.name
-        )
+        row = self.player_rows[index]
+
+        row["spirit"] = spirit
+
+        if spirit is None:
+
+            row["spirit_name_label"].text = ""
+            row["spirit_button"].text = "Choose Spirit"
+
+            row["spirit_image"].source = (
+                "assets/spirits/Any.png"
+            )
+
+        else:
+
+            # Show the full spirit name in the card
+            row["spirit_name_label"].text = spirit.name
+
+            # Button always remains the same
+            row["spirit_button"].text = "Choose Spirit"
+
+            # Show spirit artwork
+            row["spirit_image"].source = (
+                f"assets/spirits/{spirit.name}.png"
+            )
+
+        # ------------------------------------------------
+        # Close menu
+        # ------------------------------------------------
 
         self.spirit_menu.dismiss()
 
 
 
     def set_board(self, index, board):
+
+        # ------------------------------------------------
         # Remove this board from another player
+        # ------------------------------------------------
+
         if board is not None:
 
             for i, row in enumerate(self.player_rows):
 
-                if i != index and row["board"] == board:
+                if (
+                    i != index
+                    and row["board"] == board
+                ):
 
                     row["board"] = None
 
-                    row["board_button"].text = "Board: Any"
+                    row["board_name_label"].text = (
+                        "Choose Board"
+                    )
 
+                    row["board_button"].text = (
+                        "Choose Board"
+                    )
 
-        self.player_rows[index]["board"] = board
+        # ------------------------------------------------
+        # Update current player
+        # ------------------------------------------------
 
-        button = self.player_rows[index]["board_button"]
+        row = self.player_rows[index]
 
-        button.text = (
-            "Board: Any"
-            if board is None
-            else board.name
-        )
+        row["board"] = board
+
+        if board is None:
+
+            row["board_name_label"].text = (
+                ""
+            )
+
+            row["board_button"].text = (
+                "Choose Board"
+            )
+
+        else:
+
+            # Show selected board above the button
+            row["board_name_label"].text = board.name
+
+            # Button always stays the same
+            row["board_button"].text = "Choose Board"
 
         self.board_menu.dismiss()
+
 
     def update_adversary_button_state(self):
     
