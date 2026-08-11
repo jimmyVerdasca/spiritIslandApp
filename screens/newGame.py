@@ -44,7 +44,7 @@ class NewGameScreen(BaseScreen):
 
         self.add_top_bar(
             root,
-            "Game Generator"
+            "Create new Game"
         )
 
         scroll = MDScrollView()
@@ -808,6 +808,71 @@ class NewGameScreen(BaseScreen):
             )
 
             # ------------------------------------------------
+            # Board artwork - top right corner
+            # ------------------------------------------------
+
+            board_container = FloatLayout(
+                size_hint=(0.40, 0.40),
+                pos_hint={
+                    "right": 0.98,
+                    "top": 0.98,
+                },
+            )
+
+            board_image = Image(
+                source="assets/boards/Any.png",
+                size_hint=(1, 1),
+                pos_hint={
+                    "x": 0,
+                    "y": -0.5,
+                },
+                fit_mode="contain",
+            )
+
+            board_container.add_widget(
+                board_image
+            )
+
+            # Dark overlay behind board name
+            board_title_overlay = MDBoxLayout(
+                orientation="vertical",
+                size_hint=(1, 0.35),
+                pos_hint={
+                    "x": 0,
+                    "center_y": 0,
+                },
+            )
+
+            board_name_label = MDLabel(
+                text="Any",
+                halign="center",
+                valign="middle",
+
+                theme_text_color="Custom",
+                text_color=(1, 1, 1, 1),
+                opacity=1,
+
+                font_style="H6",
+            )
+
+            board_name_label.bind(
+                size=lambda instance, value:
+                    setattr(instance, "text_size", value)
+            )
+
+            board_title_overlay.add_widget(
+                board_name_label
+            )
+
+            board_container.add_widget(
+                board_title_overlay
+            )
+
+            background.add_widget(
+                board_container
+            )
+
+            # ------------------------------------------------
             # Dark overlay
             # ------------------------------------------------
 
@@ -817,13 +882,6 @@ class NewGameScreen(BaseScreen):
                 pos_hint={"x": 0, "y": 0},
                 padding=dp(10),
                 spacing=dp(4),
-            )
-
-            overlay.md_bg_color = (
-                0,
-                0,
-                0,
-                0.30,
             )
 
             # ------------------------------------------------
@@ -838,7 +896,7 @@ class NewGameScreen(BaseScreen):
                 theme_text_color="Custom",
                 text_color=(1, 1, 1, 1),
 
-                font_style="H6",
+                font_style="H5",
             )
 
             overlay.add_widget(
@@ -857,7 +915,7 @@ class NewGameScreen(BaseScreen):
                 theme_text_color="Custom",
                 text_color=(1, 1, 1, 1),
 
-                font_style="Subtitle1",
+                font_style="H6",
 
                 # Allow long spirit names to wrap
                 halign="left",
@@ -871,33 +929,6 @@ class NewGameScreen(BaseScreen):
 
             overlay.add_widget(
                 spirit_name_label
-            )
-
-            # ------------------------------------------------
-            # Board name
-            # ------------------------------------------------
-
-            board_name_label = MDLabel(
-                text="",
-                size_hint_y=None,
-                height=dp(28),
-
-                theme_text_color="Custom",
-                text_color=(1, 1, 1, 1),
-
-                font_style="Body1",
-
-                halign="left",
-                valign="middle",
-            )
-
-            board_name_label.bind(
-                width=lambda instance, value:
-                    setattr(instance, "text_size", (value, None))
-            )
-
-            overlay.add_widget(
-                board_name_label
             )
 
             # ------------------------------------------------
@@ -985,6 +1016,7 @@ class NewGameScreen(BaseScreen):
                 "board_name_label": board_name_label,
 
                 "spirit_image": spirit_image,
+                "board_image": board_image,
             })
 
 
@@ -1193,7 +1225,7 @@ class NewGameScreen(BaseScreen):
 
 
     def set_board(self, index, board):
-
+    
         # ------------------------------------------------
         # Remove this board from another player
         # ------------------------------------------------
@@ -1209,12 +1241,12 @@ class NewGameScreen(BaseScreen):
 
                     row["board"] = None
 
-                    row["board_name_label"].text = (
-                        "Choose Board"
-                    )
+                    row["board_name_label"].text = "Any"
 
-                    row["board_button"].text = (
-                        "Choose Board"
+                    row["board_button"].text = "Choose Board"
+
+                    row["board_image"].source = (
+                        "assets/boards/Any.png"
                     )
 
         # ------------------------------------------------
@@ -1227,21 +1259,23 @@ class NewGameScreen(BaseScreen):
 
         if board is None:
 
-            row["board_name_label"].text = (
-                ""
-            )
+            row["board_name_label"].text = "Any"
 
-            row["board_button"].text = (
-                "Choose Board"
+            row["board_button"].text = "Choose Board"
+
+            row["board_image"].source = (
+                "assets/boards/Any.png"
             )
 
         else:
 
-            # Show selected board above the button
             row["board_name_label"].text = board.name
 
-            # Button always stays the same
             row["board_button"].text = "Choose Board"
+
+            row["board_image"].source = (
+                f"assets/boards/{board.name}.png"
+            )
 
         self.board_menu.dismiss()
 
@@ -1325,7 +1359,7 @@ class NewGameScreen(BaseScreen):
 
         label = MDLabel(
             text=title,
-            font_style="H6",
+            font_style="H5",
             size_hint_x=None,
             width=dp(180),
         )
