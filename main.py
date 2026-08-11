@@ -1,5 +1,6 @@
 from kivymd.app import MDApp
 from kivy.uix.screenmanager import ScreenManager
+from engine.music_manager import MusicManager
 
 from screens.home import HomeScreen
 from screens.currentGames import CurrentGamesScreen
@@ -7,6 +8,7 @@ from screens.newGame import NewGameScreen
 from screens.trophies import TrophyScreen
 from screens.history import HistoryScreen
 from screens.finisfGame import FinishGameScreen
+
 
 
 class SpiritIslandApp(MDApp):
@@ -42,6 +44,7 @@ class SpiritIslandApp(MDApp):
             FinishGameScreen(name="finish")
         )
 
+        MusicManager.start();
         return manager
     
 if __name__ == "__main__":
