@@ -39,10 +39,7 @@ class SettingsScreen(BaseScreen):
         # Top bar
         # ---------------------------------
 
-        self.add_top_bar(
-            layout,
-            self.language_manager.get("settings")
-        )
+        self.add_top_bar(layout, "settings")
 
 
         # ---------------------------------
@@ -331,10 +328,7 @@ class SettingsScreen(BaseScreen):
         )
 
 
-        self.add_top_bar(
-            layout,
-            self.language_manager.get("settings")
-        )
+        self.add_top_bar(layout, "settings")
 
 
         scroll = MDScrollView()

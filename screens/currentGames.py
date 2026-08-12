@@ -64,12 +64,7 @@ class CurrentGamesScreen(BaseScreen):
         # Top bar
         # =================================================
 
-        self.add_top_bar(
-            self.layout,
-            self.language_manager.get(
-                "current_games"
-            )
-        )
+        self.add_top_bar(self.layout, "current_games")
 
 
         # =================================================

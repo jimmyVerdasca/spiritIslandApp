@@ -1,4 +1,7 @@
 from kivymd.uix.screen import MDScreen
+
+from kivymd.app import MDApp
+
 from kivymd.uix.boxlayout import MDBoxLayout
 from kivymd.uix.button import MDIconButton
 from kivymd.uix.label import MDLabel
@@ -13,84 +16,345 @@ class BaseScreen(MDScreen):
 
         super().__init__(**kwargs)
 
+        # --------------------------------------------
+        # Navigation
+        # --------------------------------------------
+
         self.previous_screen = "home"
 
 
-    def add_top_bar(self, layout, title):
-    
-        bar = MDBoxLayout(
+        # --------------------------------------------
+        # Managers
+        # --------------------------------------------
+
+        app = MDApp.get_running_app()
+
+        self.settings_manager = app.settings_manager
+        self.language_manager = app.language_manager
+        self.theme_manager = app.theme_manager
+
+
+        # --------------------------------------------
+        # Top bar references
+        # --------------------------------------------
+
+        self.top_bar = None
+        self.top_bar_title = None
+        self.back_button = None
+        self.settings_button = None
+
+
+        # Translation key used by the top bar
+        self.top_bar_title_key = None
+
+
+    # ====================================================
+    # Screen lifecycle
+    # ====================================================
+
+    def on_pre_enter(self):
+
+        self.refresh_base_ui()
+
+
+    # ====================================================
+    # Add top bar
+    # ====================================================
+
+    def add_top_bar(
+        self,
+        layout,
+        title_key,
+    ):
+
+        self.top_bar_title_key = title_key
+
+
+        # --------------------------------------------
+        # Top bar
+        # --------------------------------------------
+
+        self.top_bar = MDBoxLayout(
             orientation="horizontal",
             size_hint_y=None,
             height=dp(56),
-            spacing=dp(10),
-            padding=[dp(5), 0],
+            spacing=dp(8),
+            padding=[
+                dp(5),
+                dp(4),
+            ],
         )
 
-        back_button = MDIconButton(
+
+        # --------------------------------------------
+        # Back button
+        # --------------------------------------------
+
+        self.back_button = MDIconButton(
             icon="arrow-left",
-            theme_icon_color="Custom",
-            icon_color=(1, 1, 1, 1),
-            md_bg_color=(0.2, 0.6, 0.2, 1),
+            icon_size=dp(26),
+            size_hint=(None, None),
+            size=(dp(48), dp(48)),
         )
 
-        back_button.bind(on_release=self.go_back)
+        self.back_button.bind(
+            on_release=self.go_back,
+        )
+
+
+        # --------------------------------------------
+        # Title
+        # --------------------------------------------
 
         self.top_bar_title = MDLabel(
-            text=title,
             font_style="H5",
             valign="center",
+            size_hint_x=None,
         )
 
-        settings_button = MDIconButton(
+
+        # Allow title to take available space
+
+        self.top_bar_title.size_hint_x = 1
+
+
+        # --------------------------------------------
+        # Settings button
+        # --------------------------------------------
+
+        self.settings_button = MDIconButton(
             icon="cog-outline",
-            icon_size=dp(28),
-            theme_icon_color="Custom",
-            icon_color=(1, 1, 1, 1),
+            icon_size=dp(26),
+            size_hint=(None, None),
+            size=(dp(48), dp(48)),
         )
 
-        settings_button.bind(
-            on_release=lambda instance: self.navigate_to("settings")
+        self.settings_button.bind(
+            on_release=lambda instance:
+            self.navigate_to("settings")
         )
 
-        # Left side
-        bar.add_widget(back_button)
-        bar.add_widget(self.top_bar_title)
 
-        # Empty space pushes settings button to the right
-        spacer = Widget()
-        bar.add_widget(spacer)
+        # --------------------------------------------
+        # Build bar
+        # --------------------------------------------
 
-        # Right side
-        bar.add_widget(settings_button)
+        self.top_bar.add_widget(
+            self.back_button
+        )
 
-        layout.add_widget(bar)
+        self.top_bar.add_widget(
+            self.top_bar_title
+        )
+
+        self.top_bar.add_widget(
+            Widget()
+        )
+
+        self.top_bar.add_widget(
+            self.settings_button
+        )
 
 
+        layout.add_widget(
+            self.top_bar
+        )
+
+
+        # --------------------------------------------
+        # Apply initial appearance
+        # --------------------------------------------
+
+        self.refresh_base_ui()
+
+
+    # ====================================================
+    # Refresh base UI
+    # ====================================================
+
+    def refresh_base_ui(self):
+
+        if not self.top_bar_title:
+
+            return
+
+
+        self.update_top_bar_text()
+
+        self.update_top_bar_theme()
+
+
+    # ====================================================
+    # Translation
+    # ====================================================
+
+    def update_top_bar_text(self):
+
+        if not self.top_bar_title_key:
+
+            return
+
+
+        self.top_bar_title.text = (
+            self.language_manager.get(
+                self.top_bar_title_key
+            )
+        )
+
+
+    # ====================================================
+    # Theme
+    # ====================================================
+
+    def update_top_bar_theme(self):
+
+        text_primary = (
+            self.theme_manager.get(
+                "text_primary"
+            )
+        )
+
+        icon = (
+            self.theme_manager.get(
+                "icon"
+            )
+        )
+
+        button_color = self.theme_manager.get(
+            "top_bar_button"
+        )
+
+
+        # --------------------------------------------
+        # Title
+        # --------------------------------------------
+
+        self.top_bar_title.theme_text_color = (
+            "Custom"
+        )
+
+        self.top_bar_title.text_color = (
+            text_primary
+        )
+
+
+        # --------------------------------------------
+        # Back button
+        # --------------------------------------------
+
+        self.back_button.theme_icon_color = (
+            "Custom"
+        )
+
+        self.back_button.icon_color = (
+            icon
+        )
+
+        self.back_button.md_bg_color = (
+            button_color
+        )
+
+
+        # --------------------------------------------
+        # Settings button
+        # --------------------------------------------
+
+        self.settings_button.theme_icon_color = (
+            "Custom"
+        )
+
+        self.settings_button.icon_color = (
+            icon
+        )
+
+        self.settings_button.md_bg_color = (
+            button_color
+        )
+
+
+    # ====================================================
+    # Back navigation
+    # ====================================================
 
     def go_back(self, instance):
 
-        self.manager.current = self.previous_screen
-
-
-
-    def navigate_to(self, screen_name, previous=None, **kwargs):
-
-        if self.manager.current == screen_name:
+        if (
+            self.manager.current
+            == self.previous_screen
+        ):
             return
 
-        screen = self.manager.get_screen(screen_name)
+
+        self.manager.current = (
+            self.previous_screen
+        )
 
 
-        # Define where the back button returns
+    # ====================================================
+    # Navigation
+    # ====================================================
+
+    def navigate_to(
+        self,
+        screen_name,
+        previous=None,
+        **kwargs,
+    ):
+
+        # --------------------------------------------
+        # Already on destination
+        # --------------------------------------------
+
+        if (
+            self.manager.current
+            == screen_name
+        ):
+            return
+
+
+        # --------------------------------------------
+        # Destination
+        # --------------------------------------------
+
+        screen = self.manager.get_screen(
+            screen_name
+        )
+
+
+        # --------------------------------------------
+        # Previous screen
+        # --------------------------------------------
+
         if previous:
-            screen.previous_screen = previous
+
+            screen.previous_screen = (
+                previous
+            )
+
         else:
-            screen.previous_screen = self.name
+
+            screen.previous_screen = (
+                self.name
+            )
 
 
-        # Pass data to destination screen
+        # --------------------------------------------
+        # Pass data
+        # --------------------------------------------
+
         for key, value in kwargs.items():
-            setattr(screen, key, value)
+
+            setattr(
+                screen,
+                key,
+                value,
+            )
 
 
-        self.manager.current = screen_name
+        # --------------------------------------------
+        # Navigate
+        # --------------------------------------------
+
+        self.manager.current = (
+            screen_name
+        )
