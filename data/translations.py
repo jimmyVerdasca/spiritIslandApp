@@ -74,6 +74,29 @@ TRANSLATIONS = {
 
         "settings_description":
             "Configure the application",
+
+        
+        # ---------------------------------
+        # current games
+        # ---------------------------------
+
+        "current_games": "Current Games",
+
+        "game": "Game",
+
+        "no_running_games":
+            "No running games",
+
+        "abandon_game_title":
+            "Abandon game?",
+
+        "abandon_game_message":
+            "This will remove this game from your running games.\n"
+            "You will not be able to see it anymore.",
+
+        "cancel": "Cancel",
+
+        "abandon": "Abandon",
     },
 
 
@@ -151,6 +174,28 @@ TRANSLATIONS = {
 
         "settings_description":
             "Configurez l'application",
+
+        # ---------------------------------
+        # current games
+        # ---------------------------------
+
+        "current_games": "Parties en cours",
+
+        "game": "Partie",
+
+        "no_running_games":
+            "Aucune partie en cours",
+
+        "abandon_game_title":
+            "Abandonner la partie ?",
+
+        "abandon_game_message":
+            "Cette partie sera supprimée de vos parties en cours.\n"
+            "Vous ne pourrez plus la consulter.",
+
+        "cancel": "Annuler",
+
+        "abandon": "Abandonner",
     },
 
 }

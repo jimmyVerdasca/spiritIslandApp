@@ -441,7 +441,7 @@ class HomeScreen(BaseScreen):
 
         icon_button.bind(
             on_release=lambda instance, s=screen:
-            self.change_screen(s)
+            self.navigate_to(s)
         )
 
 
@@ -599,7 +599,7 @@ class HomeScreen(BaseScreen):
             return False
 
 
-        self.change_screen(
+        self.navigate_to(
             card.screen_name
         )
 
@@ -635,15 +635,3 @@ class HomeScreen(BaseScreen):
         )
 
 
-    # ====================================================
-    # Navigation
-    # ====================================================
-
-    def change_screen(self, screen):
-
-        print(
-            "Switching to",
-            screen
-        )
-
-        self.manager.current = screen

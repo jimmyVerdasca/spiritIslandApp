@@ -35,7 +35,7 @@ class BaseScreen(MDScreen):
 
         back_button.bind(on_release=self.go_back)
 
-        title_label = MDLabel(
+        self.top_bar_title = MDLabel(
             text=title,
             font_style="H5",
             valign="center",
@@ -49,12 +49,12 @@ class BaseScreen(MDScreen):
         )
 
         settings_button.bind(
-            on_release=lambda instance: self.change_screen("settings")
+            on_release=lambda instance: self.navigate_to("settings")
         )
 
         # Left side
         bar.add_widget(back_button)
-        bar.add_widget(title_label)
+        bar.add_widget(self.top_bar_title)
 
         # Empty space pushes settings button to the right
         spacer = Widget()
@@ -74,6 +74,9 @@ class BaseScreen(MDScreen):
 
 
     def navigate_to(self, screen_name, previous=None, **kwargs):
+
+        if self.manager.current == screen_name:
+            return
 
         screen = self.manager.get_screen(screen_name)
 
