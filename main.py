@@ -1,5 +1,6 @@
 from kivymd.app import MDApp
 from kivy.uix.screenmanager import ScreenManager
+from kivy.uix.floatlayout import FloatLayout
 from engine.music_manager import MusicManager
 
 from screens.home import HomeScreen
@@ -8,6 +9,7 @@ from screens.newGame import NewGameScreen
 from screens.trophies import TrophyScreen
 from screens.history import HistoryScreen
 from screens.finisfGame import FinishGameScreen
+from widgets.app_background import AppBackground
 
 
 
@@ -19,34 +21,40 @@ class SpiritIslandApp(MDApp):
         self.theme_cls.primary_palette = "Green"
         self.theme_cls.theme_style = "Light"
 
-        manager = ScreenManager()
 
-        manager.add_widget(
+        root = FloatLayout()
+        background = AppBackground()
+        root.add_widget(background)
+
+        screen_manager = ScreenManager()
+
+        screen_manager.add_widget(
             HomeScreen(name="home")
         )
 
-        manager.add_widget(
+        screen_manager.add_widget(
             CurrentGamesScreen(name="current")
         )
 
-        manager.add_widget(
+        screen_manager.add_widget(
             NewGameScreen(name="new")
         )
 
-        manager.add_widget(
+        screen_manager.add_widget(
             TrophyScreen(name="trophies")
         )
 
-        manager.add_widget(
+        screen_manager.add_widget(
             HistoryScreen(name="history")
         )
 
-        manager.add_widget(
+        screen_manager.add_widget(
             FinishGameScreen(name="finish")
         )
 
         MusicManager.start();
-        return manager
+        root.add_widget(screen_manager)
+        return root
     
 if __name__ == "__main__":
     SpiritIslandApp().run()

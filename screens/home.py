@@ -24,24 +24,6 @@ class HomeScreen(Screen):
         root = FloatLayout()
 
         # ------------------------------------------------
-        # Background
-        # ------------------------------------------------
-
-        self.background_image = Image(
-            source="assets/home/island.png",
-            size_hint=(1.12, 1.12),
-            pos_hint={
-                "center_x": 0.5,
-                "center_y": 0.5,
-            },
-            fit_mode="cover",
-        )
-
-        root.add_widget(
-            self.background_image
-        )
-
-        # ------------------------------------------------
         # Dark overlay
         # ------------------------------------------------
 
@@ -336,33 +318,6 @@ class HomeScreen(Screen):
     # ====================================================
 
     def start_animations(self, *args):
-
-        # ------------------------------------------------
-        # Background movement
-        # ------------------------------------------------
-
-        background_animation = (
-            Animation(
-                pos_hint={
-                    "center_x": 0.48,
-                    "center_y": 0.52,
-                },
-                duration=18,
-            )
-            + Animation(
-                pos_hint={
-                    "center_x": 0.52,
-                    "center_y": 0.48,
-                },
-                duration=18,
-            )
-        )
-
-        background_animation.repeat = True
-
-        background_animation.start(
-            self.background_image
-        )
 
         # ------------------------------------------------
         # Staggered card appearance
