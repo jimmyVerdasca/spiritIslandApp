@@ -190,6 +190,7 @@ TRANSLATIONS = {
         "player": "Player",
         "generate": "Generate",
         "press_generate": "Press Generate",
+        "any_spirit": "Any Spirit",
 
     },
 
@@ -383,6 +384,7 @@ TRANSLATIONS = {
         "player": "Joueur",
         "generate": "Générer",
         "press_generate": "Appuyez sur Générer",
+        "any_spirit": "N'importe quel esprit",
     },
 
 }
