@@ -278,16 +278,15 @@ class BaseScreen(MDScreen):
 
     def go_back(self, instance):
 
-        if (
-            self.manager.current
-            == self.previous_screen
-        ):
+        if not self.previous_screen:
             return
 
 
-        self.manager.current = (
-            self.previous_screen
-        )
+        previous = self.previous_screen
+
+        self.previous_screen = None
+
+        self.manager.current = previous
 
 
     # ====================================================
@@ -298,23 +297,19 @@ class BaseScreen(MDScreen):
         self,
         screen_name,
         previous=None,
-        **kwargs,
+        **kwargs
     ):
 
+        current = self.manager.current
+
+
         # --------------------------------------------
-        # Already on destination
+        # Never navigate to the screen we're already on
         # --------------------------------------------
 
-        if (
-            self.manager.current
-            == screen_name
-        ):
+        if current == screen_name:
             return
 
-
-        # --------------------------------------------
-        # Destination
-        # --------------------------------------------
 
         screen = self.manager.get_screen(
             screen_name
@@ -322,20 +317,16 @@ class BaseScreen(MDScreen):
 
 
         # --------------------------------------------
-        # Previous screen
+        # Remember where destination came from
         # --------------------------------------------
 
-        if previous:
+        if previous is not None:
 
-            screen.previous_screen = (
-                previous
-            )
+            screen.previous_screen = previous
 
         else:
 
-            screen.previous_screen = (
-                self.name
-            )
+            screen.previous_screen = current
 
 
         # --------------------------------------------
@@ -347,7 +338,7 @@ class BaseScreen(MDScreen):
             setattr(
                 screen,
                 key,
-                value,
+                value
             )
 
 
@@ -355,6 +346,4 @@ class BaseScreen(MDScreen):
         # Navigate
         # --------------------------------------------
 
-        self.manager.current = (
-            screen_name
-        )
+        self.manager.current = screen_name

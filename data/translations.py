@@ -97,6 +97,49 @@ TRANSLATIONS = {
         "cancel": "Cancel",
 
         "abandon": "Abandon",
+
+        # -----------------------------------------
+        # Finish game
+        # -----------------------------------------
+
+        "finish_game":
+            "Finish Game",
+
+        "victory":
+            "Victory",
+
+        "defeat":
+            "Defeat",
+
+        "invader_cards_remaining":
+            "Invader cards remaining",
+
+        "dahan_remaining":
+            "Dahan remaining",
+
+        "blight_on_island":
+            "Blight on island",
+
+        "score_preview":
+            "Score preview",
+
+        "save_result":
+            "Save Result",
+
+        "game_saved":
+            "Game saved",
+
+        "result":
+            "Result",
+
+        "score":
+            "Score",
+
+        "game_recorded":
+            "Your game has been recorded.",
+
+        "ok":
+            "OK",
     },
 
 
@@ -196,6 +239,49 @@ TRANSLATIONS = {
         "cancel": "Annuler",
 
         "abandon": "Abandonner",
+
+        # -----------------------------------------
+        # Finish game
+        # -----------------------------------------
+
+        "finish_game":
+            "Terminer la partie",
+
+        "victory":
+            "Victoire",
+
+        "defeat":
+            "Défaite",
+
+        "invader_cards_remaining":
+            "Cartes Envahisseur restantes",
+
+        "dahan_remaining":
+            "Dahans restants",
+
+        "blight_on_island":
+            "Fléaux sur l'île",
+
+        "score_preview":
+            "Aperçu du score",
+
+        "save_result":
+            "Enregistrer le résultat",
+
+        "game_saved":
+            "Partie enregistrée",
+
+        "result":
+            "Résultat",
+
+        "score":
+            "Score",
+
+        "game_recorded":
+            "Votre partie a été enregistrée.",
+
+        "ok":
+            "OK",
     },
 
 }
