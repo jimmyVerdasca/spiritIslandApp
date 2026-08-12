@@ -170,6 +170,27 @@ TRANSLATIONS = {
         # -----------------------------------------
 
         "trophies_progress": "Trophies : {unlocked} / {total}",
+
+        # -----------------------------------------
+        # New Game
+        # -----------------------------------------
+
+        "new_game": "New Game",
+        "configuration": "Board Configuration",
+        "configuration_description": "The board configuration determines the island layout and the number of players supported. Leave it as Any to let the generator choose a valid configuration automatically.",
+        "players": "Players",
+        "players_description": "Select the number of players for the game. If left as Any, the generator will randomly choose a valid player count based on the selected board configuration.",
+        "adversaries_description": "Adversaries increase the challenge of the game. You can select specific adversaries and difficulty levels, or leave them as Any to allow the generator to choose randomly.",
+        "scenarios_description": "Scenarios modify the game setup. You can select specific scenarios or leave it as Any to let the generator choose randomly.",
+        "any": "Any",
+        "add_adversary": "+ Add Adversary",
+        "add_scenario": "+ Add Scenario",
+        "choose_spirit": "Choose Spirit",
+        "choose_board": "Choose Board",
+        "player": "Player",
+        "generate": "Generate",
+        "press_generate": "Press Generate",
+
     },
 
 
@@ -342,6 +363,26 @@ TRANSLATIONS = {
         # -----------------------------------------
 
         "trophies_progress": "Trophées : {unlocked} / {total}",
+
+        # -----------------------------------------
+        # New Game
+        # -----------------------------------------
+
+        "new_game": "Nouvelle partie",
+        "configuration": "Configuration du plateau",
+        "configuration_description": "La configuration du plateau détermine la disposition de l'île et le nombre de joueurs pris en charge. Laissez « N'importe laquelle » pour permettre au générateur de choisir automatiquement une configuration valide.",
+        "players": "Joueurs",
+        "players_description": "Sélectionnez le nombre de joueurs pour la partie. Si vous laissez « N'importe lequel », le générateur choisira aléatoirement un nombre de joueurs valide en fonction de la configuration du plateau sélectionnée.",
+        "adversaries_description": "Les adversaires augmentent la difficulté de la partie. Vous pouvez sélectionner des adversaires et des niveaux de difficulté spécifiques, ou laisser « N'importe lequel » pour permettre au générateur de choisir aléatoirement.",
+        "scenarios_description": "Les scénarios modifient la mise en place de la partie. Vous pouvez sélectionner des scénarios spécifiques ou laisser « N'importe lequel » pour permettre au générateur de choisir aléatoirement.",
+        "any": "N'importe lequel",
+        "add_adversary": "+ Ajouter un adversaire",
+        "add_scenario": "+ Ajouter un scénario",
+        "choose_spirit": "Choisir un esprit",
+        "choose_board": "Choisir un plateau",
+        "player": "Joueur",
+        "generate": "Générer",
+        "press_generate": "Appuyez sur Générer",
     },
 
 }

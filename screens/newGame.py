@@ -2,6 +2,8 @@ from .baseScreen import BaseScreen
 
 from kivy.metrics import dp
 
+from kivymd.app import MDApp
+
 from kivymd.uix.boxlayout import MDBoxLayout
 from kivymd.uix.scrollview import MDScrollView
 from kivymd.uix.card import MDCard
@@ -9,6 +11,7 @@ from kivymd.uix.label import MDLabel
 from kivymd.uix.button import MDRaisedButton, MDIconButton
 from kivymd.uix.menu import MDDropdownMenu
 from kivymd.uix.dialog import MDDialog
+
 from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.image import Image
 
@@ -18,7 +21,7 @@ from database.database import (
     get_boards,
     get_adversaries,
     get_difficulties,
-    get_scenarios
+    get_scenarios,
 )
 
 from engine.generator import generate_game
@@ -33,6 +36,10 @@ class NewGameScreen(BaseScreen):
 
         super().__init__(**kwargs)
 
+        app = MDApp.get_running_app()
+
+        self.language_manager = app.language_manager
+
         self.players = None
         self.configuration = None
         self.adversary_rows = []
@@ -44,7 +51,7 @@ class NewGameScreen(BaseScreen):
 
         self.add_top_bar(
             root,
-            "Create new Game"
+            "new_game"
         )
 
         scroll = MDScrollView()
@@ -62,14 +69,14 @@ class NewGameScreen(BaseScreen):
 
         self.add_section_title(
             content,
-            "Board Configuration",
-            "The board configuration determines the island layout and "
-            "the number of players supported. Leave it as Any to let "
-            "the generator choose a valid configuration automatically."
+            self.language_manager.get("configuration"),
+            self.language_manager.get(
+                "configuration_description"
+            )
         )
 
         self.configuration_button = MDRaisedButton(
-            text="Any"
+            text=self.language_manager.get("any")
         )
 
         self.configuration_button.bind(
@@ -86,14 +93,14 @@ class NewGameScreen(BaseScreen):
 
         self.add_section_title(
             content,
-            "Players",
-            "Select the number of players for the game. If left as Any, "
-            "the generator will randomly choose a valid player count "
-            "based on the selected board configuration."
+            self.language_manager.get("players"),
+            self.language_manager.get(
+                "players_description"
+            )
         )
 
         self.players_button = MDRaisedButton(
-            text="Any"
+            text=self.language_manager.get("any")
         )
 
         self.players_button.bind(
@@ -119,28 +126,32 @@ class NewGameScreen(BaseScreen):
         content.add_widget(
             self.players_container
         )
-        
+
         # ----------------------------
-        # adversary selection
+        # Adversary selection
         # ----------------------------
 
         self.add_section_title(
             content,
-            "Adversaries",
-            "Adversaries increase the challenge of the game. You can select "
-            "specific adversaries and difficulty levels, or leave them as Any "
-            "to allow the generator to choose randomly it will try to get a maximum total difficulty of 6 if possible."
+            self.language_manager.get("adversaries"),
+            self.language_manager.get(
+                "adversaries_description"
+            )
         )
 
         self.add_adversary_button = MDRaisedButton(
-            text="+ Add Adversary",
+            text=self.language_manager.get(
+                "add_adversary"
+            ),
         )
 
         self.add_adversary_button.bind(
             on_release=self.add_adversary_row
         )
 
-        content.add_widget(self.add_adversary_button)
+        content.add_widget(
+            self.add_adversary_button
+        )
 
         self.adversaries_container = MDBoxLayout(
             orientation="vertical",
@@ -148,27 +159,8 @@ class NewGameScreen(BaseScreen):
             adaptive_height=True,
         )
 
-        content.add_widget(self.adversaries_container)
-
-        row = MDBoxLayout(
-            orientation="horizontal",
-            spacing=dp(10),
-            adaptive_height=True,
-        )
-
-        adversary_button = MDRaisedButton(
-            text="Adversary: None",
-            size_hint_x=.65,
-        )
-
-        level_button = MDRaisedButton(
-            text="Difficulty: Any",
-            size_hint_x=.25,
-        )
-
-        remove_button = MDIconButton(
-            icon="close",
-            size_hint_x=.1,
+        content.add_widget(
+            self.adversaries_container
         )
 
         # ----------------------------
@@ -177,15 +169,16 @@ class NewGameScreen(BaseScreen):
 
         self.add_section_title(
             content,
-            "Scenarios",
-            "Scenarios modify the game setup. "
-            "You can select specific scenarios or leave it as Any "
-            "to let the generator choose randomly."
+            self.language_manager.get("scenarios"),
+            self.language_manager.get(
+                "scenarios_description"
+            )
         )
 
-
         self.add_scenario_button = MDRaisedButton(
-            text="+ Add Scenario",
+            text=self.language_manager.get(
+                "add_scenario"
+            ),
         )
 
         self.add_scenario_button.bind(
@@ -195,7 +188,6 @@ class NewGameScreen(BaseScreen):
         content.add_widget(
             self.add_scenario_button
         )
-
 
         self.scenarios_container = MDBoxLayout(
             orientation="vertical",
@@ -212,7 +204,9 @@ class NewGameScreen(BaseScreen):
         # ----------------------------
 
         generate = MDRaisedButton(
-            text="Generate",
+            text=self.language_manager.get(
+                "generate"
+            ),
             pos_hint={
                 "center_x": .5
             }
@@ -238,7 +232,9 @@ class NewGameScreen(BaseScreen):
         )
 
         self.result = MDLabel(
-            text="Press Generate",
+            text=self.language_manager.get(
+                "press_generate"
+            ),
             adaptive_height=True
         )
 
@@ -267,32 +263,37 @@ class NewGameScreen(BaseScreen):
     # ----------------------------------------------------
 
     def open_players_menu(self, instance):
-    
+
         if (
             self.configuration is not None
-            and self.configuration.min_players == self.configuration.max_players
+            and self.configuration.min_players
+            == self.configuration.max_players
         ):
             return
-        
+
         items = [
             {
-                "text": "Any",
-                "on_release": lambda: self.set_players(None)
+                "text": self.language_manager.get("any"),
+                "on_release": lambda:
+                    self.set_players(None)
             }
         ]
 
         if self.configuration is None:
             minimum = 2
             maximum = 6
+
         else:
             minimum = self.configuration.min_players
             maximum = self.configuration.max_players
 
         for i in range(minimum, maximum + 1):
+
             items.append(
                 {
                     "text": str(i),
-                    "on_release": lambda x=i: self.set_players(x)
+                    "on_release": lambda x=i:
+                        self.set_players(x)
                 }
             )
 
@@ -303,7 +304,10 @@ class NewGameScreen(BaseScreen):
 
         self.players_menu.open()
 
+    # ----------------------------------------------------
+
     def add_adversary_row(self, *args):
+
         row = MDBoxLayout(
             orientation="horizontal",
             spacing=dp(10),
@@ -311,12 +315,18 @@ class NewGameScreen(BaseScreen):
         )
 
         adversary_button = MDRaisedButton(
-            text="Adversary: None",
+            text=(
+                f"{self.language_manager.get('adversary')}: "
+                f"{self.language_manager.get('any')}"
+            ),
             size_hint_x=.6,
         )
 
         level_button = MDRaisedButton(
-            text="Difficulty: Any",
+            text=(
+                f"{self.language_manager.get('difficulty')}: "
+                f"{self.language_manager.get('any')}"
+            ),
             size_hint_x=.25,
         )
 
@@ -328,11 +338,13 @@ class NewGameScreen(BaseScreen):
         index = len(self.adversary_rows)
 
         adversary_button.bind(
-            on_release=lambda x, i=index: self.open_adversary_menu(i)
+            on_release=lambda x, i=index:
+                self.open_adversary_menu(i)
         )
 
         level_button.bind(
-            on_release=lambda x, i=index: self.open_level_menu(i)
+            on_release=lambda x, i=index:
+                self.open_level_menu(i)
         )
 
         row.add_widget(adversary_button)
@@ -341,22 +353,24 @@ class NewGameScreen(BaseScreen):
 
         self.adversaries_container.add_widget(row)
 
-        self.adversary_rows.append({
-            "row": row,
-            "adversary": None,
-            "level": None,
-            "adversary_button": adversary_button,
-            "level_button": level_button,
-            "remove_button": remove_button,
-        })
-
+        self.adversary_rows.append(
+            {
+                "row": row,
+                "adversary": None,
+                "level": None,
+                "adversary_button": adversary_button,
+                "level_button": level_button,
+                "remove_button": remove_button,
+            }
+        )
 
         remove_button.bind(
             on_release=lambda x, r=row:
                 self.remove_adversary_row(
                     next(
                         i
-                        for i, item in enumerate(self.adversary_rows)
+                        for i, item
+                        in enumerate(self.adversary_rows)
                         if item["row"] == r
                     )
                 )
@@ -364,39 +378,44 @@ class NewGameScreen(BaseScreen):
 
         self.update_adversary_button_state()
 
+    # ----------------------------------------------------
+
     def open_adversary_menu(self, index):
-    
+
         adversaries = get_adversaries()
 
         selected = [
             row["adversary"]
-            for i, row in enumerate(self.adversary_rows)
-            if i != index and row["adversary"] is not None
+            for i, row in enumerate(
+                self.adversary_rows
+            )
+            if (
+                i != index
+                and row["adversary"] is not None
+            )
         ]
 
         items = [
             {
-                "text": "Any",
+                "text": self.language_manager.get("any"),
                 "item_state": "normal",
                 "viewclass": "SelectionMenuItem",
-                "on_release": lambda: self.set_adversary(index, None),
+                "on_release": lambda:
+                    self.set_adversary(index, None),
             }
         ]
 
-
         for adversary in adversaries:
 
-            # Remove already selected adversaries
             if adversary in selected:
                 continue
 
-
             state = (
                 "selected"
-                if self.adversary_rows[index]["adversary"] == adversary
+                if self.adversary_rows[index]["adversary"]
+                == adversary
                 else "normal"
             )
-
 
             items.append(
                 {
@@ -408,36 +427,45 @@ class NewGameScreen(BaseScreen):
                 }
             )
 
-
         self.adversary_menu = MDDropdownMenu(
-            caller=self.adversary_rows[index]["adversary_button"],
+            caller=self.adversary_rows[index][
+                "adversary_button"
+            ],
             items=items,
         )
 
         self.adversary_menu.open()
 
+    # ----------------------------------------------------
+
     def set_adversary(self, index, adversary):
-    
+
         self.adversary_rows[index]["adversary"] = adversary
 
-        self.adversary_rows[index]["adversary_button"].text = (
-            "Adversary: Any"
+        self.adversary_rows[index][
+            "adversary_button"
+        ].text = (
+            f"{self.language_manager.get('adversary')}: "
+            f"{self.language_manager.get('any')}"
             if adversary is None
             else adversary.name
         )
 
         self.adversary_menu.dismiss()
 
+    # ----------------------------------------------------
+
     def open_level_menu(self, index):
-        
+
         difficulties = get_difficulties()
 
         items = [
             {
-                "text": "Any",
+                "text": self.language_manager.get("any"),
                 "item_state": "normal",
                 "viewclass": "SelectionMenuItem",
-                "on_release": lambda: self.set_level(index, None),
+                "on_release": lambda:
+                    self.set_level(index, None),
             }
         ]
 
@@ -447,7 +475,10 @@ class NewGameScreen(BaseScreen):
 
             state = (
                 "selected"
-                if current is not None and current.id == difficulty.id
+                if (
+                    current is not None
+                    and current.id == difficulty.id
+                )
                 else "normal"
             )
 
@@ -456,140 +487,186 @@ class NewGameScreen(BaseScreen):
                     "text": str(difficulty.level),
                     "item_state": state,
                     "viewclass": "SelectionMenuItem",
-                    "on_release": lambda d=difficulty: self.set_level(index, d),
+                    "on_release": lambda d=difficulty:
+                        self.set_level(index, d),
                 }
             )
 
         self.level_menu = MDDropdownMenu(
-            caller=self.adversary_rows[index]["level_button"],
+            caller=self.adversary_rows[index][
+                "level_button"
+            ],
             items=items,
         )
 
         self.level_menu.open()
 
+    # ----------------------------------------------------
+
     def set_level(self, index, difficulty):
-    
+
         self.adversary_rows[index]["level"] = difficulty
 
-        self.adversary_rows[index]["level_button"].text = (
-            "Difficulty: Any"
+        self.adversary_rows[index][
+            "level_button"
+        ].text = (
+            f"{self.language_manager.get('difficulty')}: "
+            f"{self.language_manager.get('any')}"
             if difficulty is None
-            else str(difficulty.level)
+            else (
+                f"{self.language_manager.get('difficulty')}: "
+                f"{difficulty.level}"
+            )
         )
 
         self.level_menu.dismiss()
 
+    # ----------------------------------------------------
+
     def remove_adversary_row(self, index):
-    
+
         if index >= len(self.adversary_rows):
             return
 
         row = self.adversary_rows.pop(index)
 
-        self.adversaries_container.remove_widget(row["row"])
+        self.adversaries_container.remove_widget(
+            row["row"]
+        )
 
         # Rebind buttons because indices have changed
-        for i, row in enumerate(self.adversary_rows):
+        for i, row in enumerate(
+            self.adversary_rows
+        ):
 
-            row["adversary_button"].unbind(on_release=None)
-            row["level_button"].unbind(on_release=None)
+            row["adversary_button"].unbind(
+                on_release=None
+            )
+
+            row["level_button"].unbind(
+                on_release=None
+            )
 
             row["adversary_button"].bind(
-                on_release=lambda x, idx=i: self.open_adversary_menu(idx)
+                on_release=lambda x, idx=i:
+                    self.open_adversary_menu(idx)
             )
 
             row["level_button"].bind(
-                on_release=lambda x, idx=i: self.open_level_menu(idx)
+                on_release=lambda x, idx=i:
+                    self.open_level_menu(idx)
             )
+
         self.update_adversary_button_state()
 
-    def set_scenario(self,index,scenario):
-    
-        self.scenario_rows[index]["scenario"] = scenario
+    # ----------------------------------------------------
+    # Scenarios
+    # ----------------------------------------------------
 
+    def set_scenario(self, index, scenario):
 
-        self.scenario_rows[index]["scenario_button"].text = (
-            "Scenario: Any"
+        self.scenario_rows[index]["scenario"] = (
+            scenario
+        )
+
+        self.scenario_rows[index][
+            "scenario_button"
+        ].text = (
+            f"{self.language_manager.get('scenario')}: "
+            f"{self.language_manager.get('any')}"
             if scenario is None
             else scenario.name
         )
 
-
         self.scenario_menu.dismiss()
 
-    def remove_scenario_row(self,index):
-    
+    # ----------------------------------------------------
+
+    def remove_scenario_row(self, index):
+
         if index >= len(self.scenario_rows):
             return
 
-
         row = self.scenario_rows.pop(index)
-
 
         self.scenarios_container.remove_widget(
             row["row"]
         )
 
-
-        for i,row in enumerate(self.scenario_rows):
+        for i, row in enumerate(
+            self.scenario_rows
+        ):
 
             row["scenario_button"].unbind(
                 on_release=None
             )
 
             row["scenario_button"].bind(
-                on_release=lambda x,idx=i:
+                on_release=lambda x, idx=i:
                     self.open_scenario_menu(idx)
             )
 
-
         self.update_scenario_button_state()
 
+    # ----------------------------------------------------
+
     def update_scenario_button_state(self):
-    
-        max_scenarios = len(get_scenarios())
+
+        max_scenarios = len(
+            get_scenarios()
+        )
 
         self.add_scenario_button.disabled = (
             len(self.scenario_rows)
             >= max_scenarios
         )
 
-    def open_scenario_menu(self, index):
-    
-        scenarios = get_scenarios()
+    # ----------------------------------------------------
 
+    def open_scenario_menu(self, index):
+
+        scenarios = get_scenarios()
 
         items = [
             {
-                "text": "Any",
+                "text": self.language_manager.get(
+                    "any"
+                ),
                 "viewclass": "SelectionMenuItem",
                 "on_release":
                     lambda:
-                    self.set_scenario(index, None)
+                    self.set_scenario(
+                        index,
+                        None
+                    )
             }
         ]
 
-
         selected = [
             row["scenario"]
-            for i,row in enumerate(self.scenario_rows)
-            if i != index
-            and row["scenario"] is not None
+            for i, row in enumerate(
+                self.scenario_rows
+            )
+            if (
+                i != index
+                and row["scenario"] is not None
+            )
         ]
-
 
         for scenario in scenarios:
 
             if scenario in selected:
                 continue
 
-
             state = (
                 "selected"
-                if self.scenario_rows[index]["scenario"] == scenario
+                if (
+                    self.scenario_rows[index][
+                        "scenario"
+                    ] == scenario
+                )
                 else "normal"
             )
-
 
             items.append(
                 {
@@ -598,49 +675,51 @@ class NewGameScreen(BaseScreen):
                     "viewclass": "SelectionMenuItem",
                     "on_release":
                         lambda s=scenario:
-                        self.set_scenario(index,s)
+                        self.set_scenario(
+                            index,
+                            s
+                        )
                 }
             )
 
-
         self.scenario_menu = MDDropdownMenu(
-            caller=
-            self.scenario_rows[index]["scenario_button"],
+            caller=self.scenario_rows[index][
+                "scenario_button"
+            ],
             items=items
         )
 
-
         self.scenario_menu.open()
 
+    # ----------------------------------------------------
+
     def add_scenario_row(self, *args):
-    
+
         row = MDBoxLayout(
             orientation="horizontal",
             spacing=dp(10),
             adaptive_height=True,
         )
 
-
         scenario_button = MDRaisedButton(
-            text="Scenario: Any",
+            text=(
+                f"{self.language_manager.get('scenario')}: "
+                f"{self.language_manager.get('any')}"
+            ),
             size_hint_x=.85,
         )
-
 
         remove_button = MDIconButton(
             icon="close",
             size_hint_x=.15,
         )
 
-
         index = len(self.scenario_rows)
-
 
         scenario_button.bind(
             on_release=lambda x, i=index:
                 self.open_scenario_menu(i)
         )
-
 
         row.add_widget(
             scenario_button
@@ -650,11 +729,9 @@ class NewGameScreen(BaseScreen):
             remove_button
         )
 
-
         self.scenarios_container.add_widget(
             row
         )
-
 
         self.scenario_rows.append(
             {
@@ -665,27 +742,32 @@ class NewGameScreen(BaseScreen):
             }
         )
 
-
         remove_button.bind(
             on_release=lambda x, r=row:
                 self.remove_scenario_row(
                     next(
                         i
-                        for i,item in enumerate(self.scenario_rows)
+                        for i, item
+                        in enumerate(
+                            self.scenario_rows
+                        )
                         if item["row"] == r
                     )
                 )
         )
 
-
         self.update_scenario_button_state()
 
+    # ----------------------------------------------------
+    # Players / configuration
+    # ----------------------------------------------------
+
     def set_players(self, value):
-    
+
         self.players = value
 
         self.players_button.text = (
-            "Any"
+            self.language_manager.get("any")
             if value is None
             else str(value)
         )
@@ -694,14 +776,20 @@ class NewGameScreen(BaseScreen):
 
         self.players_menu.dismiss()
 
+    # ----------------------------------------------------
+
     def open_configuration_menu(self, instance):
 
         configurations = get_configurations()
 
         items = [
             {
-                "text": "Any",
-                "on_release": lambda: self.set_configuration(None)
+                "text": self.language_manager.get(
+                    "any"
+                ),
+                "on_release":
+                    lambda:
+                    self.set_configuration(None)
             }
         ]
 
@@ -710,7 +798,9 @@ class NewGameScreen(BaseScreen):
             items.append(
                 {
                     "text": configuration.name,
-                    "on_release": lambda c=configuration: self.set_configuration(c)
+                    "on_release":
+                        lambda c=configuration:
+                        self.set_configuration(c)
                 }
             )
 
@@ -721,24 +811,38 @@ class NewGameScreen(BaseScreen):
 
         self.configuration_menu.open()
 
+    # ----------------------------------------------------
+
     def set_configuration(self, configuration):
-    
+
         self.configuration = configuration
 
         self.configuration_button.text = (
-            "Any"
+            self.language_manager.get("any")
             if configuration is None
             else configuration.name
         )
 
         if configuration is None:
-            self.players = None
-            self.players_button.text = "Any"
 
-        elif configuration.min_players == configuration.max_players:
-            # Only one possible player count
-            self.players = configuration.min_players
-            self.players_button.text = str(configuration.min_players)
+            self.players = None
+
+            self.players_button.text = (
+                self.language_manager.get("any")
+            )
+
+        elif (
+            configuration.min_players
+            == configuration.max_players
+        ):
+
+            self.players = (
+                configuration.min_players
+            )
+
+            self.players_button.text = str(
+                configuration.min_players
+            )
 
         elif (
             self.players is not None
@@ -748,16 +852,25 @@ class NewGameScreen(BaseScreen):
                 <= configuration.max_players
             )
         ):
-            # Previous selection is no longer valid
+
             self.players = None
-            self.players_button.text = "Any"
+
+            self.players_button.text = (
+                self.language_manager.get("any")
+            )
 
         self.refresh_player_rows()
+
         self.configuration_menu.dismiss()
+
+    # ----------------------------------------------------
+    # Player cards
+    # ----------------------------------------------------
 
     def refresh_player_rows(self):
 
         self.players_container.clear_widgets()
+
         self.player_rows = []
 
         if self.players is None:
@@ -780,7 +893,11 @@ class NewGameScreen(BaseScreen):
                 elevation=2,
             )
 
-            def update_card_height(card, width, ratio=image_ratio):
+            def update_card_height(
+                card,
+                width,
+                ratio=image_ratio
+            ):
                 if width > 0:
                     card.height = width / ratio
 
@@ -799,7 +916,10 @@ class NewGameScreen(BaseScreen):
             spirit_image = Image(
                 source="assets/spirits/Any.png",
                 size_hint=(1, 1),
-                pos_hint={"x": 0, "y": 0},
+                pos_hint={
+                    "x": 0,
+                    "y": 0
+                },
                 fit_mode="cover",
             )
 
@@ -808,7 +928,7 @@ class NewGameScreen(BaseScreen):
             )
 
             # ------------------------------------------------
-            # Board artwork - top right corner
+            # Board artwork
             # ------------------------------------------------
 
             board_container = FloatLayout(
@@ -833,7 +953,6 @@ class NewGameScreen(BaseScreen):
                 board_image
             )
 
-            # Dark overlay behind board name
             board_title_overlay = MDBoxLayout(
                 orientation="vertical",
                 size_hint=(1, 0.35),
@@ -844,7 +963,9 @@ class NewGameScreen(BaseScreen):
             )
 
             board_name_label = MDLabel(
-                text="Any",
+                text=self.language_manager.get(
+                    "any"
+                ),
                 halign="center",
                 valign="middle",
 
@@ -857,7 +978,11 @@ class NewGameScreen(BaseScreen):
 
             board_name_label.bind(
                 size=lambda instance, value:
-                    setattr(instance, "text_size", value)
+                    setattr(
+                        instance,
+                        "text_size",
+                        value
+                    )
             )
 
             board_title_overlay.add_widget(
@@ -879,7 +1004,10 @@ class NewGameScreen(BaseScreen):
             overlay = MDBoxLayout(
                 orientation="vertical",
                 size_hint=(1, 1),
-                pos_hint={"x": 0, "y": 0},
+                pos_hint={
+                    "x": 0,
+                    "y": 0
+                },
                 padding=dp(10),
                 spacing=dp(4),
             )
@@ -889,7 +1017,10 @@ class NewGameScreen(BaseScreen):
             # ------------------------------------------------
 
             player_title = MDLabel(
-                text=f"Player {i + 1}",
+                text=(
+                    f"{self.language_manager.get('player')} "
+                    f"{i + 1}"
+                ),
                 size_hint_y=None,
                 height=dp(30),
 
@@ -917,14 +1048,17 @@ class NewGameScreen(BaseScreen):
 
                 font_style="H6",
 
-                # Allow long spirit names to wrap
                 halign="left",
                 valign="middle",
             )
 
             spirit_name_label.bind(
                 width=lambda instance, value:
-                    setattr(instance, "text_size", (value, None))
+                    setattr(
+                        instance,
+                        "text_size",
+                        (value, None)
+                    )
             )
 
             overlay.add_widget(
@@ -945,21 +1079,23 @@ class NewGameScreen(BaseScreen):
 
             button_row = MDBoxLayout(
                 orientation="horizontal",
-
                 size_hint_x=1,
                 size_hint_y=None,
                 height=dp(45),
-
                 spacing=dp(8),
             )
 
             spirit_button = MDRaisedButton(
-                text="Choose Spirit",
+                text=self.language_manager.get(
+                    "choose_spirit"
+                ),
                 size_hint_x=0.55,
             )
 
             board_button = MDRaisedButton(
-                text="Choose Board",
+                text=self.language_manager.get(
+                    "choose_board"
+                ),
                 size_hint_x=0.45,
             )
 
@@ -1005,160 +1141,200 @@ class NewGameScreen(BaseScreen):
             # Store state
             # ------------------------------------------------
 
-            self.player_rows.append({
-                "spirit": None,
-                "board": None,
+            self.player_rows.append(
+                {
+                    "spirit": None,
+                    "board": None,
 
-                "spirit_button": spirit_button,
-                "board_button": board_button,
+                    "spirit_button":
+                        spirit_button,
 
-                "spirit_name_label": spirit_name_label,
-                "board_name_label": board_name_label,
+                    "board_button":
+                        board_button,
 
-                "spirit_image": spirit_image,
-                "board_image": board_image,
-            })
+                    "spirit_name_label":
+                        spirit_name_label,
 
+                    "board_name_label":
+                        board_name_label,
 
+                    "spirit_image":
+                        spirit_image,
 
+                    "board_image":
+                        board_image,
+                }
+            )
+
+    # ----------------------------------------------------
+    # Spirit menu
+    # ----------------------------------------------------
 
     def open_spirit_menu(self, index):
-    
+
         spirits = get_spirits()
 
-        items = []
-
-        items.append(
+        items = [
             {
-                "text": "Any",
+                "text": self.language_manager.get(
+                    "any"
+                ),
                 "item_state": "normal",
                 "viewclass": "SelectionMenuItem",
-                "on_release": lambda:
-                    self.set_spirit(index, None)
+                "on_release":
+                    lambda:
+                    self.set_spirit(
+                        index,
+                        None
+                    )
             }
-        )
-
+        ]
 
         for spirit in spirits:
 
             state = "normal"
             label = spirit.name
 
-            for i, row in enumerate(self.player_rows):
+            for i, row in enumerate(
+                self.player_rows
+            ):
 
                 if (
                     i != index
                     and row["spirit"] is not None
                     and row["spirit"].id == spirit.id
                 ):
+
                     state = "warning"
+
                     label = (
                         f"{spirit.name} "
-                        f"(Player {i + 1})"
+                        f"({self.language_manager.get('player')} "
+                        f"{i + 1})"
                     )
-
 
                 if (
                     i == index
                     and row["spirit"] is not None
                     and row["spirit"].id == spirit.id
                 ):
-                    state = "selected"
-                    label = (
-                        f"{spirit.name}"
-                    )
 
+                    state = "selected"
+
+                    label = spirit.name
 
             items.append(
                 {
                     "text": label,
                     "item_state": state,
                     "viewclass": "SelectionMenuItem",
-                    "on_release": lambda s=spirit:
-                        self.set_spirit(index, s)
+                    "on_release":
+                        lambda s=spirit:
+                        self.set_spirit(
+                            index,
+                            s
+                        )
                 }
             )
 
-
-
         self.spirit_menu = MDDropdownMenu(
-            caller=self.player_rows[index]["spirit_button"],
+            caller=self.player_rows[index][
+                "spirit_button"
+            ],
         )
 
         self.spirit_menu.items = items
 
         self.spirit_menu.open()
 
-
+    # ----------------------------------------------------
+    # Board menu
+    # ----------------------------------------------------
 
     def open_board_menu(self, index):
-    
+
         boards = get_boards()
 
         items = [
             {
-                "text": "Any",
+                "text": self.language_manager.get(
+                    "any"
+                ),
                 "item_state": "normal",
                 "viewclass": "SelectionMenuItem",
-                "on_release": lambda:
-                    self.set_board(index, None)
+                "on_release":
+                    lambda:
+                    self.set_board(
+                        index,
+                        None
+                    )
             }
         ]
-
 
         for board in boards:
 
             state = "normal"
             label = board.name
 
-
-            for i, row in enumerate(self.player_rows):
+            for i, row in enumerate(
+                self.player_rows
+            ):
 
                 if (
                     i != index
                     and row["board"] is not None
                     and row["board"].id == board.id
                 ):
+
                     state = "warning"
+
                     label = (
                         f"⚠ {board.name} "
-                        f"(Player {i + 1})"
+                        f"({self.language_manager.get('player')} "
+                        f"{i + 1})"
                     )
-
 
                 if (
                     i == index
                     and row["board"] is not None
                     and row["board"].id == board.id
                 ):
+
                     state = "selected"
+
                     label = (
                         f"✓ {board.name}"
                     )
-
 
             items.append(
                 {
                     "text": label,
                     "item_state": state,
                     "viewclass": "SelectionMenuItem",
-                    "on_release": lambda s=board:
-                        self.set_board(index, s)
+                    "on_release":
+                        lambda s=board:
+                        self.set_board(
+                            index,
+                            s
+                        )
                 }
             )
 
-
         self.board_menu = MDDropdownMenu(
-            caller=self.player_rows[index]["board_button"],
+            caller=self.player_rows[index][
+                "board_button"
+            ],
         )
 
         self.board_menu.items = items
 
         self.board_menu.open()
 
-    def set_spirit(self, index, spirit):
+    # ----------------------------------------------------
+    # Set spirit
+    # ----------------------------------------------------
 
-        print("SELECTED SPIRIT:", index, spirit)
+    def set_spirit(self, index, spirit):
 
         # ------------------------------------------------
         # Remove this spirit from another player
@@ -1166,7 +1342,9 @@ class NewGameScreen(BaseScreen):
 
         if spirit is not None:
 
-            for i, row in enumerate(self.player_rows):
+            for i, row in enumerate(
+                self.player_rows
+            ):
 
                 if (
                     i != index
@@ -1175,13 +1353,14 @@ class NewGameScreen(BaseScreen):
 
                     row["spirit"] = None
 
-                    # Reset their labels
-                    row["spirit_name_label"].text = "Choose Spirit"
+                    row["spirit_name_label"].text = ""
 
-                    # Reset their button
-                    row["spirit_button"].text = "Choose Spirit"
+                    row["spirit_button"].text = (
+                        self.language_manager.get(
+                            "choose_spirit"
+                        )
+                    )
 
-                    # Reset their artwork
                     row["spirit_image"].source = (
                         "assets/spirits/Any.png"
                     )
@@ -1197,7 +1376,12 @@ class NewGameScreen(BaseScreen):
         if spirit is None:
 
             row["spirit_name_label"].text = ""
-            row["spirit_button"].text = "Choose Spirit"
+
+            row["spirit_button"].text = (
+                self.language_manager.get(
+                    "choose_spirit"
+                )
+            )
 
             row["spirit_image"].source = (
                 "assets/spirits/Any.png"
@@ -1205,34 +1389,37 @@ class NewGameScreen(BaseScreen):
 
         else:
 
-            # Show the full spirit name in the card
-            row["spirit_name_label"].text = spirit.name
+            row["spirit_name_label"].text = (
+                spirit.name
+            )
 
-            # Button always remains the same
-            row["spirit_button"].text = "Choose Spirit"
+            row["spirit_button"].text = (
+                self.language_manager.get(
+                    "choose_spirit"
+                )
+            )
 
-            # Show spirit artwork
             row["spirit_image"].source = (
                 f"assets/spirits/{spirit.name}.png"
             )
 
-        # ------------------------------------------------
-        # Close menu
-        # ------------------------------------------------
-
         self.spirit_menu.dismiss()
 
-
+    # ----------------------------------------------------
+    # Set board
+    # ----------------------------------------------------
 
     def set_board(self, index, board):
-    
+
         # ------------------------------------------------
         # Remove this board from another player
         # ------------------------------------------------
 
         if board is not None:
 
-            for i, row in enumerate(self.player_rows):
+            for i, row in enumerate(
+                self.player_rows
+            ):
 
                 if (
                     i != index
@@ -1241,9 +1428,17 @@ class NewGameScreen(BaseScreen):
 
                     row["board"] = None
 
-                    row["board_name_label"].text = "Any"
+                    row["board_name_label"].text = (
+                        self.language_manager.get(
+                            "any"
+                        )
+                    )
 
-                    row["board_button"].text = "Choose Board"
+                    row["board_button"].text = (
+                        self.language_manager.get(
+                            "choose_board"
+                        )
+                    )
 
                     row["board_image"].source = (
                         "assets/boards/Any.png"
@@ -1259,9 +1454,17 @@ class NewGameScreen(BaseScreen):
 
         if board is None:
 
-            row["board_name_label"].text = "Any"
+            row["board_name_label"].text = (
+                self.language_manager.get(
+                    "any"
+                )
+            )
 
-            row["board_button"].text = "Choose Board"
+            row["board_button"].text = (
+                self.language_manager.get(
+                    "choose_board"
+                )
+            )
 
             row["board_image"].source = (
                 "assets/boards/Any.png"
@@ -1269,9 +1472,15 @@ class NewGameScreen(BaseScreen):
 
         else:
 
-            row["board_name_label"].text = board.name
+            row["board_name_label"].text = (
+                board.name
+            )
 
-            row["board_button"].text = "Choose Board"
+            row["board_button"].text = (
+                self.language_manager.get(
+                    "choose_board"
+                )
+            )
 
             row["board_image"].source = (
                 f"assets/boards/{board.name}.png"
@@ -1279,13 +1488,17 @@ class NewGameScreen(BaseScreen):
 
         self.board_menu.dismiss()
 
+    # ----------------------------------------------------
 
     def update_adversary_button_state(self):
-    
-        max_adversaries = len(get_adversaries())
+
+        max_adversaries = len(
+            get_adversaries()
+        )
 
         self.add_adversary_button.disabled = (
-            len(self.adversary_rows) >= max_adversaries
+            len(self.adversary_rows)
+            >= max_adversaries
         )
 
     # ----------------------------------------------------
@@ -1293,7 +1506,7 @@ class NewGameScreen(BaseScreen):
     # ----------------------------------------------------
 
     def generate(self, instance):
-    
+
         spirits = [
             row["spirit"]
             for row in self.player_rows
@@ -1332,22 +1545,36 @@ class NewGameScreen(BaseScreen):
 
         self.result.text = format_game(game)
 
+    # ----------------------------------------------------
+    # Help dialog
+    # ----------------------------------------------------
+
     def show_help(self, title, text):
-    
+
         self.help_dialog = MDDialog(
             title=title,
             text=text,
             buttons=[
                 MDRaisedButton(
                     text="OK",
-                    on_release=lambda x: self.help_dialog.dismiss()
+                    on_release=lambda x:
+                        self.help_dialog.dismiss()
                 )
             ]
         )
 
         self.help_dialog.open()
 
-    def add_section_title(self, parent, title, help_text):
+    # ----------------------------------------------------
+    # Section title
+    # ----------------------------------------------------
+
+    def add_section_title(
+        self,
+        parent,
+        title,
+        help_text
+    ):
 
         row = MDBoxLayout(
             orientation="horizontal",

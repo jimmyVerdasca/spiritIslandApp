@@ -75,6 +75,48 @@ THEMES = {
 
         
         "progress": (0, 0.7, 0, 1),
+
+        # ---------------------------------------------
+        # New Game / Selection
+        # ---------------------------------------------
+
+        "button":
+            (0.2, 0.6, 0.2, 1),
+
+        "button_disabled":
+            (0.25, 0.25, 0.25, 1),
+
+        "selection_selected":
+            (0.2, 0.6, 0.2, 1),
+
+        "selection_warning":
+            (0.8, 0.55, 0.1, 1),
+
+        "selection_normal":
+            (0.25, 0.25, 0.25, 1),
+
+
+        # ---------------------------------------------
+        # Dropdown menus
+        # ---------------------------------------------
+
+        "dropdown_background":
+            (0.12, 0.12, 0.12, 1),
+
+        "dropdown_text":
+            (1, 1, 1, 1),
+
+        "dropdown_selected":
+            (0.10, 0.30, 0.10, 1),
+
+        "dropdown_text_selected":
+            (0.4, 1, 0.4, 1),
+
+        "dropdown_warning":
+            (0.30, 0.18, 0.05, 1),
+
+        "dropdown_text_warning":
+            (1, 0.7, 0.2, 1),
     },
 
 
@@ -152,6 +194,47 @@ THEMES = {
             (0, 0, 0, 1),
 
         "progress": (0, 0.6, 0, 1),
+
+        # ---------------------------------------------
+        # New Game / Selection
+        # ---------------------------------------------
+
+        "button":
+            (0.2, 0.6, 0.2, 1),
+
+        "button_disabled":
+            (0.75, 0.75, 0.75, 1),
+
+        "selection_selected":
+            (0.2, 0.6, 0.2, 1),
+
+        "selection_warning":
+            (0.8, 0.55, 0.1, 1),
+
+        "selection_normal":
+            (0.8, 0.8, 0.8, 1),
+
+        # ---------------------------------------------
+        # Dropdown menus
+        # ---------------------------------------------
+
+        "dropdown_background":
+            (1, 1, 1, 1),
+
+        "dropdown_text":
+            (0, 0, 0, 1),
+
+        "dropdown_selected":
+            (0.85, 1, 0.85, 1),
+
+        "dropdown_text_selected":
+            (0, 0.45, 0, 1),
+
+        "dropdown_warning":
+            (1, 0.92, 0.80, 1),
+
+        "dropdown_text_warning":
+            (0.75, 0.35, 0, 1),
     },
 
 }
