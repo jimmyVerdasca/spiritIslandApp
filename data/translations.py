@@ -1,41 +1,156 @@
 TRANSLATIONS = {
+
     "en": {
-        "app_title": "Spirit Island Companion",
+
+        "app_title":
+            "Spirit Island Companion",
 
         "home_subtitle":
             "Plan your game. Track your progress.\n"
             "Face the island's next challenge.",
 
-        "new_game": "New Game",
-        "current_games": "Current Games",
-        "history": "History",
-        "trophies": "Trophies",
+        "new_game":
+            "New Game",
+
+        "current_games":
+            "Current Games",
+
+        "history":
+            "History",
+
+        "trophies":
+            "Trophies",
 
         "choose_adventure":
             "Choose your next adventure",
 
-        "settings": "Settings",
-        "language": "Language",
-        "theme": "Theme",
+        # ---------------------------------
+        # Settings
+        # ---------------------------------
+
+        "settings":
+            "Settings",
+
+        "language":
+            "Language",
+
+        "language_description":
+            "Choose the application language.",
+
+        "theme":
+            "Theme",
+
+        "theme_description":
+            "Choose between light and dark mode.",
+
+        "appearance":
+            "Appearance",
+
+        "appearance_description":
+            "Choose between light and dark mode.",
+
+        "light":
+            "Light",
+
+        "dark":
+            "Dark",
+
+        
+        # ---------------------------------
+        # Home
+        # ---------------------------------
+
+        "new_game_description":
+            "Create a new Spirit Island game",
+
+        "current_games_description":
+            "Browse and manage your current games",
+
+        "history_description":
+            "Review your previous games",
+
+        "trophies_description":
+            "View your achievements",
+
+        "settings_description":
+            "Configure the application",
     },
 
+
     "fr": {
-        "app_title": "Compagnon Spirit Island",
+
+        "app_title":
+            "Compagnon Spirit Island",
 
         "home_subtitle":
             "Planifiez votre partie. Suivez votre progression.\n"
             "Affrontez le prochain défi de l'île.",
 
-        "new_game": "Nouvelle partie",
-        "current_games": "Parties en cours",
-        "history": "Historique",
-        "trophies": "Trophées",
+        "new_game":
+            "Nouvelle partie",
+
+        "current_games":
+            "Parties en cours",
+
+        "history":
+            "Historique",
+
+        "trophies":
+            "Trophées",
 
         "choose_adventure":
             "Choisissez votre prochaine aventure",
 
-        "settings": "Paramètres",
-        "language": "Langue",
-        "theme": "Thème",
-    }
+        # ---------------------------------
+        # Settings
+        # ---------------------------------
+
+        "settings":
+            "Paramètres",
+
+        "language":
+            "Langue",
+
+        "language_description":
+            "Choisissez la langue de l'application.",
+
+        "theme":
+            "Thème",
+
+        "theme_description":
+            "Choisissez entre le mode clair et sombre.",
+
+        "appearance":
+            "Apparence",
+
+        "appearance_description":
+            "Choisissez entre le mode clair et sombre.",
+
+        "light":
+            "Clair",
+
+        "dark":
+            "Sombre",
+
+        
+        # ---------------------------------
+        # Home
+        # ---------------------------------
+
+        "new_game_description":
+            "Créez une nouvelle partie de Spirit Island",
+
+        "current_games_description":
+            "Consultez et gérez vos parties en cours",
+
+        "history_description":
+            "Consultez vos parties précédentes",
+
+        "trophies_description":
+            "Consultez vos trophées",
+
+        "settings_description":
+            "Configurez l'application",
+    },
+
 }

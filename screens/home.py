@@ -1,33 +1,46 @@
+from .baseScreen import BaseScreen
+
 from kivy.animation import Animation
 from kivy.clock import Clock
 from kivy.metrics import dp
 from kivy.uix.floatlayout import FloatLayout
-from kivy.uix.image import Image
-from kivy.uix.screenmanager import Screen
 
+from kivymd.app import MDApp
 from kivymd.uix.boxlayout import MDBoxLayout
 from kivymd.uix.button import MDIconButton
 from kivymd.uix.card import MDCard
 from kivymd.uix.label import MDLabel
 
 
-class HomeScreen(Screen):
+class HomeScreen(BaseScreen):
 
     def __init__(self, **kwargs):
 
         super().__init__(**kwargs)
 
-        # ------------------------------------------------
+        # --------------------------------------------
+        # Managers
+        # --------------------------------------------
+
+        app = MDApp.get_running_app()
+
+        self.settings_manager = app.settings_manager
+        self.language_manager = app.language_manager
+        self.theme_manager = app.theme_manager
+
+
+        # --------------------------------------------
         # Root
-        # ------------------------------------------------
+        # --------------------------------------------
 
-        root = FloatLayout()
+        self.root_layout = FloatLayout()
 
-        # ------------------------------------------------
-        # Dark overlay
-        # ------------------------------------------------
 
-        background_overlay = MDBoxLayout(
+        # --------------------------------------------
+        # Background overlay
+        # --------------------------------------------
+
+        self.background_overlay = MDBoxLayout(
             size_hint=(1, 1),
             pos_hint={
                 "x": 0,
@@ -35,279 +48,544 @@ class HomeScreen(Screen):
             },
         )
 
-        background_overlay.md_bg_color = (
-            0,
-            0,
-            0,
-            0.50,
+
+        self.root_layout.add_widget(
+            self.background_overlay
         )
 
-        root.add_widget(
-            background_overlay
-        )
 
-        # ------------------------------------------------
+        # --------------------------------------------
         # Main content
-        # ------------------------------------------------
+        # --------------------------------------------
 
-        layout = MDBoxLayout(
+        self.layout = MDBoxLayout(
             orientation="vertical",
             spacing=dp(8),
             padding=[
                 dp(24),
-                dp(70),   # top padding for the title/settings area
+                dp(24),
                 dp(24),
                 dp(24),
             ],
         )
 
-        # ------------------------------------------------
-        # Header
-        # ------------------------------------------------
 
-        header = MDBoxLayout(
+        # --------------------------------------------
+        # Header
+        # --------------------------------------------
+
+        self.header = MDBoxLayout(
             orientation="vertical",
             size_hint_y=None,
             spacing=dp(2),
         )
 
-        header.bind(
+
+        self.header.bind(
             minimum_height=lambda instance, value:
-            setattr(instance, "height", value)
+            setattr(
+                instance,
+                "height",
+                value
+            )
         )
 
-        title = MDLabel(
-            text="Spirit Island Companion",
+
+        self.title = MDLabel(
             halign="center",
             valign="middle",
             font_style="H4",
-            theme_text_color="Custom",
-            text_color=(1, 1, 1, 1),
             size_hint_y=None,
         )
 
-        title.bind(
+
+        self.title.bind(
             width=lambda instance, value:
-            setattr(instance, "text_size", (value, None))
+            setattr(
+                instance,
+                "text_size",
+                (value, None)
+            )
         )
 
-        title.bind(
+
+        self.title.bind(
             texture_size=lambda instance, value:
-            setattr(instance, "height", value[1] + dp(10))
+            setattr(
+                instance,
+                "height",
+                value[1] + dp(10)
+            )
         )
 
-        description = MDLabel(
-            text=(
-                "Plan your game. Track your progress.\n"
-                "Face the island's next challenge."
-            ),
+
+        self.description = MDLabel(
             font_style="Subtitle1",
             halign="center",
             valign="middle",
-            theme_text_color="Custom",
-            text_color=(1, 1, 1, 0.80),
             size_hint_y=None,
             height=dp(45),
         )
 
-        description.bind(
+
+        self.description.bind(
             size=lambda instance, value:
-            setattr(instance, "text_size", value)
+            setattr(
+                instance,
+                "text_size",
+                value
+            )
         )
 
-        header.add_widget(title)
-        header.add_widget(description)
 
-        layout.add_widget(header)
+        self.header.add_widget(
+            self.title
+        )
 
-        # ------------------------------------------------
-        # Menu
-        # ------------------------------------------------
+        self.header.add_widget(
+            self.description
+        )
 
-        menu = [
-            (
-                "New Game",
-                "Create a new Spirit Island game",
-                "new",
-                "plus-circle-outline",
-            ),
-            (
-                "Current Games",
-                "Browse and manage your current games",
-                "current",
-                "sword-cross",
-            ),
-            (
-                "History",
-                "Review your previous games",
-                "history",
-                "history",
-            ),
-            (
-                "Trophies",
-                "View your achievements",
-                "trophies",
-                "trophy-outline",
-            ),
-            (
-                "Settings",
-                "Configure the application",
-                "settings",
-                "cog-outline",
-            ),
-        ]
+
+        self.layout.add_widget(
+            self.header
+        )
+
+
+        # --------------------------------------------
+        # Menu container
+        # --------------------------------------------
+
+        self.menu_container = MDBoxLayout(
+            orientation="vertical",
+            spacing=dp(8),
+        )
+
+
+        self.layout.add_widget(
+            self.menu_container
+        )
+
+
+        # --------------------------------------------
+        # Footer
+        # --------------------------------------------
+
+        self.footer = MDLabel(
+            halign="center",
+            size_hint_y=None,
+            height=dp(35),
+        )
+
+
+        self.layout.add_widget(
+            self.footer
+        )
+
+
+        # --------------------------------------------
+        # Add content
+        # --------------------------------------------
+
+        self.root_layout.add_widget(
+            self.layout
+        )
+
+
+        self.add_widget(
+            self.root_layout
+        )
+
+
+        # --------------------------------------------
+        # Menu cards
+        # --------------------------------------------
 
         self.menu_cards = []
 
-        for text, description_text, screen, icon in menu:
 
-            # --------------------------------------------
-            # Card
-            # --------------------------------------------
+        # --------------------------------------------
+        # Initial UI
+        # --------------------------------------------
 
-            card = MDCard(
-                orientation="horizontal",
-                size_hint_y=None,
-                height=dp(78),
-                padding=dp(10),
-                spacing=dp(10),
-                radius=[18],
-                elevation=3,
-                opacity=0,
+        self.refresh_ui()
+
+
+    # ====================================================
+    # Screen lifecycle
+    # ====================================================
+
+    def on_pre_enter(self):
+
+        self.refresh_ui()
+
+
+    # ====================================================
+    # Refresh UI
+    # ====================================================
+
+    def refresh_ui(self):
+
+        self.update_text()
+
+        self.update_theme()
+
+        self.build_menu()
+
+
+    # ====================================================
+    # Translations
+    # ====================================================
+
+    def update_text(self):
+
+        self.title.text = (
+            self.language_manager.get(
+                "app_title"
+            )
+        )
+
+
+        self.description.text = (
+            self.language_manager.get(
+                "home_subtitle"
+            )
+        )
+
+
+        self.footer.text = (
+            self.language_manager.get(
+                "choose_adventure"
+            )
+        )
+
+
+    # ====================================================
+    # Theme
+    # ====================================================
+
+    def update_theme(self):
+
+        self.background_overlay.md_bg_color = (
+            self.theme_manager.get(
+                "background_overlay"
+            )
+        )
+
+
+        # --------------------------------------------
+        # Title
+        # --------------------------------------------
+
+        self.title.theme_text_color = "Custom"
+
+        self.title.text_color = (
+            self.theme_manager.get(
+                "text_primary"
+            )
+        )
+
+
+        # --------------------------------------------
+        # Description
+        # --------------------------------------------
+
+        self.description.theme_text_color = "Custom"
+
+        self.description.text_color = (
+            self.theme_manager.get(
+                "text_secondary"
+            )
+        )
+
+
+        # --------------------------------------------
+        # Footer
+        # --------------------------------------------
+
+        self.footer.theme_text_color = "Custom"
+
+        self.footer.text_color = (
+            self.theme_manager.get(
+                "text_muted"
+            )
+        )
+
+
+    # ====================================================
+    # Menu
+    # ====================================================
+
+    def build_menu(self):
+
+        self.menu_container.clear_widgets()
+
+        self.menu_cards = []
+
+
+        menu = [
+
+            (
+                "new_game",
+                "new_game_description",
+                "new",
+                "plus-circle-outline",
+            ),
+
+            (
+                "current_games",
+                "current_games_description",
+                "current",
+                "sword-cross",
+            ),
+
+            (
+                "history",
+                "history_description",
+                "history",
+                "history",
+            ),
+
+            (
+                "trophies",
+                "trophies_description",
+                "trophies",
+                "trophy-outline",
+            ),
+
+            (
+                "settings",
+                "settings_description",
+                "settings",
+                "cog-outline",
+            ),
+
+        ]
+
+
+        for (
+            title_key,
+            description_key,
+            screen,
+            icon,
+        ) in menu:
+
+            card = self.build_menu_card(
+                title_key,
+                description_key,
+                screen,
+                icon,
             )
 
-            card.md_bg_color = (
-                0.05,
-                0.05,
-                0.05,
-                0.78,
-            )
 
-            # Store destination on the card
-            card.screen_name = screen
-
-            # --------------------------------------------
-            # Icon
-            # --------------------------------------------
-
-            icon_button = MDIconButton(
-                icon=icon,
-                theme_icon_color="Custom",
-                icon_color=(1, 1, 1, 1),
-                size_hint=(None, None),
-                size=(dp(50), dp(50)),
-                pos_hint={
-                    "center_y": 0.5,
-                },
-            )
-
-            # Clicking the icon also navigates.
-            icon_button.bind(
-                on_release=lambda instance, s=screen:
-                self.change_screen(s)
-            )
-
-            card.add_widget(
-                icon_button
-            )
-
-            # --------------------------------------------
-            # Text
-            # --------------------------------------------
-
-            text_layout = MDBoxLayout(
-                orientation="vertical",
-                spacing=0,
-            )
-
-            menu_title = MDLabel(
-                text=text,
-                font_style="H6",
-                theme_text_color="Custom",
-                text_color=(1, 1, 1, 1),
-                size_hint_y=None,
-                height=dp(32),
-            )
-
-            menu_description = MDLabel(
-                text=description_text,
-                theme_text_color="Custom",
-                text_color=(1, 1, 1, 0.65),
-                size_hint_y=None,
-                height=dp(26),
-            )
-
-            text_layout.add_widget(
-                menu_title
-            )
-
-            text_layout.add_widget(
-                menu_description
-            )
-
-            card.add_widget(
-                text_layout
-            )
-
-            # --------------------------------------------
-            # Whole card is clickable
-            # --------------------------------------------
-
-            card.bind(
-                on_touch_up=self.card_pressed
-            )
-
-            # --------------------------------------------
-            # Add card
-            # --------------------------------------------
-
-            layout.add_widget(
+            self.menu_container.add_widget(
                 card
             )
+
 
             self.menu_cards.append(
                 card
             )
 
-        
 
-        # ------------------------------------------------
-        # Footer
-        # ------------------------------------------------
-
-        footer = MDLabel(
-            text="Choose your next adventure",
-            halign="center",
-            theme_text_color="Custom",
-            text_color=(1, 1, 1, 0.55),
-            size_hint_y=None,
-            height=dp(35),
-        )
-
-        layout.add_widget(
-            footer
-        )
-
-        # ------------------------------------------------
-        # Add content
-        # ------------------------------------------------
-
-        root.add_widget(
-            layout
-        )
-
-        self.add_widget(
-            root
-        )
-
-        # ------------------------------------------------
-        # Start animations
-        # ------------------------------------------------
+        # --------------------------------------------
+        # Start animation
+        # --------------------------------------------
 
         Clock.schedule_once(
             self.start_animations,
-            0.15
+            0.05
         )
+
+
+    # ====================================================
+    # Build menu card
+    # ====================================================
+
+    def build_menu_card(
+        self,
+        title_key,
+        description_key,
+        screen,
+        icon,
+    ):
+
+        card = MDCard(
+            orientation="horizontal",
+            size_hint_y=None,
+            height=dp(78),
+            padding=dp(10),
+            spacing=dp(10),
+            radius=[18],
+            elevation=3,
+            opacity=0,
+        )
+
+
+        card.screen_name = screen
+
+
+        # --------------------------------------------
+        # Icon
+        # --------------------------------------------
+
+        icon_button = MDIconButton(
+            icon=icon,
+            size_hint=(None, None),
+            size=(dp(50), dp(50)),
+            pos_hint={
+                "center_y": 0.5,
+            },
+        )
+
+
+        icon_button.bind(
+            on_release=lambda instance, s=screen:
+            self.change_screen(s)
+        )
+
+
+        card.add_widget(
+            icon_button
+        )
+
+
+        # --------------------------------------------
+        # Text
+        # --------------------------------------------
+
+        text_layout = MDBoxLayout(
+            orientation="vertical",
+            spacing=0,
+        )
+
+
+        menu_title = MDLabel(
+            text=self.language_manager.get(
+                title_key
+            ),
+            font_style="H6",
+            theme_text_color="Custom",
+            size_hint_y=None,
+            height=dp(32),
+        )
+
+
+        menu_description = MDLabel(
+            text=self.language_manager.get(
+                description_key
+            ),
+            theme_text_color="Custom",
+            size_hint_y=None,
+            height=dp(26),
+        )
+
+
+        text_layout.add_widget(
+            menu_title
+        )
+
+
+        text_layout.add_widget(
+            menu_description
+        )
+
+
+        card.add_widget(
+            text_layout
+        )
+
+
+        # --------------------------------------------
+        # Theme
+        # --------------------------------------------
+
+        self.apply_card_theme(
+            card,
+            icon_button,
+            menu_title,
+            menu_description,
+        )
+
+
+        # --------------------------------------------
+        # Whole card clickable
+        # --------------------------------------------
+
+        card.bind(
+            on_touch_up=self.card_pressed
+        )
+
+
+        return card
+
+
+    # ====================================================
+    # Card theme
+    # ====================================================
+
+    def apply_card_theme(
+        self,
+        card,
+        icon_button,
+        menu_title,
+        menu_description,
+    ):
+
+        # --------------------------------------------
+        # Get current theme
+        # --------------------------------------------
+
+        card_color = self.theme_manager.get(
+            "card"
+        )
+
+        primary_color = self.theme_manager.get(
+            "text_primary"
+        )
+
+        card_secondary_color = self.theme_manager.get(
+            "card_text_secondary"
+        )
+
+        icon_color = self.theme_manager.get(
+            "icon"
+        )
+
+
+        # --------------------------------------------
+        # Card
+        # --------------------------------------------
+
+        card.md_bg_color = card_color
+
+
+        # --------------------------------------------
+        # Card title
+        # --------------------------------------------
+
+        menu_title.theme_text_color = "Custom"
+
+        menu_title.text_color = primary_color
+
+
+        # --------------------------------------------
+        # Card description
+        # --------------------------------------------
+
+        menu_description.theme_text_color = "Custom"
+
+        menu_description.text_color = card_secondary_color
+
+
+        # --------------------------------------------
+        # Icon
+        # --------------------------------------------
+
+        icon_button.theme_icon_color = "Custom"
+
+        icon_button.icon_color = icon_color
+
 
     # ====================================================
     # Card interaction
@@ -320,21 +598,20 @@ class HomeScreen(Screen):
         ):
             return False
 
+
         self.change_screen(
             card.screen_name
         )
 
+
         return True
+
 
     # ====================================================
     # Animations
     # ====================================================
 
     def start_animations(self, *args):
-
-        # ------------------------------------------------
-        # Staggered card appearance
-        # ------------------------------------------------
 
         for index, card in enumerate(
             self.menu_cards
@@ -343,8 +620,9 @@ class HomeScreen(Screen):
             Clock.schedule_once(
                 lambda dt, c=card:
                 self.animate_card(c),
-                0.12 * index,
+                0.08 * index,
             )
+
 
     def animate_card(self, card):
 
@@ -355,6 +633,7 @@ class HomeScreen(Screen):
         ).start(
             card
         )
+
 
     # ====================================================
     # Navigation
