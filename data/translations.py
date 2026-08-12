@@ -140,6 +140,30 @@ TRANSLATIONS = {
 
         "ok":
             "OK",
+
+        # -----------------------------------------
+        # History
+        # -----------------------------------------
+
+        "history": "History",
+
+        "all": "All",
+        "victory": "Victory",
+        "defeat": "Defeat",
+
+        "no_completed_games": "No completed games.",
+
+        "game": "Game",
+        "difficulty": "Difficulty",
+        "adversaries": "Adversaries",
+        "scenario": "Scenario",
+
+        "final_board_state": "Final board state",
+        "invader_cards": "Invader cards",
+        "dahan": "Dahan",
+        "blight": "Blight",
+
+        "final_score": "Final score",
     },
 
 
@@ -282,6 +306,30 @@ TRANSLATIONS = {
 
         "ok":
             "OK",
+
+        # -----------------------------------------
+        # History
+        # -----------------------------------------
+        
+        "history": "Historique",
+
+        "all": "Toutes",
+        "victory": "Victoire",
+        "defeat": "Défaite",
+
+        "no_completed_games": "Aucune partie terminée.",
+
+        "game": "Partie",
+        "difficulty": "Difficulté",
+        "adversaries": "Adversaires",
+        "scenario": "Scénario",
+
+        "final_board_state": "État final du plateau",
+        "invader_cards": "Cartes Envahisseurs",
+        "dahan": "Dahans",
+        "blight": "Fléau",
+
+        "final_score": "Score final",
     },
 
 }

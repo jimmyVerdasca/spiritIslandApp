@@ -23,7 +23,16 @@ class HistoryScreen(BaseScreen):
 
         super().__init__(**kwargs)
 
+        # --------------------------------------------
+        # State
+        # --------------------------------------------
+
         self.current_filter = "ALL"
+
+
+        # --------------------------------------------
+        # Main layout
+        # --------------------------------------------
 
         layout = MDBoxLayout(
             orientation="vertical",
@@ -34,49 +43,61 @@ class HistoryScreen(BaseScreen):
 
         self.add_top_bar(
             layout,
-            "History"
+            "history"
         )
 
 
-        # ---------------------------------
+        # --------------------------------------------
         # Filters
-        # ---------------------------------
+        # --------------------------------------------
 
         filter_box = MDBoxLayout(
             orientation="horizontal",
             spacing=dp(10),
             size_hint_y=None,
-            height=dp(50)
+            height=dp(50),
         )
 
 
         self.all_button = MDRaisedButton(
-            text="All",
-            on_release=lambda x: self.set_filter("ALL")
+            on_release=lambda x:
+                self.set_filter("ALL")
         )
+
 
         self.victory_button = MDRaisedButton(
-            text="Victory",
-            on_release=lambda x: self.set_filter("Victory")
+            on_release=lambda x:
+                self.set_filter("Victory")
         )
+
 
         self.defeat_button = MDRaisedButton(
-            text="Defeat",
-            on_release=lambda x: self.set_filter("Defeat")
+            on_release=lambda x:
+                self.set_filter("Defeat")
         )
 
 
-        filter_box.add_widget(self.all_button)
-        filter_box.add_widget(self.victory_button)
-        filter_box.add_widget(self.defeat_button)
+        filter_box.add_widget(
+            self.all_button
+        )
+
+        filter_box.add_widget(
+            self.victory_button
+        )
+
+        filter_box.add_widget(
+            self.defeat_button
+        )
 
 
-        layout.add_widget(filter_box)
+        layout.add_widget(
+            filter_box
+        )
 
 
-        # ---------------------------------
+        # --------------------------------------------
         # Scroll area
-        # ---------------------------------
+        # --------------------------------------------
 
         scroll = MDScrollView()
 
@@ -92,26 +113,95 @@ class HistoryScreen(BaseScreen):
             self.container
         )
 
-        layout.add_widget(scroll)
+
+        layout.add_widget(
+            scroll
+        )
 
 
-        self.add_widget(layout)
+        # --------------------------------------------
+        # Add screen
+        # --------------------------------------------
+
+        self.add_widget(
+            layout
+        )
 
 
-        # Apply initial filter colors
-        self.update_filter_colors()
+        # --------------------------------------------
+        # Initial UI
+        # --------------------------------------------
+
+        self.refresh_ui()
 
 
+    # ====================================================
+    # Lifecycle
+    # ====================================================
 
-    def on_enter(self):
+    def on_pre_enter(self):
+    
+        super().on_pre_enter()
+
+        self.refresh_ui()
+
+
+    # ====================================================
+    # UI refresh
+    # ====================================================
+
+    def refresh_ui(self):
+
+        self.update_text()
+
+        self.update_theme()
 
         self.refresh_history()
 
 
+    # ====================================================
+    # Translation
+    # ====================================================
 
-    # ---------------------------------
+    def update_text(self):
+
+        # --------------------------------------------
+        # Filter buttons
+        # --------------------------------------------
+
+        self.all_button.text = (
+            self.language_manager.get(
+                "all"
+            )
+        )
+
+
+        self.victory_button.text = (
+            self.language_manager.get(
+                "victory"
+            )
+        )
+
+
+        self.defeat_button.text = (
+            self.language_manager.get(
+                "defeat"
+            )
+        )
+
+
+    # ====================================================
+    # Theme
+    # ====================================================
+
+    def update_theme(self):
+
+        self.update_filter_colors()
+
+
+    # ====================================================
     # Filters
-    # ---------------------------------
+    # ====================================================
 
     def set_filter(self, filter_value):
 
@@ -122,20 +212,29 @@ class HistoryScreen(BaseScreen):
         self.refresh_history()
 
 
-
     def update_filter_colors(self):
 
-        grey = (
-            0.8,
-            0.8,
-            0.8,
-            1
+        inactive = (
+            self.theme_manager.get(
+                "inactive_button"
+            )
         )
 
-        self.all_button.md_bg_color = grey
-        self.victory_button.md_bg_color = grey
-        self.defeat_button.md_bg_color = grey
 
+        # --------------------------------------------
+        # All inactive
+        # --------------------------------------------
+
+        self.all_button.md_bg_color = inactive
+
+        self.victory_button.md_bg_color = inactive
+
+        self.defeat_button.md_bg_color = inactive
+
+
+        # --------------------------------------------
+        # Active filter
+        # --------------------------------------------
 
         if self.current_filter == "ALL":
 
@@ -143,7 +242,7 @@ class HistoryScreen(BaseScreen):
                 0,
                 0.6,
                 0,
-                1
+                1,
             )
 
 
@@ -153,7 +252,7 @@ class HistoryScreen(BaseScreen):
                 0,
                 0.6,
                 0,
-                1
+                1,
             )
 
 
@@ -163,14 +262,13 @@ class HistoryScreen(BaseScreen):
                 0.8,
                 0,
                 0,
-                1
+                1,
             )
 
 
-
-    # ---------------------------------
+    # ====================================================
     # History loading
-    # ---------------------------------
+    # ====================================================
 
     def refresh_history(self):
 
@@ -190,11 +288,22 @@ class HistoryScreen(BaseScreen):
 
         if not games:
 
+            label = MDLabel(
+                text=self.language_manager.get(
+                    "no_completed_games"
+                ),
+                adaptive_height=True,
+            )
+
+
+            self.apply_label_theme(
+                label,
+                "text_secondary"
+            )
+
+
             self.container.add_widget(
-                MDLabel(
-                    text="No completed games.",
-                    adaptive_height=True,
-                )
+                label
             )
 
             return
@@ -207,10 +316,9 @@ class HistoryScreen(BaseScreen):
             )
 
 
-
-    # ---------------------------------
+    # ====================================================
     # Game card
-    # ---------------------------------
+    # ====================================================
 
     def build_game_card(self, game):
 
@@ -224,7 +332,20 @@ class HistoryScreen(BaseScreen):
         )
 
 
+        # --------------------------------------------
+        # Card background
+        # --------------------------------------------
+
+        card.md_bg_color = (
+            self.theme_manager.get(
+                "card"
+            )
+        )
+
+
+        # --------------------------------------------
         # Border depending on result
+        # --------------------------------------------
 
         if game.result == "Victory":
 
@@ -232,7 +353,7 @@ class HistoryScreen(BaseScreen):
                 0,
                 0.7,
                 0,
-                1
+                1,
             )
 
         else:
@@ -241,10 +362,13 @@ class HistoryScreen(BaseScreen):
                 0.8,
                 0,
                 0,
-                1
+                1,
             )
 
 
+        # --------------------------------------------
+        # Columns
+        # --------------------------------------------
 
         columns = MDBoxLayout(
             orientation="horizontal",
@@ -253,9 +377,9 @@ class HistoryScreen(BaseScreen):
         )
 
 
-        # ---------------------------------
-        # Left side: game description
-        # ---------------------------------
+        # --------------------------------------------
+        # Left side
+        # --------------------------------------------
 
         game_summary = MDBoxLayout(
             orientation="vertical",
@@ -264,27 +388,45 @@ class HistoryScreen(BaseScreen):
         )
 
 
-        game_summary.add_widget(
-            MDLabel(
-                text="Game",
-                bold=True,
-                adaptive_height=True,
-            )
+        game_label = MDLabel(
+            text=self.language_manager.get(
+                "game"
+            ),
+            bold=True,
+            adaptive_height=True,
+        )
+
+
+        self.apply_label_theme(
+            game_label,
+            "text_primary"
+        )
+
+
+        game_details = MDLabel(
+            text=format_game(game),
+            adaptive_height=True,
+        )
+
+
+        self.apply_label_theme(
+            game_details,
+            "card_text_secondary"
         )
 
 
         game_summary.add_widget(
-            MDLabel(
-                text=format_game(game),
-                adaptive_height=True,
-            )
+            game_label
+        )
+
+        game_summary.add_widget(
+            game_details
         )
 
 
-
-        # ---------------------------------
-        # Right side: score computation
-        # ---------------------------------
+        # --------------------------------------------
+        # Right side
+        # --------------------------------------------
 
         score_summary = MDBoxLayout(
             orientation="vertical",
@@ -294,6 +436,7 @@ class HistoryScreen(BaseScreen):
 
 
         adversary_difficulty = sum(
+
             get_adversary_difficulty(
                 adv.adversary.id,
                 adv.difficulty.id
@@ -304,11 +447,11 @@ class HistoryScreen(BaseScreen):
 
 
         scenario_difficulty = sum(
+
             scenario.score_difficulty
 
             for scenario in game.scenarios
         )
-
 
 
         breakdown = calculate_score_breakdown(
@@ -318,30 +461,131 @@ class HistoryScreen(BaseScreen):
             players=game.players,
             invader_cards=game.invader_cards_remaining,
             dahan=game.dahan_remaining,
-            blight=game.blight_remaining
+            blight=game.blight_remaining,
+        )
+
+
+        result_text = (
+            self.language_manager.get(
+                "victory"
+            )
+            if game.result == "Victory"
+            else
+            self.language_manager.get(
+                "defeat"
+            )
+        )
+
+
+        difficulty_text = (
+            self.language_manager.get(
+                "difficulty"
+            )
+        )
+
+
+        adversaries_text = (
+            self.language_manager.get(
+                "adversaries"
+            )
+        )
+
+
+        scenario_text = (
+            self.language_manager.get(
+                "scenario"
+            )
+        )
+
+
+        final_board_text = (
+            self.language_manager.get(
+                "final_board_state"
+            )
+        )
+
+
+        invader_cards_text = (
+            self.language_manager.get(
+                "invader_cards"
+            )
+        )
+
+
+        dahan_text = (
+            self.language_manager.get(
+                "dahan"
+            )
+        )
+
+
+        blight_text = (
+            self.language_manager.get(
+                "blight"
+            )
+        )
+
+
+        final_score_text = (
+            self.language_manager.get(
+                "final_score"
+            )
+        )
+
+
+        score_text = (
+
+            f"{result_text} +"
+            f"{breakdown['victory_bonus']}\n\n"
+
+            f"{difficulty_text}\n"
+
+            f"   {adversaries_text}: "
+            f"{adversary_difficulty} × 5\n"
+
+            f"   {scenario_text}: "
+            f"{scenario_difficulty} × 5\n\n"
+
+            f"{final_board_text}\n"
+
+            f"   {invader_cards_text}: "
+            f"{game.invader_cards_remaining} × 2 "
+            f"= +{breakdown['invader_bonus']}\n"
+
+            f"   {dahan_text}: "
+            f"{game.dahan_remaining} / "
+            f"{game.players} "
+            f"= +{round(breakdown['survival_bonus'])}\n"
+
+            f"   {blight_text}: -"
+            f"{game.blight_remaining} / "
+            f"{game.players} "
+            f"= -{round(breakdown['blight_bonus'])}\n\n"
+
+            f"{final_score_text}: {game.score}"
+        )
+
+
+        score_label = MDLabel(
+            text=score_text,
+            adaptive_height=True,
+        )
+
+
+        self.apply_label_theme(
+            score_label,
+            "card_text_secondary"
         )
 
 
         score_summary.add_widget(
-            MDLabel(
-                text=(
-                    f"{game.result} +{breakdown['victory_bonus']}\n\n"
-
-                    "Difficulty\n"
-                    f"   Adversaries: {adversary_difficulty} × 5\n"
-                    f"   Scenario: {scenario_difficulty} × 5\n\n"
-
-
-                    "Final board state\n"
-                    f"   Invader cards: {game.invader_cards_remaining} × 2 = +{breakdown['invader_bonus']}\n"
-                    f"   Dahan: {game.dahan_remaining} / {game.players}  = +{round(breakdown['survival_bonus'])}\n"
-                    f"   Blight: -{game.blight_remaining} / {game.players}  = -{round(breakdown['blight_bonus'])}\n\n"
-
-                    f"FINAL SCORE: {game.score}"
-                ),
-                adaptive_height=True,
-            )
+            score_label
         )
+
+
+        # --------------------------------------------
+        # Columns
+        # --------------------------------------------
 
         columns.add_widget(
             game_summary
@@ -358,3 +602,22 @@ class HistoryScreen(BaseScreen):
 
 
         return card
+
+
+    # ====================================================
+    # Label theme helper
+    # ====================================================
+
+    def apply_label_theme(
+        self,
+        label,
+        theme_key,
+    ):
+
+        label.theme_text_color = "Custom"
+
+        label.text_color = (
+            self.theme_manager.get(
+                theme_key
+            )
+        )
