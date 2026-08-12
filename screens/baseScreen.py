@@ -4,6 +4,7 @@ from kivymd.uix.button import MDIconButton
 from kivymd.uix.label import MDLabel
 
 from kivy.metrics import dp
+from kivy.uix.widget import Widget
 
 
 class BaseScreen(MDScreen):
@@ -16,37 +17,51 @@ class BaseScreen(MDScreen):
 
 
     def add_top_bar(self, layout, title):
-
+    
         bar = MDBoxLayout(
             orientation="horizontal",
             size_hint_y=None,
             height=dp(56),
             spacing=dp(10),
-            padding=[dp(5), 0]
+            padding=[dp(5), 0],
         )
-
 
         back_button = MDIconButton(
             icon="arrow-left",
             theme_icon_color="Custom",
             icon_color=(1, 1, 1, 1),
-            md_bg_color=(0.2, 0.6, 0.2, 1)
+            md_bg_color=(0.2, 0.6, 0.2, 1),
         )
 
-        back_button.bind(
-            on_release=self.go_back
-        )
-
+        back_button.bind(on_release=self.go_back)
 
         title_label = MDLabel(
             text=title,
             font_style="H5",
-            valign="center"
+            valign="center",
         )
 
+        settings_button = MDIconButton(
+            icon="cog-outline",
+            icon_size=dp(28),
+            theme_icon_color="Custom",
+            icon_color=(1, 1, 1, 1),
+        )
 
+        settings_button.bind(
+            on_release=lambda instance: self.change_screen("settings")
+        )
+
+        # Left side
         bar.add_widget(back_button)
         bar.add_widget(title_label)
+
+        # Empty space pushes settings button to the right
+        spacer = Widget()
+        bar.add_widget(spacer)
+
+        # Right side
+        bar.add_widget(settings_button)
 
         layout.add_widget(bar)
 

@@ -9,12 +9,41 @@ from screens.newGame import NewGameScreen
 from screens.trophies import TrophyScreen
 from screens.history import HistoryScreen
 from screens.finisfGame import FinishGameScreen
+from screens.settings import SettingsScreen
 from widgets.app_background import AppBackground
+from managers.language_manager import LanguageManager
+from managers.theme_manager import ThemeManager
+from managers.settings_manager import SettingsManager
 
 
 
 class SpiritIslandApp(MDApp):
     icon = "assets/home/logoApp.png"
+
+    def __init__(self, **kwargs):
+    
+        super().__init__(**kwargs)
+
+        self.language_manager = LanguageManager()
+        self.theme_manager = ThemeManager()
+        self.settings_manager = SettingsManager()
+
+
+        self.language_manager = LanguageManager(
+            self.settings_manager.get("language")
+        )
+        self.theme_manager = ThemeManager(
+            self.settings_manager.get("theme")
+        )
+
+
+        self.language_manager = LanguageManager(
+            self.settings_manager.get("language")
+        )
+
+        self.theme_manager = ThemeManager(
+            self.settings_manager.get("theme")
+        )
     
     def build(self):
 
@@ -27,6 +56,14 @@ class SpiritIslandApp(MDApp):
         root.add_widget(background)
 
         screen_manager = ScreenManager()
+
+        if self.theme_manager.current_theme == "dark":
+    
+            self.theme_cls.theme_style = "Dark"
+
+        else:
+
+            self.theme_cls.theme_style = "Light"
 
         screen_manager.add_widget(
             HomeScreen(name="home")
@@ -50,6 +87,10 @@ class SpiritIslandApp(MDApp):
 
         screen_manager.add_widget(
             FinishGameScreen(name="finish")
+        )
+
+        screen_manager.add_widget(
+            SettingsScreen(name="settings")
         )
 
         MusicManager.start();

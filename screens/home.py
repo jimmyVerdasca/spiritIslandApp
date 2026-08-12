@@ -52,8 +52,13 @@ class HomeScreen(Screen):
 
         layout = MDBoxLayout(
             orientation="vertical",
-            spacing=dp(16),
-            padding=dp(24),
+            spacing=dp(8),
+            padding=[
+                dp(24),
+                dp(70),   # top padding for the title/settings area
+                dp(24),
+                dp(24),
+            ],
         )
 
         # ------------------------------------------------
@@ -143,6 +148,12 @@ class HomeScreen(Screen):
                 "View your achievements",
                 "trophies",
                 "trophy-outline",
+            ),
+            (
+                "Settings",
+                "Configure the application",
+                "settings",
+                "cog-outline",
             ),
         ]
 
@@ -257,6 +268,8 @@ class HomeScreen(Screen):
             self.menu_cards.append(
                 card
             )
+
+        
 
         # ------------------------------------------------
         # Footer
