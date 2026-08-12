@@ -306,7 +306,9 @@ class SettingsScreen(BaseScreen):
             app.theme_cls.theme_style = "Light"
 
 
+        self.refresh_top_bar()
         self.update_button_colors()
+
 
 
     # =================================================

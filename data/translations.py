@@ -164,6 +164,12 @@ TRANSLATIONS = {
         "blight": "Blight",
 
         "final_score": "Final score",
+
+        # -----------------------------------------
+        # trophies
+        # -----------------------------------------
+
+        "trophies_progress": "Trophies : {unlocked} / {total}",
     },
 
 
@@ -310,7 +316,7 @@ TRANSLATIONS = {
         # -----------------------------------------
         # History
         # -----------------------------------------
-        
+
         "history": "Historique",
 
         "all": "Toutes",
@@ -330,6 +336,12 @@ TRANSLATIONS = {
         "blight": "Fléau",
 
         "final_score": "Score final",
+
+        # -----------------------------------------
+        # trophies
+        # -----------------------------------------
+
+        "trophies_progress": "Trophées : {unlocked} / {total}",
     },
 
 }
