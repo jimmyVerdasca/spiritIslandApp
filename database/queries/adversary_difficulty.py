@@ -1,12 +1,17 @@
 from models.converters import row_to_adversary_difficulty
 
-def get_adversary_difficulty(cursor, adversary_id, difficulty_id):
-    
+
+def get_adversary_difficulty(
+    cursor,
+    adversary_id,
+    difficulty_id,
+):
+
     cursor.execute(
         """
         SELECT
             a.id AS adversary_id,
-            a.name AS adversary_name,
+            a.key AS adversary_key,
 
             d.id AS difficulty_id,
             d.level AS difficulty_level,
@@ -23,7 +28,6 @@ def get_adversary_difficulty(cursor, adversary_id, difficulty_id):
 
         WHERE ad.adversary_id = ?
         AND ad.difficulty_id = ?
-
         """,
         (
             adversary_id,

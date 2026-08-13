@@ -8,89 +8,136 @@ from models.game import (
     BoardConfiguration,
     Difficulty,
     AdversaryDifficulty,
-    Trophy
+    Trophy,
 )
 
 from models.game_status import GameStatus
 
 
+# =========================================================
+# SPIRIT
+# =========================================================
+
 def row_to_spirit(row) -> Spirit:
+
     return Spirit(
         id=row["id"],
-        name=row["name"]
+        key=row["key"],
     )
 
+
+# =========================================================
+# BOARD
+# =========================================================
 
 def row_to_board(row) -> Board:
+
     return Board(
         id=row["id"],
-        name=row["name"]
+        key=row["key"],
     )
 
+
+# =========================================================
+# ADVERSARY
+# =========================================================
 
 def row_to_adversary(row) -> Adversary:
+
     return Adversary(
         id=row["id"],
-        name=row["name"]
+        key=row["key"],
     )
 
+
+# =========================================================
+# DIFFICULTY
+# =========================================================
+
 def row_to_difficulty(row) -> Difficulty:
+
     return Difficulty(
         id=row["id"],
         level=row["level"],
     )
 
+
+# =========================================================
+# GAME ADVERSARY
+# =========================================================
+
 def row_to_game_adversary(row) -> GameAdversary:
-    
+
     return GameAdversary(
+
         adversary=Adversary(
             id=row["adversary_id"],
-            name=row["adversary_name"]
+            key=row["adversary_key"],
         ),
+
         difficulty=Difficulty(
             id=row["difficulty_id"],
-            level=row["difficulty_level"]
-        )
+            level=row["difficulty_level"],
+        ),
     )
 
+
+# =========================================================
+# ADVERSARY DIFFICULTY
+# =========================================================
+
 def row_to_adversary_difficulty(row) -> AdversaryDifficulty:
-    
+
     adversary = Adversary(
         id=row["adversary_id"],
-        name=row["adversary_name"]
+        key=row["adversary_key"],
     )
 
     difficulty = Difficulty(
         id=row["difficulty_id"],
-        level=row["difficulty_level"]
+        level=row["difficulty_level"],
     )
 
     return AdversaryDifficulty(
         adversary=adversary,
         difficulty=difficulty,
-        score_difficulty=row["score_difficulty"]
+        score_difficulty=row["score_difficulty"],
     )
 
+
+# =========================================================
+# SCENARIO
+# =========================================================
 
 def row_to_scenario(row) -> Scenario:
+
     return Scenario(
         id=row["id"],
-        name=row["name"],
-        score_difficulty=row["score_difficulty"]
+        key=row["key"],
+        score_difficulty=row["score_difficulty"],
     )
+
+
+# =========================================================
+# BOARD CONFIGURATION
+# =========================================================
 
 def row_to_configuration(row) -> BoardConfiguration:
-    
+
     return BoardConfiguration(
         id=row["id"],
-        name=row["name"],
+        key=row["key"],
         min_players=row["min_players"],
-        max_players=row["max_players"]
+        max_players=row["max_players"],
     )
 
 
+# =========================================================
+# GAME
+# =========================================================
 
 def row_to_game(row) -> Game:
+
     return Game(
         id=row["id"],
         players=row["players"],
@@ -104,33 +151,22 @@ def row_to_game(row) -> Game:
         created_at=row["created_at"],
     )
 
-def row_to_adversary_difficulty(row):
-    
-    adversary = Adversary(
-        id=row["adversary_id"],
-        name=row["adversary_name"]
-    )
 
-    difficulty = Difficulty(
-        id=row["difficulty_id"],
-        level=row["difficulty_level"]
-    )
-
-    return AdversaryDifficulty(
-        adversary=adversary,
-        difficulty=difficulty,
-        score_difficulty=row["score_difficulty"]
-    )
+# =========================================================
+# BUILD GAME
+# =========================================================
 
 def build_game(
     game_row,
     spirits,
     boards,
     adversaries,
-    scenarios
+    scenarios,
 ) -> Game:
 
-    game = row_to_game(game_row)
+    game = row_to_game(
+        game_row
+    )
 
     game.spirits = spirits
     game.boards = boards
@@ -139,12 +175,16 @@ def build_game(
 
     return game
 
-def row_to_trophy(row):
+
+# =========================================================
+# TROPHY
+# =========================================================
+
+def row_to_trophy(row) -> Trophy:
 
     return Trophy(
         id=row["id"],
-        name=row["name"],
-        description=row["description"],
+        key=row["key"],
         locked_image=row["locked_image"],
         unlocked_image=row["unlocked_image"],
         sql_condition=row["sql_condition"],

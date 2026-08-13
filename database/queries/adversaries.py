@@ -1,14 +1,17 @@
-from models.game import Adversary
-from models.converters import row_to_adversary
+from models.game import Adversary, GameAdversary
+from models.converters import (
+    row_to_adversary,
+    row_to_game_adversary,
+)
 
 
 def get_all(cursor) -> list[Adversary]:
 
     cursor.execute(
         """
-        SELECT id, name
+        SELECT id, key
         FROM adversaries
-        ORDER BY name
+        ORDER BY key
         """
     )
 
@@ -22,7 +25,7 @@ def get_random(cursor) -> Adversary:
 
     cursor.execute(
         """
-        SELECT id, name
+        SELECT id, key
         FROM adversaries
         ORDER BY RANDOM()
         LIMIT 1
@@ -34,28 +37,34 @@ def get_random(cursor) -> Adversary:
     )
 
 
-def get_by_name(cursor, name) -> Adversary:
+def get_by_key(cursor, key) -> Adversary:
 
     cursor.execute(
         """
-        SELECT id, name
+        SELECT id, key
         FROM adversaries
-        WHERE name = ?
+        WHERE key = ?
         """,
-        (name,)
+        (key,)
     )
 
-    return row_to_adversary(
-        cursor.fetchone()
-    )
+    row = cursor.fetchone()
 
-def get_by_id(cursor, game_id):
-    
+    if row is None:
+        raise ValueError(
+            f"Adversary not found: {key}"
+        )
+
+    return row_to_adversary(row)
+
+
+def get_by_id(cursor, game_id) -> list[GameAdversary]:
+
     cursor.execute(
         """
         SELECT
             a.id AS adversary_id,
-            a.name AS adversary_name,
+            a.key AS adversary_key,
 
             d.id AS difficulty_id,
             d.level AS difficulty_level
@@ -69,8 +78,13 @@ def get_by_id(cursor, game_id):
             ON d.id = ga.difficulty_id
 
         WHERE ga.game_id = ?
+
+        ORDER BY ga.adversary_id
         """,
         (game_id,)
     )
 
-    return cursor.fetchall()
+    return [
+        row_to_game_adversary(row)
+        for row in cursor.fetchall()
+    ]

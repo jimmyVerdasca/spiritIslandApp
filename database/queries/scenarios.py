@@ -1,13 +1,19 @@
 from models.game import Scenario
 from models.converters import row_to_scenario
 
+
 def get_all(cursor) -> list[Scenario]:
 
     cursor.execute(
         """
-        SELECT id, name, score_difficulty
+        SELECT
+            id,
+            key,
+            score_difficulty
+
         FROM scenarios
-        ORDER BY name
+
+        ORDER BY key
         """
     )
 
@@ -21,40 +27,61 @@ def get_random(cursor) -> Scenario:
 
     cursor.execute(
         """
-        SELECT id, name, score_difficulty
+        SELECT
+            id,
+            key,
+            score_difficulty
+
         FROM scenarios
+
         ORDER BY RANDOM()
         LIMIT 1
         """
     )
 
-    return row_to_scenario(
-        cursor.fetchone()
-    )
+    row = cursor.fetchone()
+
+    if row is None:
+        raise ValueError(
+            "No scenarios found"
+        )
+
+    return row_to_scenario(row)
 
 
-def get_by_name(cursor, name) -> Scenario:
+def get_by_key(cursor, key) -> Scenario:
 
     cursor.execute(
         """
-        SELECT id, name, score_difficulty
+        SELECT
+            id,
+            key,
+            score_difficulty
+
         FROM scenarios
-        WHERE name = ?
+
+        WHERE key = ?
         """,
-        (name,)
+        (key,)
     )
 
-    return row_to_scenario(
-        cursor.fetchone()
-    )
+    row = cursor.fetchone()
 
-def get_by_id(cursor, game_id):
-    
+    if row is None:
+        raise ValueError(
+            f"Scenario not found: {key}"
+        )
+
+    return row_to_scenario(row)
+
+
+def get_by_id(cursor, game_id) -> list[Scenario]:
+
     cursor.execute(
         """
         SELECT
             s.id,
-            s.name,
+            s.key,
             s.score_difficulty
 
         FROM scenarios s
@@ -67,15 +94,22 @@ def get_by_id(cursor, game_id):
         (game_id,)
     )
 
-    return cursor.fetchall()
+    return [
+        row_to_scenario(row)
+        for row in cursor.fetchall()
+    ]
 
-def get_scenario_difficulty(cursor, scenario_id):
-    
+
+def get_scenario_difficulty(
+    cursor,
+    scenario_id
+) -> Scenario | None:
+
     cursor.execute(
         """
         SELECT
             id,
-            name,
+            key,
             score_difficulty
 
         FROM scenarios

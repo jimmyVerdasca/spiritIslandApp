@@ -8,32 +8,32 @@ def calculate_score(
     blight
 ):
 
-    score = 0
-
-
     if result == "Victory":
 
-        score += 5 * (scenario_difficulty + adversary_difficulty) + 1 # + 1 for the thematic map
-
-        score += 10
-
-        score += 2 * invader_cards
-
+        score = (
+            5 * (scenario_difficulty + adversary_difficulty)
+            + 1
+            + 10
+            + 2 * invader_cards
+        )
 
     else:
 
-        score += 2 * (scenario_difficulty + adversary_difficulty) + 1
+        score = (
+            2 * (scenario_difficulty + adversary_difficulty)
+            + 1
+            + invader_cards
+        )
 
-        score += invader_cards
 
+    # Group bonus / malus
 
-    # group bonus/malus
     score += dahan // players
-
     score -= blight // players
 
 
     return score
+
 
 def calculate_score_breakdown(
     result,
@@ -45,25 +45,39 @@ def calculate_score_breakdown(
     blight
 ):
 
-    difficulty_score = (
-        (scenario_difficulty + adversary_difficulty)
-        * 5
-    ) + 1
+    if result == "Victory":
 
-    victory_bonus = 10 if result == "Victory" else 0
+        difficulty_score = (
+            5 * (scenario_difficulty + adversary_difficulty)
+            + 1
+        )
 
-    invader_bonus = invader_cards * 2
+        victory_bonus = 10
+        invader_bonus = invader_cards * 2
+
+    else:
+
+        difficulty_score = (
+            2 * (scenario_difficulty + adversary_difficulty)
+            + 1
+        )
+
+        victory_bonus = 0
+        invader_bonus = invader_cards
+
 
     survival_bonus = dahan // players
-    blight_bonus = 0
-    blight_bonus -= blight // players
+    blight_bonus = -(blight // players)
+
 
     final_score = int(
         difficulty_score
         + victory_bonus
         + invader_bonus
         + survival_bonus
+        + blight_bonus
     )
+
 
     return {
         "difficulty": difficulty_score,

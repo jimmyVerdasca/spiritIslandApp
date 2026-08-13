@@ -1,69 +1,167 @@
+from kivy.app import App
+
 from models.game import Game
 
 
 def format_game(game: Game) -> str:
 
-    text = []
+    app = App.get_running_app()
 
-    print(game)
-
-    text.append(
-        f"Players: {game.players}"
-    )
-
-    text.append(
-        f"Board: {game.configuration.name}"
-    )
-
-    text.append("")
-    text.append("Spirits:")
-
-    for spirit, board in zip(game.spirits, game.boards):
-        text.append(
-            f"- {spirit.name} ({board.name})"
+    if app is None:
+        raise RuntimeError(
+            "Kivy application is not running"
         )
 
+    language = app.language_manager
+
+    text = []
+
+    # =========================================================
+    # Players
+    # =========================================================
+
+    players_label = language.get(
+        "players"
+    )
+
+    text.append(
+        f"{players_label}: {game.players}"
+    )
+
+    # =========================================================
+    # Board
+    # =========================================================
+
+    board_label = language.get(
+        "board"
+    )
+
+    board_name = language.get(
+        game.configuration.key,
+        "board_configurations"
+    )
+
+    text.append(
+        f"{board_label}: {board_name}"
+    )
+
+    # =========================================================
+    # Spirits
+    # =========================================================
+
+    spirits_title = language.get(
+        "spirits_title"
+    )
 
     text.append("")
-    text.append("Adversaries:")
+    text.append(
+        f"{spirits_title}:"
+    )
+
+    for spirit, board in zip(
+        game.spirits,
+        game.boards
+    ):
+
+        spirit_name = language.get(
+            spirit.key,
+            "spirits"
+        )
+
+        board_name = language.get(
+            board.key,
+            "boards"
+        )
+
+        text.append(
+            f"- {spirit_name} ({board_name})"
+        )
+
+    # =========================================================
+    # Adversaries
+    # =========================================================
+
+    adversaries_title = language.get(
+        "adversaries_title"
+    )
+
+    level_label = language.get(
+        "level"
+    )
+
+    any_level_text = language.get(
+        "any_level"
+    )
+
+    none_text = language.get(
+        "none"
+    )
+
+    text.append("")
+    text.append(
+        f"{adversaries_title}:"
+    )
 
     if game.adversaries:
-    
+
         for game_adversary in game.adversaries:
 
-            difficulty = (
-                f"level {game_adversary.difficulty.level}"
-                if game_adversary.difficulty is not None
-                else "any level"
+            adversary_name = language.get(
+                game_adversary.adversary.key,
+                "adversaries"
             )
 
+            if game_adversary.difficulty is not None:
+
+                difficulty = (
+                    f"{level_label} "
+                    f"{game_adversary.difficulty.level}"
+                )
+
+            else:
+
+                difficulty = any_level_text
+
             text.append(
-                f"- {game_adversary.adversary.name} "
-                f"({difficulty})"
+                f"- {adversary_name} ({difficulty})"
             )
 
     else:
 
         text.append(
-            "- None"
+            f"- {none_text}"
         )
 
+    # =========================================================
+    # Scenarios
+    # =========================================================
+
+    scenarios_title = language.get(
+        "scenarios_title"
+    )
 
     text.append("")
-    text.append("Scenarios:")
+    text.append(
+        f"{scenarios_title}:"
+    )
 
     if game.scenarios:
 
         for scenario in game.scenarios:
+
+            scenario_name = language.get(
+                scenario.key,
+                "scenarios"
+            )
+
             text.append(
-                f"- {scenario.name}"
+                f"- {scenario_name}"
             )
 
     else:
 
         text.append(
-            "- None"
+            f"- {none_text}"
         )
-
 
     return "\n".join(text)

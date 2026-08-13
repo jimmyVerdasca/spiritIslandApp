@@ -8,9 +8,13 @@ def get_all(cursor) -> list[Spirit]:
 
     cursor.execute(
         """
-        SELECT id, name
+        SELECT
+            id,
+            key
+
         FROM spirits
-        ORDER BY name
+
+        ORDER BY key
         """
     )
 
@@ -20,7 +24,10 @@ def get_all(cursor) -> list[Spirit]:
     ]
 
 
-def get_random(cursor, count) -> list[Spirit]:
+def get_random(
+    cursor,
+    count
+) -> list[Spirit]:
 
     spirits = get_all(cursor)
 
@@ -30,33 +37,44 @@ def get_random(cursor, count) -> list[Spirit]:
     )
 
 
-def get_by_name(cursor, name) -> Spirit:
+def get_by_key(
+    cursor,
+    key
+) -> Spirit:
 
     cursor.execute(
         """
-        SELECT id, name
+        SELECT
+            id,
+            key
+
         FROM spirits
-        WHERE name = ?
+
+        WHERE key = ?
         """,
-        (name,)
+        (key,)
     )
 
     row = cursor.fetchone()
 
     if row is None:
         raise ValueError(
-            f"Spirit not found: {name}"
+            f"Spirit not found: {key}"
         )
 
     return row_to_spirit(row)
 
-def get_by_id(cursor, game_id):
-    
+
+def get_by_id(
+    cursor,
+    game_id
+) -> list[Spirit]:
+
     cursor.execute(
         """
         SELECT
             s.id,
-            s.name
+            s.key
 
         FROM spirits s
 
@@ -70,4 +88,7 @@ def get_by_id(cursor, game_id):
         (game_id,)
     )
 
-    return cursor.fetchall()
+    return [
+        row_to_spirit(row)
+        for row in cursor.fetchall()
+    ]

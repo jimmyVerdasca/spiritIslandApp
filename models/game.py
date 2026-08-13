@@ -6,20 +6,20 @@ from .game_status import GameStatus
 @dataclass
 class Spirit:
     id: int
-    name: str
+    key: str
 
 
 @dataclass
 class Board:
 
     id: int
-    name: str
+    key: str
 
 
 @dataclass
 class BoardConfiguration:
     id: int
-    name: str
+    key: str
     min_players: int
     max_players: int
 
@@ -27,13 +27,13 @@ class BoardConfiguration:
 @dataclass
 class Adversary:
     id: int
-    name: str
+    key: str
 
 
 @dataclass
 class Scenario:
     id: int
-    name: str
+    key: str
     score_difficulty: int
 
 @dataclass
@@ -76,8 +76,7 @@ class Game:
 class Trophy:
 
     id: int
-    name: str
-    description: str
+    key: str
 
     locked_image: str
     unlocked_image: str

@@ -8,7 +8,7 @@ def get_all(cursor) -> list[BoardConfiguration]:
         """
         SELECT
             id,
-            name,
+            key,
             min_players,
             max_players
 
@@ -24,7 +24,6 @@ def get_all(cursor) -> list[BoardConfiguration]:
     ]
 
 
-
 def get_for_players(
     cursor,
     players
@@ -34,7 +33,7 @@ def get_for_players(
         """
         SELECT
             id,
-            name,
+            key,
             min_players,
             max_players
 
@@ -53,45 +52,61 @@ def get_for_players(
     ]
 
 
-
-def get_by_name(
+def get_by_key(
     cursor,
-    name
+    key
 ) -> BoardConfiguration:
 
     cursor.execute(
         """
         SELECT
             id,
-            name,
+            key,
             min_players,
             max_players
 
         FROM board_configurations
 
-        WHERE name = ?
+        WHERE key = ?
         """,
-        (name,)
+        (key,)
     )
 
     row = cursor.fetchone()
 
     if row is None:
         raise ValueError(
-            f"Configuration not found: {name}"
+            f"Configuration not found: {key}"
         )
 
     return row_to_configuration(row)
 
-def get_by_id(cursor, configuration_id):
-    
+
+def get_by_id(
+    cursor,
+    configuration_id
+) -> BoardConfiguration:
+
     cursor.execute(
         """
-        SELECT *
+        SELECT
+            id,
+            key,
+            min_players,
+            max_players
+
         FROM board_configurations
+
         WHERE id = ?
         """,
         (configuration_id,)
     )
 
-    return cursor.fetchone()
+    row = cursor.fetchone()
+
+    if row is None:
+        raise ValueError(
+            f"Configuration not found: {configuration_id}"
+        )
+
+    return row_to_configuration(row)

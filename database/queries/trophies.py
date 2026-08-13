@@ -7,8 +7,7 @@ def get_all(cursor):
         """
         SELECT
             id,
-            name,
-            description,
+            key,
             locked_image,
             unlocked_image,
             sql_condition,

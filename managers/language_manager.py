@@ -13,11 +13,20 @@ class LanguageManager:
         self.current_language = language
 
 
-    def get(self, key):
-
-        return TRANSLATIONS[
+    def get(self, key, *categories):
+    
+        value = TRANSLATIONS[
             self.current_language
-        ].get(
+        ]
+
+        for category in categories:
+
+            value = value.get(
+                category,
+                {}
+            )
+
+        return value.get(
             key,
             key
         )

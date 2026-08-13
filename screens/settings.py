@@ -17,37 +17,66 @@ class SettingsScreen(BaseScreen):
 
         super().__init__(**kwargs)
 
+        # =================================================
+        # Managers
+        # =================================================
+
         app = MDApp.get_running_app()
 
         self.settings_manager = app.settings_manager
         self.language_manager = app.language_manager
         self.theme_manager = app.theme_manager
 
-
-        # ---------------------------------
+        # =================================================
         # Main layout
-        # ---------------------------------
+        # =================================================
 
-        layout = MDBoxLayout(
+        self.layout = MDBoxLayout(
             orientation="vertical",
             spacing=dp(10),
             padding=dp(20),
         )
 
+        self.add_widget(self.layout)
 
-        # ---------------------------------
+        # =================================================
+        # Build screen
+        # =================================================
+
+        self.build_screen()
+
+    # =================================================
+    # Lifecycle
+    # =================================================
+
+    def on_pre_enter(self):
+
+        super().on_pre_enter()
+
+        self.refresh_ui()
+
+    # =================================================
+    # Build screen
+    # =================================================
+
+    def build_screen(self):
+
+        self.layout.clear_widgets()
+
+        # ---------------------------------------------
         # Top bar
-        # ---------------------------------
+        # ---------------------------------------------
 
-        self.add_top_bar(layout, "settings")
+        self.add_top_bar(
+            self.layout,
+            "settings"
+        )
 
-
-        # ---------------------------------
+        # ---------------------------------------------
         # Scroll area
-        # ---------------------------------
+        # ---------------------------------------------
 
         scroll = MDScrollView()
-
 
         self.container = MDBoxLayout(
             orientation="vertical",
@@ -55,24 +84,19 @@ class SettingsScreen(BaseScreen):
             adaptive_height=True,
         )
 
-
         scroll.add_widget(
             self.container
         )
 
-
-        layout.add_widget(
+        self.layout.add_widget(
             scroll
         )
 
-
-        self.add_widget(
-            layout
-        )
-
+        # ---------------------------------------------
+        # Settings
+        # ---------------------------------------------
 
         self.build_settings()
-
 
     # =================================================
     # Build settings
@@ -82,10 +106,9 @@ class SettingsScreen(BaseScreen):
 
         self.container.clear_widgets()
 
-
-        # =============================================
+        # =================================================
         # LANGUAGE
-        # =============================================
+        # =================================================
 
         language_card = MDCard(
             orientation="vertical",
@@ -97,26 +120,30 @@ class SettingsScreen(BaseScreen):
             line_width=dp(1),
         )
 
-
-        language_card.add_widget(
-            MDLabel(
-                text=self.language_manager.get("language"),
-                bold=True,
-                adaptive_height=True,
-            )
+        language_title = MDLabel(
+            text=self.language_manager.get(
+                "language"
+            ),
+            bold=True,
+            adaptive_height=True,
         )
 
-
-        language_card.add_widget(
-            MDLabel(
-                text=self.language_manager.get(
-                    "language_description"
-                ),
-                theme_text_color="Secondary",
-                adaptive_height=True,
-            )
+        self.apply_label_theme(
+            language_title,
+            "text_primary"
         )
 
+        language_description = MDLabel(
+            text=self.language_manager.get(
+                "language_description"
+            ),
+            adaptive_height=True,
+        )
+
+        self.apply_label_theme(
+            language_description,
+            "text_secondary"
+        )
 
         language_buttons = MDBoxLayout(
             orientation="horizontal",
@@ -125,20 +152,17 @@ class SettingsScreen(BaseScreen):
             height=dp(45),
         )
 
-
         self.en_button = MDRaisedButton(
             text="English",
             on_release=lambda x:
-            self.set_language("en"),
+                self.set_language("en"),
         )
-
 
         self.fr_button = MDRaisedButton(
             text="Français",
             on_release=lambda x:
-            self.set_language("fr"),
+                self.set_language("fr"),
         )
-
 
         language_buttons.add_widget(
             self.en_button
@@ -148,20 +172,25 @@ class SettingsScreen(BaseScreen):
             self.fr_button
         )
 
+        language_card.add_widget(
+            language_title
+        )
+
+        language_card.add_widget(
+            language_description
+        )
 
         language_card.add_widget(
             language_buttons
         )
 
-
         self.container.add_widget(
             language_card
         )
 
-
-        # =============================================
+        # =================================================
         # APPEARANCE
-        # =============================================
+        # =================================================
 
         appearance_card = MDCard(
             orientation="vertical",
@@ -173,28 +202,30 @@ class SettingsScreen(BaseScreen):
             line_width=dp(1),
         )
 
-
-        appearance_card.add_widget(
-            MDLabel(
-                text=self.language_manager.get(
-                    "appearance"
-                ),
-                bold=True,
-                adaptive_height=True,
-            )
+        appearance_title = MDLabel(
+            text=self.language_manager.get(
+                "appearance"
+            ),
+            bold=True,
+            adaptive_height=True,
         )
 
-
-        appearance_card.add_widget(
-            MDLabel(
-                text=self.language_manager.get(
-                    "appearance_description"
-                ),
-                theme_text_color="Secondary",
-                adaptive_height=True,
-            )
+        self.apply_label_theme(
+            appearance_title,
+            "text_primary"
         )
 
+        appearance_description = MDLabel(
+            text=self.language_manager.get(
+                "appearance_description"
+            ),
+            adaptive_height=True,
+        )
+
+        self.apply_label_theme(
+            appearance_description,
+            "text_secondary"
+        )
 
         appearance_buttons = MDBoxLayout(
             orientation="horizontal",
@@ -203,20 +234,21 @@ class SettingsScreen(BaseScreen):
             height=dp(45),
         )
 
-
         self.light_button = MDRaisedButton(
-            text=self.language_manager.get("light"),
+            text=self.language_manager.get(
+                "light"
+            ),
             on_release=lambda x:
-            self.set_theme("light"),
+                self.set_theme("light"),
         )
-
 
         self.dark_button = MDRaisedButton(
-            text=self.language_manager.get("dark"),
+            text=self.language_manager.get(
+                "dark"
+            ),
             on_release=lambda x:
-            self.set_theme("dark"),
+                self.set_theme("dark"),
         )
-
 
         appearance_buttons.add_widget(
             self.light_button
@@ -226,19 +258,37 @@ class SettingsScreen(BaseScreen):
             self.dark_button
         )
 
+        appearance_card.add_widget(
+            appearance_title
+        )
+
+        appearance_card.add_widget(
+            appearance_description
+        )
 
         appearance_card.add_widget(
             appearance_buttons
         )
 
-
         self.container.add_widget(
             appearance_card
         )
 
+        # =================================================
+        # Apply theme
+        # =================================================
+
+        self.update_theme()
 
         self.update_button_colors()
 
+    # =================================================
+    # UI refresh
+    # =================================================
+
+    def refresh_ui(self):
+
+        self.build_screen()
 
     # =================================================
     # Language
@@ -246,30 +296,38 @@ class SettingsScreen(BaseScreen):
 
     def set_language(self, language):
 
-        # Update manager
+        # ---------------------------------------------
+        # Update language manager
+        # ---------------------------------------------
 
         self.language_manager.set_language(
             language
         )
 
-
+        # ---------------------------------------------
         # Persist setting
+        # ---------------------------------------------
 
         self.settings_manager.set(
             "language",
             language
         )
 
+        # ---------------------------------------------
+        # Rebuild screen
+        # ---------------------------------------------
 
-        # Rebuild current screen
+        self.build_screen()
 
-        self.build_settings()
+        # ---------------------------------------------
+        # Notify BaseScreen / top bar
+        # ---------------------------------------------
 
-
-        # Update top bar
-
-        self.refresh_top_bar()
-
+        if hasattr(
+            self,
+            "update_top_bar"
+        ):
+            self.update_top_bar()
 
     # =================================================
     # Theme
@@ -277,25 +335,28 @@ class SettingsScreen(BaseScreen):
 
     def set_theme(self, theme):
 
-        # Update manager
+        # ---------------------------------------------
+        # Update theme manager
+        # ---------------------------------------------
 
         self.theme_manager.set_theme(
             theme
         )
 
-
+        # ---------------------------------------------
         # Persist setting
+        # ---------------------------------------------
 
         self.settings_manager.set(
             "theme",
             theme
         )
 
-
+        # ---------------------------------------------
         # Apply KivyMD theme
+        # ---------------------------------------------
 
         app = MDApp.get_running_app()
-
 
         if theme == "dark":
 
@@ -305,61 +366,23 @@ class SettingsScreen(BaseScreen):
 
             app.theme_cls.theme_style = "Light"
 
+        # ---------------------------------------------
+        # Rebuild / refresh UI
+        # ---------------------------------------------
 
-        self.refresh_top_bar()
-        self.update_button_colors()
-
-
+        self.build_screen()
 
     # =================================================
-    # Top bar
+    # Theme
     # =================================================
 
-    def refresh_top_bar(self):
+    def update_theme(self):
 
-        # The easiest safe approach is to rebuild
-        # the whole screen.
-
-        self.clear_widgets()
-
-
-        layout = MDBoxLayout(
-            orientation="vertical",
-            spacing=dp(10),
-            padding=dp(20),
+        self.layout.md_bg_color = (
+            self.theme_manager.get(
+                "background"
+            )
         )
-
-
-        self.add_top_bar(layout, "settings")
-
-
-        scroll = MDScrollView()
-
-
-        self.container = MDBoxLayout(
-            orientation="vertical",
-            spacing=dp(10),
-            adaptive_height=True,
-        )
-
-
-        scroll.add_widget(
-            self.container
-        )
-
-
-        layout.add_widget(
-            scroll
-        )
-
-
-        self.add_widget(
-            layout
-        )
-
-
-        self.build_settings()
-
 
     # =================================================
     # Button colors
@@ -371,27 +394,27 @@ class SettingsScreen(BaseScreen):
             0,
             0.6,
             0,
-            1
+            1,
         )
-
 
         normal = (
             0.7,
             0.7,
             0.7,
-            1
+            1,
         )
 
-
-        # ---------------------------------
+        # ---------------------------------------------
         # Language
-        # ---------------------------------
+        # ---------------------------------------------
 
         self.en_button.md_bg_color = normal
         self.fr_button.md_bg_color = normal
 
-
-        if self.language_manager.current_language == "en":
+        if (
+            self.language_manager.current_language
+            == "en"
+        ):
 
             self.en_button.md_bg_color = selected
 
@@ -399,19 +422,38 @@ class SettingsScreen(BaseScreen):
 
             self.fr_button.md_bg_color = selected
 
-
-        # ---------------------------------
+        # ---------------------------------------------
         # Theme
-        # ---------------------------------
+        # ---------------------------------------------
 
         self.light_button.md_bg_color = normal
         self.dark_button.md_bg_color = normal
 
-
-        if self.theme_manager.current_theme == "light":
+        if (
+            self.theme_manager.current_theme
+            == "light"
+        ):
 
             self.light_button.md_bg_color = selected
 
         else:
 
             self.dark_button.md_bg_color = selected
+
+    # =================================================
+    # Label theme helper
+    # =================================================
+
+    def apply_label_theme(
+        self,
+        label,
+        theme_key,
+    ):
+
+        label.theme_text_color = "Custom"
+
+        label.text_color = (
+            self.theme_manager.get(
+                theme_key
+            )
+        )

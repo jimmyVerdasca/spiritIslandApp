@@ -171,13 +171,16 @@ class SpiritImage(MDCard):
 
         else:
 
+            # The key is used for the asset filename
             self.image.source = (
                 f"{SPIRIT_IMAGE_PATH}"
-                f"{spirit.name}.png"
+                f"{spirit.key}.png"
             )
 
-            self.name_label.text = (
-                spirit.name
+            # The key is translated for display
+            self.name_label.text = t(
+                spirit.key,
+                "spirits"
             )
 
             self.empty_overlay.opacity = 0

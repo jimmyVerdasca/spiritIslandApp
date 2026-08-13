@@ -1,7 +1,11 @@
-from .. import queries
 from models.game import Game
 from models.game_status import GameStatus
+from models.converters import row_to_game
 
+
+# =========================================================
+# SAVE GAME
+# =========================================================
 
 def save_game(cursor, game: Game) -> int:
 
@@ -26,9 +30,9 @@ def save_game(cursor, game: Game) -> int:
     game_id = cursor.lastrowid
 
 
-    # ----------------------------
-    # Spirits
-    # ----------------------------
+    # =====================================================
+    # SPIRITS
+    # =====================================================
 
     for position, spirit in enumerate(
         game.spirits,
@@ -53,9 +57,9 @@ def save_game(cursor, game: Game) -> int:
         )
 
 
-    # ----------------------------
-    # Boards
-    # ----------------------------
+    # =====================================================
+    # BOARDS
+    # =====================================================
 
     for position, board in enumerate(
         game.boards,
@@ -80,12 +84,12 @@ def save_game(cursor, game: Game) -> int:
         )
 
 
-    # ----------------------------
-    # Adversaries
-    # ----------------------------
+    # =====================================================
+    # ADVERSARIES
+    # =====================================================
 
     for game_adversary in game.adversaries:
-    
+
         adversary = game_adversary.adversary
         difficulty = game_adversary.difficulty
 
@@ -107,9 +111,9 @@ def save_game(cursor, game: Game) -> int:
         )
 
 
-    # ----------------------------
-    # Scenarios
-    # ----------------------------
+    # =====================================================
+    # SCENARIOS
+    # =====================================================
 
     for scenario in game.scenarios:
 
@@ -132,48 +136,30 @@ def save_game(cursor, game: Game) -> int:
     return game_id
 
 
-
-def finish_game(cursor, game_id: int):
-
-    cursor.execute(
-        """
-        UPDATE games
-
-        SET
-            status = ?,
-            finished_at = CURRENT_TIMESTAMP
-
-        WHERE id = ?
-        """,
-        (
-            GameStatus.FINISHED.value,
-            game_id
-        )
-    )
-
-
+# =========================================================
+# GET GAMES BY STATUS
+# =========================================================
 
 def get_by_status(
     cursor,
-    status: GameStatus,
-    result,
-    limit,
-    offset
+    status,
+    result=None,
+    limit=20,
+    offset=0,
 ):
 
-    sql = """
+    query = """
         SELECT
             g.id,
             g.players,
+            bc.key AS configuration,
             g.status,
             g.result,
             g.score,
             g.invader_cards_remaining,
             g.dahan_remaining,
             g.blight_remaining,
-            g.created_at,
-
-            bc.name AS configuration
+            g.created_at
 
         FROM games g
 
@@ -186,42 +172,61 @@ def get_by_status(
     params = [status.value]
 
     if result is not None:
-        sql += """
+
+        query += """
             AND g.result = ?
         """
+
         params.append(result)
 
-    sql += """
-        ORDER BY g.created_at DESC
-
+    query += """
+        ORDER BY g.id DESC
         LIMIT ?
         OFFSET ?
     """
 
     params.extend([
         limit,
-        offset
+        offset,
     ])
 
-    cursor.execute(sql, params)
+    cursor.execute(
+        query,
+        params
+    )
 
     return cursor.fetchall()
 
-def abandon_game(cursor, game_id):
+
+# =========================================================
+# ABANDON GAME
+# =========================================================
+
+def abandon_game(
+    cursor,
+    game_id
+):
 
     cursor.execute(
         """
         UPDATE games
-        SET status = ?
+
+        SET
+            status = ?,
+            result = NULL
+
         WHERE id = ?
-        AND status = ?
         """,
         (
             GameStatus.ABANDONED.value,
-            game_id,
-            GameStatus.RUNNING.value
+            game_id
         )
     )
+
+
+# =========================================================
+# FINISH GAME
+# =========================================================
 
 def finish_game(
     cursor,
@@ -238,7 +243,7 @@ def finish_game(
         UPDATE games
 
         SET
-            status = 'FINISHED',
+            status = ?,
             result = ?,
             score = ?,
             invader_cards_remaining = ?,
@@ -246,9 +251,9 @@ def finish_game(
             blight_remaining = ?
 
         WHERE id = ?
-
         """,
         (
+            GameStatus.FINISHED.value,
             result,
             score,
             invader_cards,

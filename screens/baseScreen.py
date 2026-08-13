@@ -43,8 +43,6 @@ class BaseScreen(MDScreen):
         self.back_button = None
         self.settings_button = None
 
-
-        # Translation key used by the top bar
         self.top_bar_title_key = None
 
 
@@ -53,6 +51,8 @@ class BaseScreen(MDScreen):
     # ====================================================
 
     def on_pre_enter(self):
+
+        super().on_pre_enter()
 
         self.refresh_base_ui()
 
@@ -109,13 +109,8 @@ class BaseScreen(MDScreen):
         self.top_bar_title = MDLabel(
             font_style="H5",
             valign="center",
-            size_hint_x=None,
+            size_hint_x=1,
         )
-
-
-        # Allow title to take available space
-
-        self.top_bar_title.size_hint_x = 1
 
 
         # --------------------------------------------
@@ -174,13 +169,10 @@ class BaseScreen(MDScreen):
 
     def refresh_base_ui(self):
 
-        if not self.top_bar_title:
-
+        if self.top_bar_title is None:
             return
 
-
         self.update_top_bar_text()
-
         self.update_top_bar_theme()
 
 
@@ -191,15 +183,62 @@ class BaseScreen(MDScreen):
     def update_top_bar_text(self):
 
         if not self.top_bar_title_key:
+            return
+
+        value = self.language_manager.get(
+            self.top_bar_title_key
+        )
+
+        # --------------------------------------------
+        # Kivy MDLabel.text MUST be a string.
+        #
+        # Some translation keys such as "trophies"
+        # and "adversaries" contain dictionaries.
+        # Never pass those dictionaries directly
+        # to MDLabel.text.
+        # --------------------------------------------
+
+        if isinstance(value, dict):
+
+            # Try to find a dedicated title key.
+            title_key = f"{self.top_bar_title_key}_title"
+
+            title_value = self.language_manager.get(
+                title_key
+            )
+
+            if (
+                isinstance(title_value, str)
+                and title_value
+            ):
+
+                self.top_bar_title.text = (
+                    title_value
+                )
+
+                return
+
+            # If no dedicated title exists,
+            # keep the current title rather than
+            # crashing Kivy.
 
             return
 
+        # --------------------------------------------
+        # None / unexpected values
+        # --------------------------------------------
 
-        self.top_bar_title.text = (
-            self.language_manager.get(
-                self.top_bar_title_key
-            )
-        )
+        if value is None:
+
+            self.top_bar_title.text = ""
+
+            return
+
+        # --------------------------------------------
+        # Normal case
+        # --------------------------------------------
+
+        self.top_bar_title.text = str(value)
 
 
     # ====================================================
@@ -208,16 +247,20 @@ class BaseScreen(MDScreen):
 
     def update_top_bar_theme(self):
 
-        text_primary = (
-            self.theme_manager.get(
-                "text_primary"
-            )
+        if (
+            self.top_bar_title is None
+            or self.back_button is None
+            or self.settings_button is None
+        ):
+            return
+
+
+        text_primary = self.theme_manager.get(
+            "text_primary"
         )
 
-        icon = (
-            self.theme_manager.get(
-                "icon"
-            )
+        icon = self.theme_manager.get(
+            "icon"
         )
 
         button_color = self.theme_manager.get(
@@ -280,7 +323,6 @@ class BaseScreen(MDScreen):
 
         if not self.previous_screen:
             return
-
 
         previous = self.previous_screen
 

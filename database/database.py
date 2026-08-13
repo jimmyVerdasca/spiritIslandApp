@@ -1,14 +1,17 @@
 from pathlib import Path
 import shutil
 import sqlite3
-from . import queries
-from models.game_status import GameStatus
-from models.game import Game
-from models.converters import row_to_game, row_to_adversary, row_to_board, row_to_scenario, row_to_spirit, row_to_game_adversary, row_to_configuration
-from engine.trophy_conditions import CONDITIONS
 from contextlib import contextmanager
 
 from kivy.app import App
+
+from . import queries
+
+from models.game_status import GameStatus
+from models.game import Game
+from models.converters import row_to_game
+
+from engine.trophy_conditions import CONDITIONS
 
 from database.config import (
     DB_NAME,
@@ -26,7 +29,6 @@ def get_database_path():
             "Kivy application is not running"
         )
 
-
     data_dir = Path(
         app.user_data_dir
     )
@@ -36,25 +38,18 @@ def get_database_path():
         exist_ok=True
     )
 
-
     target = data_dir / DB_NAME
 
-
     if needs_database_update(target):
-
         install_database(target)
-
 
     return target
 
 
-
 def needs_database_update(target):
 
-    # First installation
     if not target.exists():
         return True
-
 
     try:
 
@@ -73,7 +68,6 @@ def needs_database_update(target):
 
         db.close()
 
-
         print(
             "Database version:",
             version,
@@ -83,23 +77,19 @@ def needs_database_update(target):
 
         return version != DATABASE_VERSION
 
-
     except Exception:
 
-        # Database corrupted or old format
         return True
 
 
 def install_database(target):
-    
+
     source = DB_PATH
 
     if source is None:
-
         raise FileNotFoundError(
             "Bundled database not found"
         )
-
 
     shutil.copyfile(
         source,
@@ -118,9 +108,14 @@ def database():
     finally:
         connection.close()
 
+
 def get_connection(row_factory=True):
+
     path = get_database_path()
-    print(f"Database path: {path}")
+
+    print(
+        f"Database path: {path}"
+    )
 
     db = sqlite3.connect(path)
 
@@ -129,25 +124,45 @@ def get_connection(row_factory=True):
 
     cursor = db.cursor()
 
-    cursor.execute("PRAGMA user_version")
+    cursor.execute(
+        "PRAGMA user_version"
+    )
+
     version = cursor.fetchone()[0]
 
-    print(f"Database version: {version}")
+    print(
+        f"Database version: {version}"
+    )
 
     if version != DATABASE_VERSION:
-        print("WARNING: database version mismatch!")
-        print(f"Expected: {DATABASE_VERSION}")
-        print(f"Found:    {version}")
+
+        print(
+            "WARNING: database version mismatch!"
+        )
+
+        print(
+            f"Expected: {DATABASE_VERSION}"
+        )
+
+        print(
+            f"Found:    {version}"
+        )
+
     else:
-        print("Database version OK")
+
+        print(
+            "Database version OK"
+        )
 
     return db
 
+
 def save_game(game: Game) -> int:
-    
+
     db = get_connection()
 
     try:
+
         cursor = db.cursor()
 
         game_id = queries.games.save_game(
@@ -160,10 +175,12 @@ def save_game(game: Game) -> int:
         return game_id
 
     except Exception:
+
         db.rollback()
         raise
 
     finally:
+
         db.close()
 
 
@@ -177,6 +194,7 @@ def _get_games_by_status(
     db = get_connection()
 
     try:
+
         cursor = db.cursor()
 
         rows = queries.games.get_by_status(
@@ -193,48 +211,47 @@ def _get_games_by_status(
 
             game = row_to_game(row)
 
-            game.configuration = queries.configurations.get_by_name(
-                cursor,
-                game.configuration
+            game.configuration = (
+                queries.configurations.get_by_key(
+                    cursor,
+                    game.configuration
+                )
             )
 
-            game.spirits = [
-                row_to_spirit(r)
-                for r in queries.spirits.get_by_id(
+            game.spirits = (
+                queries.spirits.get_by_id(
                     cursor,
                     game.id
                 )
-            ]
+            )
 
-            game.boards = [
-                row_to_board(r)
-                for r in queries.boards.get_by_id(
+            game.boards = (
+                queries.boards.get_for_game(
                     cursor,
                     game.id
                 )
-            ]
+            )
 
-            game.adversaries = [
-                row_to_game_adversary(r)
-                for r in queries.adversaries.get_by_id(
+            game.adversaries = (
+                queries.adversaries.get_by_id(
                     cursor,
                     game.id
                 )
-            ]
+            )
 
-            game.scenarios = [
-                row_to_scenario(r)
-                for r in queries.scenarios.get_by_id(
+            game.scenarios = (
+                queries.scenarios.get_by_id(
                     cursor,
                     game.id
                 )
-            ]
+            )
 
             games.append(game)
 
         return games
 
     finally:
+
         db.close()
 
 
@@ -263,6 +280,7 @@ def get_finished_games(
         offset=offset
     )
 
+
 def get_abandoned_games(
     limit=20,
     offset=0
@@ -274,10 +292,13 @@ def get_abandoned_games(
         offset
     )
 
+
 def get_configurations():
+
     db = get_connection()
-    
+
     try:
+
         cursor = db.cursor()
 
         configurations = queries.configurations.get_all(
@@ -287,12 +308,16 @@ def get_configurations():
         return configurations
 
     finally:
+
         db.close()
 
+
 def get_spirits():
+
     db = get_connection()
-    
+
     try:
+
         cursor = db.cursor()
 
         spirits = queries.spirits.get_all(
@@ -302,12 +327,16 @@ def get_spirits():
         return spirits
 
     finally:
+
         db.close()
 
+
 def get_boards():
+
     db = get_connection()
-    
+
     try:
+
         cursor = db.cursor()
 
         boards = queries.boards.get_all(
@@ -317,12 +346,16 @@ def get_boards():
         return boards
 
     finally:
+
         db.close()
 
+
 def get_adversaries():
+
     db = get_connection()
-    
+
     try:
+
         cursor = db.cursor()
 
         adversaries = queries.adversaries.get_all(
@@ -332,12 +365,16 @@ def get_adversaries():
         return adversaries
 
     finally:
+
         db.close()
 
+
 def get_difficulties():
+
     db = get_connection()
-    
+
     try:
+
         cursor = db.cursor()
 
         difficulties = queries.difficulties.get_all(
@@ -347,12 +384,16 @@ def get_difficulties():
         return difficulties
 
     finally:
+
         db.close()
 
+
 def get_scenarios():
+
     db = get_connection()
-    
+
     try:
+
         cursor = db.cursor()
 
         scenarios = queries.scenarios.get_all(
@@ -362,13 +403,16 @@ def get_scenarios():
         return scenarios
 
     finally:
+
         db.close()
 
+
 def abandon_game(game_id):
-    
+
     db = get_connection()
 
     try:
+
         cursor = db.cursor()
 
         queries.games.abandon_game(
@@ -379,8 +423,8 @@ def abandon_game(game_id):
         db.commit()
 
     finally:
-        db.close()
 
+        db.close()
 
 
 def finish_game(
@@ -414,56 +458,72 @@ def finish_game(
 
         db.close()
 
-def get_adversary_difficulty(adversary_id, difficulty_id):
-    
+
+def get_adversary_difficulty(
+    adversary_id,
+    difficulty_id
+):
+
     db = get_connection()
 
     try:
+
         cursor = db.cursor()
 
-        adversary_difficulty = queries.adversary_difficulty.get_adversary_difficulty(
-            cursor,
-            adversary_id,
-            difficulty_id
+        adversary_difficulty = (
+            queries.adversary_difficulty
+            .get_adversary_difficulty(
+                cursor,
+                adversary_id,
+                difficulty_id
+            )
         )
 
         return adversary_difficulty
 
     finally:
+
         db.close()
 
-def get_scenario_difficulty(scenario_id):
-    
-    print(
-        "SCENARIO DEBUG:",
-        scenario_id,
-        type(scenario_id)
-    )
-    
+
+def get_scenario_difficulty(
+    scenario_id
+):
+
     db = get_connection()
 
     try:
+
         cursor = db.cursor()
 
-        scenario_difficulty = queries.scenarios.get_scenario_difficulty(
-            cursor,
-            scenario_id
+        scenario = (
+            queries.scenarios.get_scenario_difficulty(
+                cursor,
+                scenario_id
+            )
         )
 
-        return scenario_difficulty.score_difficulty
+        if scenario is None:
+            return None
+
+        return scenario.score_difficulty
 
     finally:
+
         db.close()
 
+
 def get_trophies():
-    
+
     db = get_connection()
 
     try:
 
         cursor = db.cursor()
 
-        trophies = queries.trophies.get_all(cursor)
+        trophies = queries.trophies.get_all(
+            cursor
+        )
 
         for trophy in trophies:
 
@@ -475,10 +535,15 @@ def get_trophies():
         return trophies
 
     finally:
+
         db.close()
 
-def check_trophy_condition(cursor, trophy):
-    
+
+def check_trophy_condition(
+    cursor,
+    trophy
+):
+
     if trophy.sql_condition:
 
         cursor.execute(
@@ -489,15 +554,14 @@ def check_trophy_condition(cursor, trophy):
             cursor.fetchone()[0]
         )
 
-
     if trophy.python_condition:
 
         return check_python_condition(
             trophy.python_condition
         )
 
-
     return False
+
 
 def check_python_condition(
     condition_name

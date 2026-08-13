@@ -8,255 +8,307 @@ from database.seed_trophies import seed_trophies
 from database.config import (
     DATABASE_VERSION,
     DB_NAME,
-    DB_PATH
+    DB_PATH,
 )
 
 
+# =========================================================
+# INITIAL DATABASE DATA
+# =========================================================
 
-# DATA inital of the DB
-spirits = [
-    "Frappe Cinglante de l'Éclair",
-    "Jaillissement de la Rivière Étincelante",
-    "Force Vitale de la Terre",
-    "Ombre Vacillante de la Flamme",
-    "Prolifération de la Verdure Rampante",
-    "Voix du Tonnerre",
-    "Poigne Vorace de l'Océan",
-    "Gardien des Contrées Interdites",
-    "Coeur du Feu Sauvage",
-    "Porteur de Rêves et de Cauchemars",
-    "Serpent Someillant dans les Profondeurs",
-    "Jours Brisées qui Déchirent les Cieux",
-    "Fascination des Contrées Sauvages",
-    "Volcan Dominant l'Île",
-    "Regard Implacable du Soleil",
-    "Pluie Diluvienne qui Arrose le Monde",
-    "Starlight Seeks its Form",
-    "Souffle Ténébreux Descendant votre Épine Dorsale",
-    "Béhémoth aux Yeux de Braise",
-    "Crocs Acérés Tapis sous les Feuilles",
-    "Dénicheur de Chemins Imperceptibles",
-    "Danse Jusqu'à Faire Trembler la Terre",
-    "L'Inébranlable Ténacité de la Pierre",
-    "Mémoire du Fond des Âges",
-    "Eaux Blessées qui Saignent",
-    "Voix Errante qui Attise le Délire",
-    "Nuées Accordées à l'Unisson",
-    "Fléau Ardent de la Vengeance",
-    "Gredin qui Prépare un Mauvais Coup",
-    "Sentinelle des Foyers",
-    "Linceul de Brume Silencieuse",
-    "Convoiteur de Fragments Étincelants de la Terre",
-    "La Pourriture qui se Répand régénèrant la terre",
+SPIRITS = [
+    "lightnings_swift_strike",
+    "rivers_surges_in_sunlight",
+    "vital_strength_of_the_earth",
+    "shadows_flicker_like_flame",
+    "a_spreading_rampant_green",
+    "thunderspeaker",
+    "oceans_hungry_grasp",
+    "keeper_of_the_forbidden_wilds",
+    "heart_of_the_wildfire",
+    "bringer_of_dreams_and_nightmares",
+    "serpent_slumbering_beneath_the_island",
+    "fractured_days_split_the_sky",
+    "lure_of_the_deep_wilderness",
+    "volcano_looming_high",
+    "shifting_memory_of_ages",
+    "downpour_drenches_the_world",
+    "starlight_seeks_its_form",
+    "darkness_descends_like_a_choking_shroud",
+    "eyes_watch_from_the_trees",
+    "sharp_fangs_behind_the_leaves",
+    "finder_of_paths_unseen",
+    "dances_up_earthquakes",
+    "stone_unyielding_defiance",
+    "memory_of_the_ages",
+    "wounded_waters_bleeding",
+    "wandering_voice_keens_delirium",
+    "many_minds_move_as_one",
+    "vengeance_as_a_burning_plague",
+    "trickster_plays_a_bad_joke",
+    "hearth_vigil",
+    "silent_mist",
+    "covets_gleaming_shards_of_earth",
+    "rot_renews_the_earth",
 ]
 
 
-adversary_difficulties = [
+ADVERSARY_DIFFICULTIES = [
 
-    ("Le Royaume d'Angleterre", 0, 1),
-    ("Le Royaume d'Angleterre", 1, 3),
-    ("Le Royaume d'Angleterre", 2, 4),
-    ("Le Royaume d'Angleterre", 3, 6),
-    ("Le Royaume d'Angleterre", 4, 7),
-    ("Le Royaume d'Angleterre", 5, 9),
-    ("Le Royaume d'Angleterre", 6, 11),
+    # England
 
-    ("Le Royaume de Suède", 0, 1),
-    ("Le Royaume de Suède", 1, 2),
-    ("Le Royaume de Suède", 2, 3),
-    ("Le Royaume de Suède", 3, 5),
-    ("Le Royaume de Suède", 4, 6),
-    ("Le Royaume de Suède", 5, 7),
-    ("Le Royaume de Suède", 6, 8),
+    ("kingdom_of_england", 0, 1),
+    ("kingdom_of_england", 1, 3),
+    ("kingdom_of_england", 2, 4),
+    ("kingdom_of_england", 3, 6),
+    ("kingdom_of_england", 4, 7),
+    ("kingdom_of_england", 5, 9),
+    ("kingdom_of_england", 6, 11),
 
-    ("Le Royaume de France (Colonie de Plantations)", 0, 2),
-    ("Le Royaume de France (Colonie de Plantations)", 1, 3),
-    ("Le Royaume de France (Colonie de Plantations)", 2, 5),
-    ("Le Royaume de France (Colonie de Plantations)", 3, 7),
-    ("Le Royaume de France (Colonie de Plantations)", 4, 8),
-    ("Le Royaume de France (Colonie de Plantations)", 5, 9),
-    ("Le Royaume de France (Colonie de Plantations)", 6, 10),
+    # Sweden
 
-    ("Le Royaume de Brandebourg-Prusse", 0, 1),
-    ("Le Royaume de Brandebourg-Prusse", 1, 2),
-    ("Le Royaume de Brandebourg-Prusse", 2, 4),
-    ("Le Royaume de Brandebourg-Prusse", 3, 6),
-    ("Le Royaume de Brandebourg-Prusse", 4, 7),
-    ("Le Royaume de Brandebourg-Prusse", 5, 9),
-    ("Le Royaume de Brandebourg-Prusse", 6, 10),
+    ("kingdom_of_sweden", 0, 1),
+    ("kingdom_of_sweden", 1, 2),
+    ("kingdom_of_sweden", 2, 3),
+    ("kingdom_of_sweden", 3, 5),
+    ("kingdom_of_sweden", 4, 6),
+    ("kingdom_of_sweden", 5, 7),
+    ("kingdom_of_sweden", 6, 8),
 
-    ("Le Royaume d'Écosse", 0, 1),
-    ("Le Royaume d'Écosse", 1, 3),
-    ("Le Royaume d'Écosse", 2, 4),
-    ("Le Royaume d'Écosse", 3, 6),
-    ("Le Royaume d'Écosse", 4, 7),
-    ("Le Royaume d'Écosse", 5, 8),
-    ("Le Royaume d'Écosse", 6, 10),
+    # France
 
-    ("Le Tsarat de Russie", 0, 1),
-    ("Le Tsarat de Russie", 1, 3),
-    ("Le Tsarat de Russie", 2, 4),
-    ("Le Tsarat de Russie", 3, 6),
-    ("Le Tsarat de Russie", 4, 7),
-    ("Le Tsarat de Russie", 5, 9),
-    ("Le Tsarat de Russie", 6, 11),
+    ("kingdom_of_france", 0, 2),
+    ("kingdom_of_france", 1, 3),
+    ("kingdom_of_france", 2, 5),
+    ("kingdom_of_france", 3, 7),
+    ("kingdom_of_france", 4, 8),
+    ("kingdom_of_france", 5, 9),
+    ("kingdom_of_france", 6, 10),
 
-    ("La Monarchie de Habsbourg (Colonie d'Éleveurs)", 0, 2),
-    ("La Monarchie de Habsbourg (Colonie d'Éleveurs)", 1, 3),
-    ("La Monarchie de Habsbourg (Colonie d'Éleveurs)", 2, 5),
-    ("La Monarchie de Habsbourg (Colonie d'Éleveurs)", 3, 6),
-    ("La Monarchie de Habsbourg (Colonie d'Éleveurs)", 4, 8),
-    ("La Monarchie de Habsbourg (Colonie d'Éleveurs)", 5, 9),
-    ("La Monarchie de Habsbourg (Colonie d'Éleveurs)", 6, 10),
+    # Brandenburg-Prussia
 
-    ("L'Expédition Minière des Habsbourg", 0, 1),
-    ("L'Expédition Minière des Habsbourg", 1, 3),
-    ("L'Expédition Minière des Habsbourg", 2, 4),
-    ("L'Expédition Minière des Habsbourg", 3, 5),
-    ("L'Expédition Minière des Habsbourg", 4, 7),
-    ("L'Expédition Minière des Habsbourg", 5, 9),
-    ("L'Expédition Minière des Habsbourg", 6, 10),
+    ("kingdom_of_brandenburg_prussia", 0, 1),
+    ("kingdom_of_brandenburg_prussia", 1, 2),
+    ("kingdom_of_brandenburg_prussia", 2, 4),
+    ("kingdom_of_brandenburg_prussia", 3, 6),
+    ("kingdom_of_brandenburg_prussia", 4, 7),
+    ("kingdom_of_brandenburg_prussia", 5, 9),
+    ("kingdom_of_brandenburg_prussia", 6, 10),
+
+    # Scotland
+
+    ("kingdom_of_scotland", 0, 1),
+    ("kingdom_of_scotland", 1, 3),
+    ("kingdom_of_scotland", 2, 4),
+    ("kingdom_of_scotland", 3, 6),
+    ("kingdom_of_scotland", 4, 7),
+    ("kingdom_of_scotland", 5, 8),
+    ("kingdom_of_scotland", 6, 10),
+
+    # Russia
+
+    ("tsardom_of_russia", 0, 1),
+    ("tsardom_of_russia", 1, 3),
+    ("tsardom_of_russia", 2, 4),
+    ("tsardom_of_russia", 3, 6),
+    ("tsardom_of_russia", 4, 7),
+    ("tsardom_of_russia", 5, 9),
+    ("tsardom_of_russia", 6, 11),
+
+    # Habsburg Livestock Colony
+
+    ("habsburg_livestock_colony", 0, 2),
+    ("habsburg_livestock_colony", 1, 3),
+    ("habsburg_livestock_colony", 2, 5),
+    ("habsburg_livestock_colony", 3, 6),
+    ("habsburg_livestock_colony", 4, 8),
+    ("habsburg_livestock_colony", 5, 9),
+    ("habsburg_livestock_colony", 6, 10),
+
+    # Habsburg Mining Expedition
+
+    ("habsburg_mining_expedition", 0, 1),
+    ("habsburg_mining_expedition", 1, 3),
+    ("habsburg_mining_expedition", 2, 4),
+    ("habsburg_mining_expedition", 3, 5),
+    ("habsburg_mining_expedition", 4, 7),
+    ("habsburg_mining_expedition", 5, 9),
+    ("habsburg_mining_expedition", 6, 10),
 ]
 
 
-scenarios = [
+SCENARIOS = [
 
-    ("Blitz", 0),
-    ("Protection du Coeur de l'Île", 0),
-    ("Rituels de Terreur", 3),
-    ("L'Insurrection des Dahans", 4),
+    ("blitz", 0),
+    ("guard_the_island_heart", 0),
+    ("rituals_of_terror", 3),
+    ("dahan_insurrection", 4),
 
-    ("Deuxième Vague", 1),
-    ("Puissance Immémoriales", 1),
-    ("Protection des Rivages", 2),
-    ("Rituels de Purification par les Flammes", 3),
+    ("second_wave", 1),
+    ("rituals_of_destruction", 1),
+    ("guard_the_shores", 2),
+    ("rituals_of_the_destroying_flames", 3),
 
-    ("Invocation Élémentaire", 1),
-    ("Sa Place est dans un Musée !", 2),
-    ("De l'Autre Côté du Fleuve", 3),
+    ("elemental_invocation", 1),
+    ("its_a_place_of_mystery", 2),
+    ("across_the_divide", 3),
 
-    ("Une Diversité d'Esprits", 0),
-    ("Terrains Hétérogène", 2),
+    ("diversity_of_spirits", 0),
+    ("varied_terrain", 2),
 
-    ("Le Destin se Révèle", -1),
-    ("Vagues de Colonisation", 2),
+    ("the_destiny_unfolds", -1),
+    ("waves_of_colonization", 2),
 
-    ("Protection de la Flamme Sacrée", 1),
+    ("protect_the_sacred_flame", 1),
 ]
 
 
-boards = [
-
-    "Est",
-    "Ouest",
-    "Nord-Est",
-    "Nord-Ouest",
-    "Sud-Est",
-    "Sud-Ouest",
-
+BOARDS = [
+    "east",
+    "west",
+    "northeast",
+    "northwest",
+    "southeast",
+    "southwest",
 ]
+
+
+BOARD_CONFIGURATIONS = [
+    (
+        "normal",
+        2,
+        6,
+    ),
+
+    (
+        "star",
+        5,
+        5,
+    ),
+]
+
+
+# =========================================================
+# DATABASE CREATION
+# =========================================================
 
 def create_database(path):
-    ''' clean/create db table and populate it with initial datas '''
 
     db = sqlite3.connect(path)
 
     cursor = db.cursor()
 
+    cursor.executescript(
+        """
+        DROP TABLE IF EXISTS game_scenarios;
+        DROP TABLE IF EXISTS game_adversaries;
+        DROP TABLE IF EXISTS game_boards;
+        DROP TABLE IF EXISTS game_spirits;
+        DROP TABLE IF EXISTS games;
 
-    cursor.executescript("""
-    DROP TABLE IF EXISTS game_scenarios;
-    DROP TABLE IF EXISTS game_adversaries;
-    DROP TABLE IF EXISTS game_boards;
-    DROP TABLE IF EXISTS game_spirits;
-    DROP TABLE IF EXISTS games;
+        DROP TABLE IF EXISTS board_configurations;
 
-    DROP TABLE IF EXISTS board_configurations;
-
-    DROP TABLE IF EXISTS spirits;
-    DROP TABLE IF EXISTS adversaries;
-    DROP TABLE IF EXISTS scenarios;
-    DROP TABLE IF EXISTS difficulties;
-    DROP TABLE IF EXISTS boards;
-    DROP TABLE IF EXISTS database_info;
-    DROP TABLE IF EXISTS adversary_difficulties;
-    DROP TABLE IF EXISTS trophies;
-
-    CREATE TABLE database_info(
-        version INTEGER NOT NULL
-    );
-
-    CREATE TABLE spirits(
-        id INTEGER PRIMARY KEY,
-        name TEXT UNIQUE NOT NULL
-    );
+        DROP TABLE IF EXISTS spirits;
+        DROP TABLE IF EXISTS adversaries;
+        DROP TABLE IF EXISTS scenarios;
+        DROP TABLE IF EXISTS difficulties;
+        DROP TABLE IF EXISTS boards;
+        DROP TABLE IF EXISTS database_info;
+        DROP TABLE IF EXISTS adversary_difficulties;
+        DROP TABLE IF EXISTS trophies;
 
 
-    CREATE TABLE adversaries(
-        id INTEGER PRIMARY KEY,
-        name TEXT UNIQUE NOT NULL
-    );
+        CREATE TABLE database_info(
+            version INTEGER NOT NULL
+        );
 
 
-    CREATE TABLE scenarios(
-        id INTEGER PRIMARY KEY,
-        name TEXT UNIQUE NOT NULL,
-        score_difficulty INTEGER NOT NULL
-    );
+        CREATE TABLE spirits(
+            id INTEGER PRIMARY KEY,
+            key TEXT UNIQUE NOT NULL
+        );
 
 
-    CREATE TABLE difficulties(
-        id INTEGER PRIMARY KEY,
-        level INTEGER UNIQUE NOT NULL
-    );
+        CREATE TABLE adversaries(
+            id INTEGER PRIMARY KEY,
+            key TEXT UNIQUE NOT NULL
+        );
 
 
-    CREATE TABLE boards(
-        id INTEGER PRIMARY KEY,
-        name TEXT UNIQUE NOT NULL
-    );
-
-    CREATE TABLE adversary_difficulties(
-        adversary_id INTEGER NOT NULL,
-        difficulty_id INTEGER NOT NULL,
-        score_difficulty INTEGER NOT NULL,
-
-        PRIMARY KEY(adversary_id, difficulty_id)
-    );
+        CREATE TABLE scenarios(
+            id INTEGER PRIMARY KEY,
+            key TEXT UNIQUE NOT NULL,
+            score_difficulty INTEGER NOT NULL
+        );
 
 
-    CREATE TABLE board_configurations(
-
-        id INTEGER PRIMARY KEY,
-
-        name TEXT UNIQUE NOT NULL,
-
-        min_players INTEGER NOT NULL,
-
-        max_players INTEGER NOT NULL
-    );
-
-    CREATE TABLE trophies (
-        id INTEGER PRIMARY KEY,
-
-        name TEXT NOT NULL,
-        description TEXT NOT NULL,
-
-        locked_image TEXT NOT NULL,
-        unlocked_image TEXT NOT NULL,
-
-        sql_condition TEXT,
-        python_condition TEXT,
-
-        CHECK (
-            (sql_condition IS NOT NULL AND python_condition IS NULL)
-            OR
-            (sql_condition IS NULL AND python_condition IS NOT NULL)
-        )
-    );
+        CREATE TABLE difficulties(
+            id INTEGER PRIMARY KEY,
+            level INTEGER UNIQUE NOT NULL
+        );
 
 
-    """)
+        CREATE TABLE boards(
+            id INTEGER PRIMARY KEY,
+            key TEXT UNIQUE NOT NULL
+        );
+
+
+        CREATE TABLE adversary_difficulties(
+            adversary_id INTEGER NOT NULL,
+            difficulty_id INTEGER NOT NULL,
+            score_difficulty INTEGER NOT NULL,
+
+            PRIMARY KEY(
+                adversary_id,
+                difficulty_id
+            )
+        );
+
+
+        CREATE TABLE board_configurations(
+
+            id INTEGER PRIMARY KEY,
+
+            key TEXT UNIQUE NOT NULL,
+
+            min_players INTEGER NOT NULL,
+
+            max_players INTEGER NOT NULL
+        );
+
+
+        CREATE TABLE trophies (
+
+            id INTEGER PRIMARY KEY,
+
+            key TEXT NOT NULL UNIQUE,
+
+            locked_image TEXT NOT NULL,
+            unlocked_image TEXT NOT NULL,
+
+            sql_condition TEXT,
+            python_condition TEXT,
+
+            CHECK (
+                (
+                    sql_condition IS NOT NULL
+                    AND python_condition IS NULL
+                )
+                OR
+                (
+                    sql_condition IS NULL
+                    AND python_condition IS NOT NULL
+                )
+            )
+        );
+        """
+    )
+
+
+    # =========================================================
+    # DATABASE INFO
+    # =========================================================
 
     cursor.execute(
         """
@@ -270,57 +322,84 @@ def create_database(path):
     )
 
 
+    # =========================================================
+    # SPIRITS
+    # =========================================================
 
-    for name in spirits:
+    for key in SPIRITS:
 
         cursor.execute(
             """
-            INSERT INTO spirits(name)
+            INSERT INTO spirits(key)
             VALUES(?)
             """,
-            (name,)
+            (key,)
         )
 
 
-    adversaries = sorted({
-        name
-        for name, _, _ in adversary_difficulties
-    })
-    
-    for name in adversaries:
+    # =========================================================
+    # ADVERSARIES
+    # =========================================================
+
+    adversaries = sorted(
+        {
+            key
+            for key, _, _ in ADVERSARY_DIFFICULTIES
+        }
+    )
+
+    for key in adversaries:
 
         cursor.execute(
             """
-            INSERT INTO adversaries(name)
+            INSERT INTO adversaries(key)
             VALUES(?)
             """,
-            (name,)
+            (key,)
         )
 
 
-    for name, score_difficulty in scenarios:
+    # =========================================================
+    # SCENARIOS
+    # =========================================================
+
+    for key, score_difficulty in SCENARIOS:
 
         cursor.execute(
             """
-            INSERT INTO scenarios(name, score_difficulty)
+            INSERT INTO scenarios(
+                key,
+                score_difficulty
+            )
             VALUES(?, ?)
             """,
-            (name, score_difficulty)
+            (
+                key,
+                score_difficulty,
+            )
         )
 
 
-    for name in boards:
+    # =========================================================
+    # BOARDS
+    # =========================================================
+
+    for key in BOARDS:
 
         cursor.execute(
             """
-            INSERT INTO boards(name)
+            INSERT INTO boards(key)
             VALUES(?)
             """,
-            (name,)
+            (key,)
         )
 
 
-    for level in range(0,7):
+    # =========================================================
+    # DIFFICULTIES
+    # =========================================================
+
+    for level in range(0, 7):
 
         cursor.execute(
             """
@@ -331,59 +410,42 @@ def create_database(path):
         )
 
 
-    # Board configurations
+    # =========================================================
+    # BOARD CONFIGURATIONS
+    # =========================================================
 
-    cursor.execute(
-        """
-        INSERT INTO board_configurations
-        (
-            name,
-            min_players,
-            max_players
+    for key, min_players, max_players in BOARD_CONFIGURATIONS:
+
+        cursor.execute(
+            """
+            INSERT INTO board_configurations(
+                key,
+                min_players,
+                max_players
+            )
+            VALUES(?, ?, ?)
+            """,
+            (
+                key,
+                min_players,
+                max_players,
+            )
         )
-        VALUES
-        (
-            'Normal',
-            2,
-            6
-        )
-        """
-    )
 
 
-    normal_id = cursor.lastrowid
+    # =========================================================
+    # HELPERS
+    # =========================================================
 
+    def get_adversary_id(key):
 
-
-    cursor.execute(
-        """
-        INSERT INTO board_configurations
-        (
-            name,
-            min_players,
-            max_players
-        )
-        VALUES
-        (
-            'Étoile',
-            5,
-            5
-        )
-        """
-    )
-
-
-    etoile_id = cursor.lastrowid
-
-    def get_adversary_id(name):
-        
         cursor.execute(
             """
             SELECT id
             FROM adversaries
-            WHERE name = ?
+            WHERE key = ?
             """,
-            (name,)
+            (key,)
         )
 
         return cursor.fetchone()[0]
@@ -402,21 +464,13 @@ def create_database(path):
 
         return cursor.fetchone()[0]
 
-    def get_board_id(name):
 
-        cursor.execute(
-            """
-            SELECT id
-            FROM boards
-            WHERE name=?
-            """,
-            (name,)
-        )
+    # =========================================================
+    # ADVERSARY DIFFICULTIES
+    # =========================================================
 
-        return cursor.fetchone()[0]
+    for adversary_key, level, score_difficulty in ADVERSARY_DIFFICULTIES:
 
-    for adversary_name, level, score_difficulty in adversary_difficulties:
-    
         cursor.execute(
             """
             INSERT INTO adversary_difficulties(
@@ -427,78 +481,125 @@ def create_database(path):
             VALUES (?, ?, ?)
             """,
             (
-                get_adversary_id(adversary_name),
+                get_adversary_id(adversary_key),
                 get_difficulty_id(level),
                 score_difficulty,
             )
         )
-        
+
+
+    # =========================================================
+    # GAMES
+    # =========================================================
+
     cursor.execute(
         """
         CREATE TABLE games(
+
             id INTEGER PRIMARY KEY,
+
             players INTEGER NOT NULL,
+
             configuration_id INTEGER NOT NULL,
-            status TEXT NOT NULL DEFAULT 'RUNNING',
+
+            status TEXT NOT NULL
+                DEFAULT 'RUNNING',
+
             result TEXT,
+
             score INTEGER,
+
             invader_cards_remaining INTEGER,
+
             dahan_remaining INTEGER,
+
             blight_remaining INTEGER,
-            created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
-        );"""
+
+            created_at TEXT NOT NULL
+                DEFAULT CURRENT_TIMESTAMP
+        );
+        """
     )
+
 
     cursor.execute(
         """
         CREATE TABLE game_spirits(
+
             game_id INTEGER NOT NULL,
+
             spirit_id INTEGER NOT NULL,
+
             position INTEGER NOT NULL
-        );"""
+        );
+        """
     )
+
 
     cursor.execute(
         """
         CREATE TABLE game_boards(
+
             game_id INTEGER NOT NULL,
+
             board_id INTEGER NOT NULL,
+
             position INTEGER NOT NULL
-        );"""
+        );
+        """
     )
+
 
     cursor.execute(
         """
         CREATE TABLE game_adversaries(
+
             game_id INTEGER NOT NULL,
+
             adversary_id INTEGER NOT NULL,
+
             difficulty_id INTEGER NOT NULL
-        );"""
+        );
+        """
     )
+
 
     cursor.execute(
         """
         CREATE TABLE game_scenarios(
+
             game_id INTEGER NOT NULL,
+
             scenario_id INTEGER NOT NULL
         );
         """
     )
 
+
+    # =========================================================
+    # TROPHIES
+    # =========================================================
+
     seed_trophies(cursor)
 
 
+    # =========================================================
+    # COMMIT
+    # =========================================================
+
     db.commit()
 
+
     cursor.execute(
-    """
-    SELECT name
-    FROM sqlite_master
-    WHERE type='table'
-    """
+        """
+        SELECT name
+        FROM sqlite_master
+        WHERE type = 'table'
+        """
     )
 
     print(cursor.fetchall())
+
 
     db.close()
 
@@ -509,17 +610,28 @@ def create_database(path):
     )
 
 
-    print("Database exists:", Path(path).exists())
-    print("Database size:", Path(path).stat().st_size)
-    print("Absolute path:", Path(path).resolve())
-
     print(
-        "Database created:",
-        path
+        "Database exists:",
+        Path(path).exists()
     )
 
+    print(
+        "Database size:",
+        Path(path).stat().st_size
+    )
+
+    print(
+        "Absolute path:",
+        Path(path).resolve()
+    )
+
+
+# =========================================================
+# APPLICATION DATABASE PATH
+# =========================================================
+
 def get_app_database_path():
-    
+
     data_dir = (
         Path.home()
         / "AppData"
@@ -535,9 +647,12 @@ def get_app_database_path():
     return data_dir / DB_NAME
 
 
+# =========================================================
+# MAIN
+# =========================================================
 
 if __name__ == "__main__":
-    
+
     parser = argparse.ArgumentParser()
 
     parser.add_argument(
@@ -553,8 +668,12 @@ if __name__ == "__main__":
         path = get_app_database_path()
 
     else:
+
         path = DB_PATH
 
 
-    print(f"try create db at {path}")
+    print(
+        f"try create db at {path}"
+    )
+
     create_database(path)

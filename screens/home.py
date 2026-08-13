@@ -347,7 +347,7 @@ class HomeScreen(BaseScreen):
             ),
 
             (
-                "trophies",
+                "trophy_title",
                 "trophies_description",
                 "trophies",
                 "trophy-outline",
