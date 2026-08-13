@@ -25,6 +25,7 @@ class HomeScreen(BaseScreen):
         # ====================================================
 
         self.layout = MDBoxLayout(
+
             orientation="vertical",
 
             spacing=self.spacing(
@@ -47,6 +48,7 @@ class HomeScreen(BaseScreen):
         # ====================================================
 
         self.header = MDBoxLayout(
+
             orientation="vertical",
 
             size_hint_y=None,
@@ -63,15 +65,18 @@ class HomeScreen(BaseScreen):
         )
 
 
-        # ----------------------------------------------------
+        # ====================================================
         # Title
-        # ----------------------------------------------------
+        # ====================================================
 
         self.title = self.create_label(
+
             style="display",
+
             color="text_primary",
 
             halign="center",
+
             valign="middle",
 
             size_hint_y=None,
@@ -98,15 +103,18 @@ class HomeScreen(BaseScreen):
         )
 
 
-        # ----------------------------------------------------
+        # ====================================================
         # Description
-        # ----------------------------------------------------
+        # ====================================================
 
         self.description = self.create_label(
+
             style="body",
+
             color="text_secondary",
 
             halign="center",
+
             valign="middle",
 
             size_hint_y=None,
@@ -149,6 +157,7 @@ class HomeScreen(BaseScreen):
         # ====================================================
 
         self.menu_container = MDBoxLayout(
+
             orientation="vertical",
 
             spacing=self.spacing(
@@ -166,7 +175,9 @@ class HomeScreen(BaseScreen):
         # ====================================================
 
         self.footer = self.create_label(
+
             style="secondary",
+
             color="text_muted",
 
             halign="center",
@@ -183,15 +194,25 @@ class HomeScreen(BaseScreen):
             self.footer
         )
 
+
+        # ====================================================
+        # Screen
+        # ====================================================
+
         self.add_widget(
             self.root_layout
         )
 
+
         self.menu_cards = []
+
 
         self.refresh_ui()
 
 
+    # ====================================================
+    # Lifecycle
+    # ====================================================
 
     def on_pre_enter(self):
 
@@ -200,9 +221,14 @@ class HomeScreen(BaseScreen):
         self.refresh_ui()
 
 
+    # ====================================================
+    # UI
+    # ====================================================
+
     def refresh_ui(self):
 
         self.update_text()
+
         self.build_menu()
 
 
@@ -225,6 +251,11 @@ class HomeScreen(BaseScreen):
                 "choose_adventure"
             )
         )
+
+
+    # ====================================================
+    # Menu
+    # ====================================================
 
     def build_menu(self):
 
@@ -300,7 +331,6 @@ class HomeScreen(BaseScreen):
             0.05,
         )
 
-    
 
     def build_menu_card(
         self,
@@ -326,8 +356,11 @@ class HomeScreen(BaseScreen):
         # ------------------------------------------------
 
         icon_button = self.create_icon_button(
+
             icon=icon,
+
             background_color="card",
+
             icon_color="icon",
         )
 
@@ -352,6 +385,7 @@ class HomeScreen(BaseScreen):
 
 
         menu_title = self.create_card_title(
+
             text=str(
                 self.language_manager.get(
                     title_key
@@ -362,6 +396,7 @@ class HomeScreen(BaseScreen):
 
         menu_description = (
             self.create_card_description(
+
                 text=str(
                     self.language_manager.get(
                         description_key
@@ -446,6 +481,7 @@ class HomeScreen(BaseScreen):
         ):
 
             Clock.schedule_once(
+
                 lambda dt, c=card:
                 self.animate_card(c),
 
@@ -459,9 +495,11 @@ class HomeScreen(BaseScreen):
     ):
 
         Animation(
+
             opacity=1,
 
             duration=0.35,
 
             t="out_quad",
+
         ).start(card)
