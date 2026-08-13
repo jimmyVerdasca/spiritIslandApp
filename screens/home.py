@@ -19,26 +19,6 @@ class HomeScreen(BaseScreen):
 
         self.root_layout = FloatLayout()
 
-        # ====================================================
-        # Background
-        # ====================================================
-
-        self.background_overlay = MDBoxLayout(
-            size_hint=(1, 1),
-            pos_hint={
-                "x": 0,
-                "y": 0,
-            },
-
-            md_bg_color=self.theme_manager.get(
-                "background_overlay"
-            ),
-        )
-
-        self.root_layout.add_widget(
-            self.background_overlay
-        )
-
 
         # ====================================================
         # Main content
@@ -320,14 +300,7 @@ class HomeScreen(BaseScreen):
             0.05,
         )
 
-    def refresh_screen_theme(self):
     
-        background = self.theme_manager.get(
-            "background_overlay"
-        )
-
-        if background is not None:
-            self.background_overlay.md_bg_color = background
 
     def build_menu_card(
         self,

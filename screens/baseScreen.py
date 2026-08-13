@@ -66,6 +66,35 @@ class BaseScreen(MDScreen):
 
         self.theme_manager.bind_theme_change(self.on_theme_changed)
 
+        # ====================================================
+        # Background
+        # ====================================================
+
+        self.background_overlay = MDBoxLayout(
+            size_hint=(1, 1),
+            pos_hint={
+                "x": 0,
+                "y": 0,
+            },
+
+            md_bg_color=self.theme_manager.get(
+                "background_overlay"
+            ),
+        )
+
+        self.add_widget(
+            self.background_overlay
+        )
+
+    def update_background_theme(self):
+        
+            background = self.theme_manager.get(
+                "background_overlay"
+            )
+    
+            if background is not None:
+                self.background_overlay.md_bg_color = background
+
 
 
     # ====================================================
@@ -84,8 +113,8 @@ class BaseScreen(MDScreen):
     def refresh_base_theme(self):
     
         self.refresh_label_themes()
-
         self.update_top_bar_theme()
+        self.update_background_theme()
 
     def on_pre_enter(self):
 
