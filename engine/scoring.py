@@ -1,3 +1,6 @@
+
+from database.database import get_adversary_difficulty
+
 def calculate_score(
     result,
     scenario_difficulty,
@@ -91,3 +94,57 @@ def calculate_score_breakdown(
         "blight_bonus": blight_bonus,
         "final": final_score,
     }
+
+def calculate_game_difficulty(game):
+    """
+    Calculate the total difficulty contribution of all
+    adversaries and scenarios in a completed game.
+
+    Returns:
+        tuple:
+            (
+                adversary_difficulty,
+                scenario_difficulty,
+            )
+    """
+
+
+
+    # ====================================================
+    # Adversary difficulty
+    # ====================================================
+
+    adversary_difficulty = 0
+
+    for game_adversary in game.adversaries:
+
+        if game_adversary.difficulty is None:
+            continue
+
+        difficulty = get_adversary_difficulty(
+            game_adversary.adversary.id,
+            game_adversary.difficulty.id,
+        )
+
+        if difficulty is not None:
+            adversary_difficulty += (
+                difficulty.score_difficulty
+            )
+
+
+    # ====================================================
+    # Scenario difficulty
+    # ====================================================
+
+    scenario_difficulty = sum(
+
+        scenario.score_difficulty
+
+        for scenario in game.scenarios
+    )
+
+
+    return (
+        adversary_difficulty,
+        scenario_difficulty,
+    )

@@ -1,13 +1,7 @@
 from .baseScreen import BaseScreen
 
-from kivy.metrics import dp
-
-from kivymd.app import MDApp
-from kivymd.uix.card import MDCard
-from kivymd.uix.label import MDLabel
 from kivymd.uix.boxlayout import MDBoxLayout
 from kivymd.uix.scrollview import MDScrollView
-from kivymd.uix.button import MDIconButton
 from kivymd.uix.dialog import MDDialog
 from kivymd.uix.button import MDFlatButton
 
@@ -18,27 +12,38 @@ from database.database import (
 
 from engine.formatter import format_game
 
+from widgets.current_game_card import CurrentGameCard
+
 
 class CurrentGamesScreen(BaseScreen):
 
-    def __init__(self, **kwargs):
+    """
+    Display currently running games.
 
-        super().__init__(**kwargs)
+    Responsibilities:
 
-        # =================================================
-        # Managers
-        # =================================================
+        - Pagination.
+        - Loading running games.
+        - Abandon confirmation.
+        - Navigation to finish screen.
 
-        app = MDApp.get_running_app()
-
-        self.settings_manager = app.settings_manager
-        self.language_manager = app.language_manager
-        self.theme_manager = app.theme_manager
+    Card construction is handled by CurrentGameCard.
+    """
 
 
-        # =================================================
+    def __init__(
+        self,
+        **kwargs,
+    ):
+
+        super().__init__(
+            **kwargs
+        )
+
+
+        # ====================================================
         # Pagination
-        # =================================================
+        # ====================================================
 
         self.page_size = 20
 
@@ -48,36 +53,49 @@ class CurrentGamesScreen(BaseScreen):
 
         self.finished_loading = False
 
+        self.dialog = None
 
-        # =================================================
+
+        # ====================================================
         # Main layout
-        # =================================================
+        # ====================================================
 
         self.layout = MDBoxLayout(
+
             orientation="vertical",
-            padding=dp(10),
-            spacing=dp(10),
+
+            spacing=self.spacing(
+                "sm"
+            ),
+
+            padding=self.dimension(
+                "screen",
+                "padding",
+            ),
         )
 
 
-        # =================================================
-        # Top bar
-        # =================================================
+        self.add_top_bar(
+            self.layout,
+            "current_games",
+        )
 
-        self.add_top_bar(self.layout, "current_games")
 
-
-        # =================================================
-        # Scroll view
-        # =================================================
+        # ====================================================
+        # Scroll
+        # ====================================================
 
         self.scroll = MDScrollView()
 
 
         self.games_layout = MDBoxLayout(
+
             orientation="vertical",
-            spacing=dp(15),
-            padding=dp(15),
+
+            spacing=self.spacing(
+                "sm"
+            ),
+
             adaptive_height=True,
         )
 
@@ -97,69 +115,26 @@ class CurrentGamesScreen(BaseScreen):
         )
 
 
-        # =================================================
+        # ====================================================
         # Infinite scrolling
-        # =================================================
+        # ====================================================
 
         self.scroll.bind(
             scroll_y=self.check_scroll
         )
 
 
-        # =================================================
-        # Apply theme
-        # =================================================
-
-        self.update_theme()
-
-
     # ====================================================
-    # Screen lifecycle
+    # Lifecycle
     # ====================================================
 
-    def on_enter(self):
+    def on_pre_enter(
+        self,
+    ):
 
-        self.update_top_bar()
-
-        self.update_theme()
+        super().on_pre_enter()
 
         self.refresh_games()
-
-
-    # ====================================================
-    # Top bar
-    # ====================================================
-
-    def update_top_bar(self):
-
-        # BaseScreen should expose the title label.
-        # See the BaseScreen change below.
-
-        if hasattr(
-            self,
-            "top_bar_title"
-        ):
-
-            self.top_bar_title.text = (
-                self.language_manager.get(
-                    "current_games"
-                )
-            )
-
-
-    # ====================================================
-    # Theme
-    # ====================================================
-
-    def update_theme(self):
-
-        # Main screen background
-
-        self.layout.md_bg_color = (
-            self.theme_manager.get(
-                "background"
-            )
-        )
 
 
     # ====================================================
@@ -175,6 +150,8 @@ class CurrentGamesScreen(BaseScreen):
         if self.finished_loading:
             return
 
+        if self.loading:
+            return
 
         if value < 0.1:
 
@@ -182,12 +159,16 @@ class CurrentGamesScreen(BaseScreen):
 
 
     # ====================================================
-    # Refresh games
+    # Refresh
     # ====================================================
 
-    def refresh_games(self):
+    def refresh_games(
+        self,
+    ):
 
         self.current_offset = 0
+
+        self.loading = False
 
         self.finished_loading = False
 
@@ -197,14 +178,15 @@ class CurrentGamesScreen(BaseScreen):
 
 
     # ====================================================
-    # Load more games
+    # Load games
     # ====================================================
 
-    def load_more_games(self):
+    def load_more_games(
+        self,
+    ):
 
         if self.loading:
             return
-
 
         if self.finished_loading:
             return
@@ -214,41 +196,22 @@ class CurrentGamesScreen(BaseScreen):
 
 
         games = get_running_games(
+
             limit=self.page_size,
+
             offset=self.current_offset,
         )
 
 
-        # ---------------------------------------------
-        # No more games
-        # ---------------------------------------------
+        # ------------------------------------------------
+        # No games
+        # ------------------------------------------------
 
         if not games:
 
             if self.current_offset == 0:
 
-                empty_label = MDLabel(
-                    text=self.language_manager.get(
-                        "no_running_games"
-                    ),
-                    halign="center",
-                    size_hint_y=None,
-                    height=dp(50),
-                )
-
-
-                empty_label.theme_text_color = "Custom"
-
-                empty_label.text_color = (
-                    self.theme_manager.get(
-                        "text_secondary"
-                    )
-                )
-
-
-                self.games_layout.add_widget(
-                    empty_label
-                )
+                self.show_empty_state()
 
 
             self.finished_loading = True
@@ -258,9 +221,9 @@ class CurrentGamesScreen(BaseScreen):
             return
 
 
-        # ---------------------------------------------
-        # Add games
-        # ---------------------------------------------
+        # ------------------------------------------------
+        # Add cards
+        # ------------------------------------------------
 
         for game in games:
 
@@ -274,15 +237,54 @@ class CurrentGamesScreen(BaseScreen):
         )
 
 
-        # If fewer results than page size,
-        # we reached the end.
-
         if len(games) < self.page_size:
 
             self.finished_loading = True
 
 
         self.loading = False
+
+
+    # ====================================================
+    # Empty state
+    # ====================================================
+
+    def show_empty_state(
+        self,
+    ):
+
+        label = self.create_label(
+
+            text=str(
+                self.language_manager.get(
+                    "no_running_games"
+                )
+            ),
+
+            style="body",
+
+            color="text_secondary",
+
+            halign="center",
+
+            size_hint_y=None,
+        )
+
+
+        label.bind(
+
+            texture_size=lambda instance, value:
+            setattr(
+                instance,
+                "height",
+                value[1],
+            )
+        )
+
+
+        self.games_layout.add_widget(
+            label
+        )
 
 
     # ====================================================
@@ -294,204 +296,25 @@ class CurrentGamesScreen(BaseScreen):
         game,
     ):
 
-        # ---------------------------------------------
-        # Card
-        # ---------------------------------------------
+        card_builder = CurrentGameCard(
 
-        card = MDCard(
-            orientation="vertical",
-            padding=[
-                dp(20),
-                dp(15),
-            ],
-            spacing=dp(10),
-            size_hint_y=None,
-            adaptive_height=True,
-            radius=[20],
-        )
+            screen=self,
 
+            game=game,
 
-        card.md_bg_color = (
-            self.theme_manager.get(
-                "card"
-            )
-        )
+            on_finish=self.open_finish_game,
 
-
-        # ---------------------------------------------
-        # Header row
-        # ---------------------------------------------
-
-        header_row = MDBoxLayout(
-            orientation="horizontal",
-            size_hint_y=None,
-            height=dp(40),
-        )
-
-
-        # ---------------------------------------------
-        # Header
-        # ---------------------------------------------
-
-        header = MDLabel(
-            text=(
-                f"{self.language_manager.get('game')} "
-                f"#{game.id}"
-            ),
-            font_style="H6",
-            valign="center",
-            size_hint_x=1,
-        )
-
-
-        header.theme_text_color = "Custom"
-
-        header.text_color = (
-            self.theme_manager.get(
-                "text_primary"
-            )
-        )
-
-
-        # ---------------------------------------------
-        # Finish button
-        # ---------------------------------------------
-
-        finish_button = MDIconButton(
-            icon="flag-checkered",
-            size_hint_x=None,
-            width=dp(40),
-        )
-
-
-        finish_button.theme_icon_color = "Custom"
-
-        finish_button.icon_color = (
-            self.theme_manager.get(
-                "icon"
-            )
-        )
-
-
-        finish_button.bind(
-            on_release=lambda x, g=game:
-            self.open_finish_game(
-                g
-            )
-        )
-
-
-        # ---------------------------------------------
-        # Abandon button
-        # ---------------------------------------------
-
-        abandon_button = MDIconButton(
-            icon="close-circle-outline",
-            size_hint_x=None,
-            width=dp(40),
-        )
-
-
-        abandon_button.theme_icon_color = "Custom"
-
-        # Optional dedicated destructive color.
-        # Falls back to the normal icon color for now.
-
-        abandon_button.icon_color = (
-            self.theme_manager.get(
-                "icon"
-            )
-        )
-
-
-        abandon_button.bind(
-            on_release=lambda x, game_id=game.id:
-            self.confirm_abandon(
-                game_id
-            )
-        )
-
-
-        header_row.add_widget(
-            header
-        )
-
-        header_row.add_widget(
-            finish_button
-        )
-
-        header_row.add_widget(
-            abandon_button
-        )
-
-
-        # ---------------------------------------------
-        # Game details
-        # ---------------------------------------------
-
-        details = MDLabel(
-            text=format_game(game),
-            size_hint_y=None,
-            adaptive_height=True,
-            halign="left",
-            valign="top",
-        )
-
-
-        details.theme_text_color = "Custom"
-
-        details.text_color = (
-            self.theme_manager.get(
-                "card_text_secondary"
-            )
-        )
-
-
-        details.bind(
-            texture_size=details.setter(
-                "size"
-            )
-        )
-
-
-        # ---------------------------------------------
-        # Add to card
-        # ---------------------------------------------
-
-        card.add_widget(
-            header_row
-        )
-
-        card.add_widget(
-            details
+            on_abandon=self.confirm_abandon,
         )
 
 
         self.games_layout.add_widget(
-            card
+            card_builder.build()
         )
 
 
     # ====================================================
-    # Abandon game
-    # ====================================================
-
-    def abandon_game(
-        self,
-        game_id,
-    ):
-
-        self.dialog.dismiss()
-
-        db_abandon_game(
-            game_id
-        )
-
-        self.refresh_games()
-
-
-    # ====================================================
-    # Confirm abandon
+    # Abandon
     # ====================================================
 
     def confirm_abandon(
@@ -501,34 +324,45 @@ class CurrentGamesScreen(BaseScreen):
 
         self.dialog = MDDialog(
 
-            title=self.language_manager.get(
-                "abandon_game_title"
+            title=str(
+                self.language_manager.get(
+                    "abandon_game_title"
+                )
             ),
 
-            text=self.language_manager.get(
-                "abandon_game_message"
+            text=str(
+                self.language_manager.get(
+                    "abandon_game_message"
+                )
             ),
 
             buttons=[
 
                 MDFlatButton(
-                    text=self.language_manager.get(
-                        "cancel"
+
+                    text=str(
+                        self.language_manager.get(
+                            "cancel"
+                        )
                     ),
-                    on_release=lambda x:
+
+                    on_release=lambda instance:
                     self.dialog.dismiss(),
                 ),
 
                 MDFlatButton(
-                    text=self.language_manager.get(
-                        "abandon"
+
+                    text=str(
+                        self.language_manager.get(
+                            "abandon"
+                        )
                     ),
-                    on_release=lambda x:
+
+                    on_release=lambda instance:
                     self.abandon_game(
                         game_id
                     ),
                 ),
-
             ],
         )
 
@@ -536,8 +370,28 @@ class CurrentGamesScreen(BaseScreen):
         self.dialog.open()
 
 
+    def abandon_game(
+        self,
+        game_id,
+    ):
+
+        if self.dialog is not None:
+
+            self.dialog.dismiss()
+
+            self.dialog = None
+
+
+        db_abandon_game(
+            game_id
+        )
+
+
+        self.refresh_games()
+
+
     # ====================================================
-    # Finish game
+    # Finish
     # ====================================================
 
     def open_finish_game(
@@ -546,7 +400,10 @@ class CurrentGamesScreen(BaseScreen):
     ):
 
         self.navigate_to(
+
             "finish",
+
             previous="current",
+
             game=game,
         )

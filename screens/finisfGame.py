@@ -1,16 +1,9 @@
 from .baseScreen import BaseScreen
 
-from kivymd.app import MDApp
-
 from kivymd.uix.boxlayout import MDBoxLayout
-from kivymd.uix.card import MDCard
-from kivymd.uix.label import MDLabel
-from kivymd.uix.textfield import MDTextField
-from kivymd.uix.button import MDRaisedButton
 from kivymd.uix.scrollview import MDScrollView
 from kivymd.uix.dialog import MDDialog
-
-from kivy.metrics import dp
+from kivymd.uix.button import MDRaisedButton
 
 from engine.formatter import format_game
 from engine.scoring import calculate_score
@@ -23,135 +16,213 @@ from database.database import (
 
 class FinishGameScreen(BaseScreen):
 
+    """
+    Finish a running game and record its result.
+
+    Responsibilities:
+
+        - Load the selected game.
+        - Select Victory / Defeat.
+        - Collect final board values.
+        - Calculate the score.
+        - Save the completed game.
+        - Navigate back to the originating screen.
+
+    Shared widget creation, theme handling, dimensions,
+    typography, and top-bar behavior are provided by
+    BaseScreen / WidgetFactory.
+    """
+
     def __init__(self, **kwargs):
 
         super().__init__(**kwargs)
 
-        # --------------------------------------------
-        # Managers
-        # --------------------------------------------
-
-        app = MDApp.get_running_app()
-
-        self.settings_manager = app.settings_manager
-        self.language_manager = app.language_manager
-        self.theme_manager = app.theme_manager
-
-        # --------------------------------------------
+        # ====================================================
         # State
-        # --------------------------------------------
+        # ====================================================
 
         self.game = None
+
         self.result = "Victory"
+
         self.origin_screen = "current"
 
-        # --------------------------------------------
-        # Main layout
-        # --------------------------------------------
 
-        layout = MDBoxLayout(
+        # ====================================================
+        # Main layout
+        # ====================================================
+
+        self.layout = MDBoxLayout(
+
             orientation="vertical",
-            padding=dp(10),
-            spacing=dp(10),
+
+            spacing=self.spacing(
+                "sm"
+            ),
+
+            padding=self.dimension(
+                "screen",
+                "padding",
+            ),
         )
 
+
         self.add_top_bar(
-            layout,
+            self.layout,
             "finish_game",
         )
 
-        # --------------------------------------------
+
+        # ====================================================
         # Scroll
-        # --------------------------------------------
+        # ====================================================
 
-        scroll = MDScrollView()
+        self.scroll = MDScrollView()
 
-        self.card = MDCard(
+
+        self.card = self.create_card(
+
             orientation="vertical",
-            padding=dp(20),
-            spacing=dp(15),
+
             adaptive_height=True,
-            radius=[dp(20)],
+
+            padding=self.dimension(
+                "card",
+                "padding",
+            ),
+
+            spacing=self.spacing(
+                "sm"
+            ),
         )
 
-        # --------------------------------------------
+
+        self.scroll.add_widget(
+            self.card
+        )
+
+
+        self.layout.add_widget(
+            self.scroll
+        )
+
+
+        self.add_widget(
+            self.layout
+        )
+
+
+        # ====================================================
         # Game information
-        # --------------------------------------------
+        # ====================================================
 
-        self.game_label = MDLabel(
+        self.game_label = self.create_label(
+
+            style="body",
+
+            color="text_primary",
+
             halign="left",
+
             valign="top",
+
             size_hint_y=None,
-            adaptive_height=True,
         )
+
 
         self.game_label.bind(
-            texture_size=self.game_label.setter(
-                "size"
+            texture_size=lambda instance, value:
+            setattr(
+                instance,
+                "height",
+                value[1],
             )
         )
+
 
         self.card.add_widget(
             self.game_label
         )
 
-        # --------------------------------------------
+
+        # ====================================================
         # Result selector
-        # --------------------------------------------
+        # ====================================================
 
         self.build_result_selector()
 
-        # --------------------------------------------
+
+        # ====================================================
         # Score inputs
-        # --------------------------------------------
+        # ====================================================
 
         self.build_score_inputs()
 
-        # --------------------------------------------
-        # Score preview
-        # --------------------------------------------
 
-        self.score_label = MDLabel(
+        # ====================================================
+        # Score preview
+        # ====================================================
+
+        self.score_label = self.create_label(
+
+            style="body",
+
+            color="text_primary",
+
             halign="center",
-            adaptive_height=True,
+
+            size_hint_y=None,
         )
+
+
+        self.score_label.bind(
+            texture_size=lambda instance, value:
+            setattr(
+                instance,
+                "height",
+                value[1],
+            )
+        )
+
 
         self.card.add_widget(
             self.score_label
         )
 
-        # --------------------------------------------
-        # Save button
-        # --------------------------------------------
 
-        self.save_button = MDRaisedButton(
+        # ====================================================
+        # Save button
+        # ====================================================
+
+        self.save_button = self.create_button(
+
+            text="",
+
+            background_color="button",
+
+            text_color="text_primary",
+
             disabled=True,
+
             on_release=self.save_result,
         )
+
 
         self.card.add_widget(
             self.save_button
         )
 
-        scroll.add_widget(
-            self.card
-        )
 
-        layout.add_widget(
-            scroll
-        )
-
-        self.add_widget(
-            layout
-        )
-
-        # --------------------------------------------
+        # ====================================================
         # Initial state
-        # --------------------------------------------
+        # ====================================================
 
-        self.set_result("Victory")
+        self.set_result(
+            "Victory"
+        )
 
         self.refresh_ui()
+
 
     # ====================================================
     # Lifecycle
@@ -159,19 +230,26 @@ class FinishGameScreen(BaseScreen):
 
     def on_pre_enter(self):
 
+        super().on_pre_enter()
+
         self.refresh_ui()
+
 
         if self.game:
 
-            self.game_label.text = format_game(
-                self.game
+            self.game_label.text = (
+                format_game(
+                    self.game
+                )
             )
 
         else:
 
             self.game_label.text = ""
 
+
         self.update_preview()
+
 
     # ====================================================
     # UI refresh
@@ -180,7 +258,9 @@ class FinishGameScreen(BaseScreen):
     def refresh_ui(self):
 
         self.update_text()
-        self.update_theme()
+
+        self.update_result_colors()
+
 
     # ====================================================
     # Translation
@@ -188,14 +268,12 @@ class FinishGameScreen(BaseScreen):
 
     def update_text(self):
 
-        if not hasattr(self, "top_bar_title"):
-            return
-
         self.top_bar_title.text = (
             self.language_manager.get(
                 "finish_game"
             )
         )
+
 
         self.victory_button.text = (
             self.language_manager.get(
@@ -203,11 +281,13 @@ class FinishGameScreen(BaseScreen):
             )
         )
 
+
         self.defeat_button.text = (
             self.language_manager.get(
                 "defeat"
             )
         )
+
 
         self.invader_cards.hint_text = (
             self.language_manager.get(
@@ -215,11 +295,13 @@ class FinishGameScreen(BaseScreen):
             )
         )
 
+
         self.dahan.hint_text = (
             self.language_manager.get(
                 "dahan_remaining"
             )
         )
+
 
         self.blight.hint_text = (
             self.language_manager.get(
@@ -227,67 +309,25 @@ class FinishGameScreen(BaseScreen):
             )
         )
 
+
         self.save_button.text = (
             self.language_manager.get(
                 "save_result"
             )
         )
 
+
         self.update_preview()
+
 
     # ====================================================
     # Theme
     # ====================================================
 
-    def update_theme(self):
-
-        self.card.md_bg_color = (
-            self.theme_manager.get(
-                "card"
-            )
-        )
-
-        self.game_label.theme_text_color = "Custom"
-
-        self.game_label.text_color = (
-            self.theme_manager.get(
-                "text_primary"
-            )
-        )
-
-        self.score_label.theme_text_color = "Custom"
-
-        self.score_label.text_color = (
-            self.theme_manager.get(
-                "text_primary"
-            )
-        )
-
-        self.invader_cards.theme_text_color = "Custom"
-
-        self.invader_cards.text_color = (
-            self.theme_manager.get(
-                "text_primary"
-            )
-        )
-
-        self.dahan.theme_text_color = "Custom"
-
-        self.dahan.text_color = (
-            self.theme_manager.get(
-                "text_primary"
-            )
-        )
-
-        self.blight.theme_text_color = "Custom"
-
-        self.blight.text_color = (
-            self.theme_manager.get(
-                "text_primary"
-            )
-        )
+    def refresh_screen_theme(self):
 
         self.update_result_colors()
+
 
     # ====================================================
     # Result selector
@@ -296,21 +336,47 @@ class FinishGameScreen(BaseScreen):
     def build_result_selector(self):
 
         box = MDBoxLayout(
+
             orientation="horizontal",
-            spacing=dp(10),
+
+            spacing=self.spacing(
+                "sm"
+            ),
+
             size_hint_y=None,
-            height=dp(50),
+
+            height=self.dimension(
+                "button",
+                "height",
+            ),
         )
 
-        self.victory_button = MDRaisedButton(
-            on_release=lambda x:
-            self.set_result("Victory"),
+
+        self.victory_button = self.create_button(
+
+            background_color="inactive_button",
+
+            text_color="text_primary",
+
+            on_release=lambda instance:
+            self.set_result(
+                "Victory"
+            ),
         )
 
-        self.defeat_button = MDRaisedButton(
-            on_release=lambda x:
-            self.set_result("Defeat"),
+
+        self.defeat_button = self.create_button(
+
+            background_color="inactive_button",
+
+            text_color="text_primary",
+
+            on_release=lambda instance:
+            self.set_result(
+                "Defeat"
+            ),
         )
+
 
         box.add_widget(
             self.victory_button
@@ -320,9 +386,11 @@ class FinishGameScreen(BaseScreen):
             self.defeat_button
         )
 
+
         self.card.add_widget(
             box
         )
+
 
     # ====================================================
     # Score inputs
@@ -334,13 +402,16 @@ class FinishGameScreen(BaseScreen):
             "invader_cards_remaining"
         )
 
+
         self.dahan = self.create_input(
             "dahan_remaining"
         )
 
+
         self.blight = self.create_input(
             "blight_on_island"
         )
+
 
         for field in (
             self.invader_cards,
@@ -352,18 +423,25 @@ class FinishGameScreen(BaseScreen):
                 text=self.update_preview
             )
 
+
             self.card.add_widget(
                 field
             )
 
-    def create_input(self, translation_key):
 
-        return MDTextField(
+    def create_input(
+        self,
+        translation_key,
+    ):
+
+        return super().create_input(
             hint_text=self.language_manager.get(
                 translation_key
             ),
-            input_filter="int",
+
+            text_color="text_primary",
         )
+
 
     # ====================================================
     # Game loading
@@ -376,13 +454,21 @@ class FinishGameScreen(BaseScreen):
     ):
 
         self.game = game
-        self.origin_screen = origin_screen
 
-        self.game_label.text = format_game(
-            game
+        self.origin_screen = (
+            origin_screen
         )
 
+
+        self.game_label.text = (
+            format_game(
+                game
+            )
+        )
+
+
         self.update_preview()
+
 
     # ====================================================
     # Difficulties
@@ -391,19 +477,29 @@ class FinishGameScreen(BaseScreen):
     def get_difficulties(self):
 
         if not self.game:
+
             return 0, 0
+
 
         adversary_difficulty = 0
 
-        for game_adversary in self.game.adversaries:
+
+        for game_adversary in (
+            self.game.adversaries
+        ):
 
             if game_adversary.difficulty is None:
+
                 continue
 
+
             result = get_adversary_difficulty(
+
                 game_adversary.adversary.id,
+
                 game_adversary.difficulty.id,
             )
+
 
             if result:
 
@@ -411,15 +507,20 @@ class FinishGameScreen(BaseScreen):
                     result.score_difficulty
                 )
 
+
         scenario_difficulty = sum(
+
             scenario.score_difficulty
+
             for scenario in self.game.scenarios
         )
+
 
         return (
             adversary_difficulty,
             scenario_difficulty,
         )
+
 
     # ====================================================
     # Input values
@@ -441,9 +542,13 @@ class FinishGameScreen(BaseScreen):
                 self.blight.text
             )
 
-        except (TypeError, ValueError):
+        except (
+            TypeError,
+            ValueError,
+        ):
 
             return None
+
 
         if (
             invader_cards < 0
@@ -453,11 +558,13 @@ class FinishGameScreen(BaseScreen):
 
             return None
 
+
         return (
             invader_cards,
             dahan,
             blight,
         )
+
 
     # ====================================================
     # Score
@@ -466,12 +573,17 @@ class FinishGameScreen(BaseScreen):
     def calculate_current_score(self):
 
         if not self.game:
+
             return None
+
 
         values = self.get_input_values()
 
+
         if values is None:
+
             return None
+
 
         (
             invader_cards,
@@ -479,36 +591,54 @@ class FinishGameScreen(BaseScreen):
             blight,
         ) = values
 
+
         adversary, scenario = (
             self.get_difficulties()
         )
 
+
         return calculate_score(
+
             result=self.result,
+
             scenario_difficulty=scenario,
+
             adversary_difficulty=adversary,
+
             players=self.game.players,
+
             invader_cards=invader_cards,
+
             dahan=dahan,
+
             blight=blight,
         )
+
 
     # ====================================================
     # Result
     # ====================================================
 
-    def set_result(self, result):
+    def set_result(
+        self,
+        result,
+    ):
 
         if result not in (
             "Victory",
             "Defeat",
         ):
+
             return
+
 
         self.result = result
 
+
         self.update_result_colors()
+
         self.update_preview()
+
 
     def update_result_colors(self):
 
@@ -516,102 +646,118 @@ class FinishGameScreen(BaseScreen):
             self,
             "victory_button",
         ):
+
             return
 
-        inactive = (
-            self.theme_manager.get(
-                "inactive_button"
-            )
-        )
 
-        success = (
-            self.theme_manager.get(
+        self.apply_button_theme(
+
+            self.victory_button,
+
+            background_color=(
                 "button"
-            )
+                if self.result == "Victory"
+                else "inactive_button"
+            ),
+
+            text_color="text_primary",
         )
 
-        defeat = (
-            self.theme_manager.get(
+
+        self.apply_button_theme(
+
+            self.defeat_button,
+
+            background_color=(
                 "defeat"
-            )
+                if self.result == "Defeat"
+                else "inactive_button"
+            ),
+
+            text_color="text_primary",
         )
 
-        if self.result == "Victory":
-
-            self.victory_button.md_bg_color = (
-                success
-            )
-
-            self.defeat_button.md_bg_color = (
-                inactive
-            )
-
-        else:
-
-            self.defeat_button.md_bg_color = (
-                defeat
-            )
-
-            self.victory_button.md_bg_color = (
-                inactive
-            )
 
     # ====================================================
     # Score preview
     # ====================================================
 
-    def update_preview(self, *args):
+    def update_preview(
+        self,
+        *args,
+    ):
 
         if not self.game:
 
             self.save_button.disabled = True
 
             self.score_label.text = (
+
                 self.language_manager.get(
                     "score_preview"
                 )
+
                 + ": -"
             )
 
             return
 
-        score = self.calculate_current_score()
+
+        score = (
+            self.calculate_current_score()
+        )
+
 
         self.save_button.disabled = (
             score is None
         )
 
+
         if score is None:
 
             self.score_label.text = (
+
                 self.language_manager.get(
                     "score_preview"
                 )
+
                 + ": -"
             )
 
             return
 
+
         self.score_label.text = (
+
             self.language_manager.get(
                 "score_preview"
             )
+
             + f": {score}"
         )
+
 
     # ====================================================
     # Save
     # ====================================================
 
-    def save_result(self, *args):
+    def save_result(
+        self,
+        *args,
+    ):
 
         if not self.game:
+
             return
+
 
         values = self.get_input_values()
 
+
         if values is None:
+
             return
+
 
         (
             invader_cards,
@@ -619,40 +765,62 @@ class FinishGameScreen(BaseScreen):
             blight,
         ) = values
 
-        score = self.calculate_current_score()
+
+        score = (
+            self.calculate_current_score()
+        )
+
 
         if score is None:
+
             return
 
+
         finish_game(
+
             game_id=self.game.id,
+
             result=self.result,
+
             score=score,
+
             invader_cards=invader_cards,
+
             dahan=dahan,
+
             blight=blight,
         )
+
 
         self.show_saved_dialog(
             score
         )
 
+
     # ====================================================
     # Dialog
     # ====================================================
 
-    def show_saved_dialog(self, score):
+    def show_saved_dialog(
+        self,
+        score,
+    ):
 
         result_text = (
+
             self.language_manager.get(
                 "victory"
             )
+
             if self.result == "Victory"
+
             else
+
             self.language_manager.get(
                 "defeat"
             )
         )
+
 
         self.dialog = MDDialog(
 
@@ -661,30 +829,41 @@ class FinishGameScreen(BaseScreen):
             ),
 
             text=(
+
                 f"{self.language_manager.get('result')}: "
                 f"{result_text}\n"
+
                 f"{self.language_manager.get('score')}: "
                 f"{score}\n\n"
+
                 f"{self.language_manager.get('game_recorded')}"
             ),
 
             buttons=[
 
                 MDRaisedButton(
+
                     text=self.language_manager.get(
                         "ok"
                     ),
+
                     on_release=self.close_dialog,
                 ),
 
             ],
         )
 
+
         self.dialog.open()
 
-    def close_dialog(self, *args):
+
+    def close_dialog(
+        self,
+        *args,
+    ):
 
         self.dialog.dismiss()
+
 
         self.navigate_to(
             self.origin_screen,
