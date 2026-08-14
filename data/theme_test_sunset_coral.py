@@ -3,30 +3,30 @@ THEMES = {
     "palette": {
 
         "neutral": {
-            "0":   (1.00, 1.00, 1.00, 1),
-            "50":  (0.97, 0.98, 0.97, 1),
-            "100": (0.92, 0.94, 0.93, 1),
-            "200": (0.84, 0.87, 0.86, 1),
-            "300": (0.72, 0.76, 0.75, 1),
-            "400": (0.58, 0.63, 0.62, 1),
-            "500": (0.44, 0.50, 0.49, 1),
-            "600": (0.32, 0.39, 0.38, 1),
-            "700": (0.23, 0.29, 0.29, 1),
-            "800": (0.15, 0.21, 0.21, 1),
-            "850": (0.10, 0.16, 0.16, 1),
-            "900": (0.06, 0.11, 0.11, 1),
-            "950": (0.03, 0.07, 0.07, 1),
+            "0":   (1.00, 0.99, 0.98, 1),
+            "50":  (0.98, 0.97, 0.96, 1),
+            "100": (0.94, 0.92, 0.91, 1),
+            "200": (0.87, 0.84, 0.83, 1),
+            "300": (0.75, 0.71, 0.70, 1),
+            "400": (0.61, 0.57, 0.56, 1),
+            "500": (0.47, 0.43, 0.43, 1),
+            "600": (0.35, 0.31, 0.31, 1),
+            "700": (0.26, 0.22, 0.22, 1),
+            "800": (0.18, 0.15, 0.15, 1),
+            "850": (0.12, 0.10, 0.10, 1),
+            "900": (0.07, 0.05, 0.05, 1),
+            "950": (0.04, 0.03, 0.03, 1),
         },
 
-        "teal": {
-            "100": (0.78, 0.91, 0.89, 1),
-            "200": (0.57, 0.82, 0.78, 1),
-            "300": (0.38, 0.70, 0.65, 1),
-            "400": (0.23, 0.59, 0.55, 1),
-            "500": (0.09, 0.46, 0.43, 1),
-            "600": (0.06, 0.34, 0.32, 1),
-            "700": (0.04, 0.25, 0.24, 1),
-            "800": (0.03, 0.17, 0.17, 1),
+        "coral": {
+            "100": (1.00, 0.88, 0.83, 1),
+            "200": (0.98, 0.73, 0.65, 1),
+            "300": (0.94, 0.56, 0.45, 1),
+            "400": (0.86, 0.40, 0.31, 1),
+            "500": (0.76, 0.29, 0.21, 1),
+            "600": (0.60, 0.19, 0.14, 1),
+            "700": (0.46, 0.13, 0.10, 1),
+            "800": (0.32, 0.08, 0.06, 1),
         },
 
         "green": {
@@ -59,12 +59,12 @@ THEMES = {
         },
 
         "blue": {
-            "100": (0.82, 0.92, 0.96, 1),
-            "200": (0.62, 0.82, 0.90, 1),
-            "300": (0.40, 0.67, 0.80, 1),
-            "400": (0.25, 0.53, 0.68, 1),
-            "500": (0.14, 0.41, 0.56, 1),
-            "600": (0.08, 0.29, 0.42, 1),
+            "100": (0.84, 0.92, 0.96, 1),
+            "200": (0.65, 0.82, 0.90, 1),
+            "300": (0.40, 0.68, 0.80, 1),
+            "400": (0.22, 0.52, 0.68, 1),
+            "500": (0.13, 0.40, 0.56, 1),
+            "600": (0.07, 0.28, 0.42, 1),
         },
 
         "overlay": {
@@ -89,10 +89,10 @@ THEMES = {
         "background": "palette.neutral.900",
         "background_overlay": "palette.overlay.black_50",
 
-        "top_bar": "palette.teal.500",
-        "top_bar_button": "palette.teal.500",
+        "top_bar": "palette.coral.500",
+        "top_bar_button": "palette.coral.500",
 
-        "button": "palette.teal.500",
+        "button": "palette.coral.500",
         "button_disabled": "palette.neutral.700",
         "inactive_button": "palette.neutral.700",
 
@@ -124,15 +124,15 @@ THEMES = {
 
         "icon": "palette.neutral.0",
 
-        "progress": "palette.teal.400",
+        "progress": "palette.coral.400",
 
-        "selection_selected": "palette.teal.500",
+        "selection_selected": "palette.coral.500",
         "selection_normal": "palette.neutral.700",
 
         "dropdown_background": "palette.neutral.800",
         "dropdown_text": "palette.neutral.0",
-        "dropdown_selected": "palette.teal.800",
-        "dropdown_text_selected": "palette.teal.300",
+        "dropdown_selected": "palette.coral.800",
+        "dropdown_text_selected": "palette.coral.300",
         "dropdown_warning": "palette.amber.600",
         "dropdown_text_warning": "palette.amber.200",
     },
@@ -142,10 +142,10 @@ THEMES = {
         "background": "palette.neutral.100",
         "background_overlay": "palette.overlay.white_30",
 
-        "top_bar": "palette.teal.500",
-        "top_bar_button": "palette.teal.500",
+        "top_bar": "palette.coral.500",
+        "top_bar_button": "palette.coral.500",
 
-        "button": "palette.teal.500",
+        "button": "palette.coral.500",
         "button_disabled": "palette.neutral.300",
         "inactive_button": "palette.neutral.200",
 
@@ -177,15 +177,15 @@ THEMES = {
 
         "icon": "palette.neutral.900",
 
-        "progress": "palette.teal.500",
+        "progress": "palette.coral.500",
 
-        "selection_selected": "palette.teal.500",
+        "selection_selected": "palette.coral.500",
         "selection_normal": "palette.neutral.200",
 
         "dropdown_background": "palette.neutral.0",
         "dropdown_text": "palette.neutral.900",
-        "dropdown_selected": "palette.teal.100",
-        "dropdown_text_selected": "palette.teal.700",
+        "dropdown_selected": "palette.coral.100",
+        "dropdown_text_selected": "palette.coral.700",
         "dropdown_warning": "palette.amber.100",
         "dropdown_text_warning": "palette.amber.600",
     },
@@ -195,85 +195,29 @@ THEMES = {
             "xs": 4, "sm": 8, "md": 12,
             "lg": 16, "xl": 24, "xxl": 32,
         },
-        "screen": {
-            "padding": 20,
-            "content_spacing": 12,
-        },
-        "top_bar": {
-            "height": 56,
-            "horizontal_padding": 16,
-            "spacing": 8,
-        },
+        "screen": {"padding": 20, "content_spacing": 12},
+        "top_bar": {"height": 56, "horizontal_padding": 16, "spacing": 8},
         "card": {
-            "height": 80,
-            "padding": 16,
-            "spacing": 12,
-            "radius": 16,
-            "border_width": 1,
+            "height": 80, "padding": 16, "spacing": 12,
+            "radius": 16, "border_width": 1,
         },
-        "button": {
-            "height": 48,
-            "radius": 12,
-            "horizontal_padding": 16,
-        },
-        "input": {
-            "height": 48,
-            "radius": 8,
-            "horizontal_padding": 12,
-        },
-        "selection": {
-            "height": 48,
-            "radius": 12,
-            "horizontal_padding": 12,
-        },
-        "icon": {
-            "small": 18,
-            "medium": 24,
-            "large": 32,
-        },
-        "border": {
-            "thin": 1,
-            "medium": 2,
-        },
-        "progress": {
-            "height": 15,
-        },
+        "button": {"height": 48, "radius": 12, "horizontal_padding": 16},
+        "input": {"height": 48, "radius": 8, "horizontal_padding": 12},
+        "selection": {"height": 48, "radius": 12, "horizontal_padding": 12},
+        "icon": {"small": 18, "medium": 24, "large": 32},
+        "border": {"thin": 1, "medium": 2},
+        "progress": {"height": 15},
     },
 
     "typography": {
-        "display": {
-            "font_size": 34,
-            "line_height": 1.20,
-        },
-        "title": {
-            "font_size": 24,
-            "line_height": 1.20,
-        },
-        "subtitle": {
-            "font_size": 18,
-            "line_height": 1.30,
-        },
-        "body": {
-            "font_size": 16,
-            "line_height": 1.40,
-        },
-        "secondary": {
-            "font_size": 14,
-            "line_height": 1.40,
-        },
-        "caption": {
-            "font_size": 12,
-            "line_height": 1.30,
-        },
-        "button": {
-            "font_size": 14,
-        },
-        "input": {
-            "font_size": 16,
-        },
-        "score": {
-            "font_size": 20,
-            "line_height": 1.20,
-        },
+        "display": {"font_size": 34, "line_height": 1.20},
+        "title": {"font_size": 24, "line_height": 1.20},
+        "subtitle": {"font_size": 18, "line_height": 1.30},
+        "body": {"font_size": 16, "line_height": 1.40},
+        "secondary": {"font_size": 14, "line_height": 1.40},
+        "caption": {"font_size": 12, "line_height": 1.30},
+        "button": {"font_size": 14},
+        "input": {"font_size": 16},
+        "score": {"font_size": 20, "line_height": 1.20},
     },
 }

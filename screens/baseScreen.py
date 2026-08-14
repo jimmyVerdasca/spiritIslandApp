@@ -1,3 +1,7 @@
+# ============================================================
+# screens/baseScreen.py
+# ============================================================
+
 from kivymd.uix.screen import MDScreen
 from kivymd.app import MDApp
 
@@ -22,18 +26,17 @@ class BaseScreen(MDScreen):
         - Common background
         - Common top bar
         - Screen lifecycle
-
-    Individual screens should focus on:
-
-        - Layout
-        - Content
-        - Navigation
-        - Screen-specific behavior
+        - Automatic theme refresh
     """
 
-    def __init__(self, **kwargs):
+    def __init__(
+        self,
+        **kwargs,
+    ):
 
-        super().__init__(**kwargs)
+        super().__init__(
+            **kwargs
+        )
 
         # ====================================================
         # Managers
@@ -53,7 +56,6 @@ class BaseScreen(MDScreen):
             app.theme_manager
         )
 
-
         # ====================================================
         # Helpers
         # ====================================================
@@ -66,13 +68,11 @@ class BaseScreen(MDScreen):
             self.theme
         )
 
-
         # ====================================================
         # Navigation
         # ====================================================
 
         self.previous_screen = "home"
-
 
         # ====================================================
         # Top bar
@@ -84,7 +84,6 @@ class BaseScreen(MDScreen):
         self.settings_button = None
         self.top_bar_title_key = None
 
-
         # ====================================================
         # Theme lifecycle
         # ====================================================
@@ -93,14 +92,16 @@ class BaseScreen(MDScreen):
             self.on_theme_changed
         )
 
-
         # ====================================================
         # Background
         # ====================================================
 
         self.background_overlay = MDBoxLayout(
 
-            size_hint=(1, 1),
+            size_hint=(
+                1,
+                1,
+            ),
 
             pos_hint={
                 "x": 0,
@@ -109,7 +110,8 @@ class BaseScreen(MDScreen):
 
             md_bg_color=(
                 self.theme_manager.get(
-                    "background_overlay"
+                    "background_overlay",
+                    [0, 0, 0, 0],
                 )
             ),
         )
@@ -118,20 +120,22 @@ class BaseScreen(MDScreen):
             self.background_overlay
         )
 
-
-    # ====================================================
+    # ========================================================
     # Theme lifecycle
-    # ====================================================
+    # ========================================================
 
     def on_theme_changed(
         self,
         theme,
     ):
+        """
+        Called automatically whenever the active theme or
+        theme file changes.
+        """
 
         self.refresh_base_theme()
 
         self.refresh_screen_theme()
-
 
     def refresh_base_theme(self):
 
@@ -141,7 +145,6 @@ class BaseScreen(MDScreen):
 
         self.update_background_theme()
 
-
     def refresh_base_ui(self):
 
         self.update_top_bar_text()
@@ -150,10 +153,9 @@ class BaseScreen(MDScreen):
 
         self.update_background_theme()
 
-
-    # ====================================================
+    # ========================================================
     # Lifecycle
-    # ====================================================
+    # ========================================================
 
     def on_pre_enter(self):
 
@@ -161,10 +163,9 @@ class BaseScreen(MDScreen):
 
         self.refresh_base_ui()
 
-
-    # ====================================================
+    # ========================================================
     # Theme helper delegates
-    # ====================================================
+    # ========================================================
 
     def spacing(
         self,
@@ -174,7 +175,6 @@ class BaseScreen(MDScreen):
         return self.theme.spacing(
             size
         )
-
 
     def dimension(
         self,
@@ -187,7 +187,6 @@ class BaseScreen(MDScreen):
             key,
         )
 
-
     def font_size(
         self,
         style,
@@ -196,7 +195,6 @@ class BaseScreen(MDScreen):
         return self.theme.font_size(
             style
         )
-
 
     def icon_size(
         self,
@@ -207,10 +205,9 @@ class BaseScreen(MDScreen):
             size
         )
 
-
-    # ====================================================
+    # ========================================================
     # Widget factory delegates
-    # ====================================================
+    # ========================================================
 
     def create_label(
         self,
@@ -221,7 +218,6 @@ class BaseScreen(MDScreen):
             **kwargs
         )
 
-
     def create_card(
         self,
         **kwargs,
@@ -230,7 +226,6 @@ class BaseScreen(MDScreen):
         return self.widget_factory.create_card(
             **kwargs
         )
-
 
     def create_icon_button(
         self,
@@ -241,7 +236,6 @@ class BaseScreen(MDScreen):
             **kwargs
         )
 
-
     def create_button(
         self,
         **kwargs,
@@ -250,7 +244,6 @@ class BaseScreen(MDScreen):
         return self.widget_factory.create_button(
             **kwargs
         )
-
 
     def create_card_text_layout(
         self,
@@ -261,7 +254,6 @@ class BaseScreen(MDScreen):
             **kwargs
         )
 
-
     def create_card_title(
         self,
         **kwargs,
@@ -270,7 +262,6 @@ class BaseScreen(MDScreen):
         return self.widget_factory.create_card_title(
             **kwargs
         )
-
 
     def create_card_description(
         self,
@@ -281,6 +272,16 @@ class BaseScreen(MDScreen):
             **kwargs
         )
 
+    def create_input(
+        self,
+        hint_text="",
+        **kwargs,
+    ):
+
+        return self.widget_factory.create_input(
+            hint_text=hint_text,
+            **kwargs,
+        )
 
     def apply_button_theme(
         self,
@@ -295,10 +296,9 @@ class BaseScreen(MDScreen):
             text_color,
         )
 
-
-    # ====================================================
+    # ========================================================
     # Widget theme refresh
-    # ====================================================
+    # ========================================================
 
     def refresh_widget_themes(self):
 
@@ -333,7 +333,6 @@ class BaseScreen(MDScreen):
                             background
                         )
 
-
             # ------------------------------------------------
             # Text
             # ------------------------------------------------
@@ -346,13 +345,13 @@ class BaseScreen(MDScreen):
 
             if text_key is not None:
 
-                color = (
+                text_color = (
                     self.theme_manager.get(
                         text_key
                     )
                 )
 
-                if color is not None:
+                if text_color is not None:
 
                     if hasattr(
                         widget,
@@ -369,9 +368,8 @@ class BaseScreen(MDScreen):
                     ):
 
                         widget.text_color = (
-                            color
+                            text_color
                         )
-
 
             # ------------------------------------------------
             # Icon
@@ -385,13 +383,13 @@ class BaseScreen(MDScreen):
 
             if icon_key is not None:
 
-                color = (
+                icon_color = (
                     self.theme_manager.get(
                         icon_key
                     )
                 )
 
-                if color is not None:
+                if icon_color is not None:
 
                     if hasattr(
                         widget,
@@ -408,17 +406,19 @@ class BaseScreen(MDScreen):
                     ):
 
                         widget.icon_color = (
-                            color
+                            icon_color
                         )
 
-
-    # ====================================================
+    # ========================================================
     # Background
-    # ====================================================
+    # ========================================================
 
     def update_background_theme(self):
 
-        if self.background_overlay is None:
+        if (
+            self.background_overlay is None
+        ):
+
             return
 
         background = (
@@ -433,10 +433,9 @@ class BaseScreen(MDScreen):
                 background
             )
 
-
-    # ====================================================
+    # ========================================================
     # Top bar
-    # ====================================================
+    # ========================================================
 
     def add_top_bar(
         self,
@@ -447,7 +446,6 @@ class BaseScreen(MDScreen):
         self.top_bar_title_key = (
             title_key
         )
-
 
         # ====================================================
         # Dimensions
@@ -467,7 +465,6 @@ class BaseScreen(MDScreen):
             "top_bar",
             "horizontal_padding",
         )
-
 
         # ====================================================
         # Top bar
@@ -491,7 +488,6 @@ class BaseScreen(MDScreen):
             ],
         )
 
-
         # ====================================================
         # Back button
         # ====================================================
@@ -508,7 +504,6 @@ class BaseScreen(MDScreen):
         self.back_button.bind(
             on_release=self.go_back,
         )
-
 
         # ====================================================
         # Title
@@ -531,7 +526,6 @@ class BaseScreen(MDScreen):
             )
         )
 
-
         # ====================================================
         # Settings button
         # ====================================================
@@ -551,7 +545,6 @@ class BaseScreen(MDScreen):
                 "settings"
             )
         )
-
 
         # ====================================================
         # Build
@@ -577,26 +570,25 @@ class BaseScreen(MDScreen):
             self.top_bar
         )
 
-
         # ====================================================
         # Initial state
         # ====================================================
 
         self.refresh_base_ui()
 
-
-    # ====================================================
+    # ========================================================
     # Top bar translation
-    # ====================================================
+    # ========================================================
 
     def update_top_bar_text(self):
 
         if self.top_bar_title is None:
+
             return
 
         if not self.top_bar_title_key:
-            return
 
+            return
 
         value = (
             self.language_manager.get(
@@ -604,12 +596,14 @@ class BaseScreen(MDScreen):
             )
         )
 
-
-        # ------------------------------------------------
+        # ----------------------------------------------------
         # Dictionary translation
-        # ------------------------------------------------
+        # ----------------------------------------------------
 
-        if isinstance(value, dict):
+        if isinstance(
+            value,
+            dict,
+        ):
 
             title_key = (
                 f"{self.top_bar_title_key}_title"
@@ -639,10 +633,9 @@ class BaseScreen(MDScreen):
 
             return
 
-
-        # ------------------------------------------------
+        # ----------------------------------------------------
         # Missing translation
-        # ------------------------------------------------
+        # ----------------------------------------------------
 
         if value is None:
 
@@ -650,19 +643,17 @@ class BaseScreen(MDScreen):
 
             return
 
-
-        # ------------------------------------------------
+        # ----------------------------------------------------
         # Normal translation
-        # ------------------------------------------------
+        # ----------------------------------------------------
 
         self.top_bar_title.text = str(
             value
         )
 
-
-    # ====================================================
+    # ========================================================
     # Top bar theme
-    # ====================================================
+    # ========================================================
 
     def update_top_bar_theme(self):
 
@@ -675,10 +666,9 @@ class BaseScreen(MDScreen):
         if self.settings_button is None:
             return
 
-
-        # ------------------------------------------------
+        # ----------------------------------------------------
         # Title
-        # ------------------------------------------------
+        # ----------------------------------------------------
 
         text_primary = (
             self.theme_manager.get(
@@ -688,75 +678,100 @@ class BaseScreen(MDScreen):
 
         if text_primary is not None:
 
-            self.top_bar_title.theme_text_color = (
-                "Custom"
-            )
+            if hasattr(
+                self.top_bar_title,
+                "theme_text_color",
+            ):
 
-            self.top_bar_title.text_color = (
-                text_primary
-            )
+                self.top_bar_title.theme_text_color = (
+                    "Custom"
+                )
 
+            if hasattr(
+                self.top_bar_title,
+                "text_color",
+            ):
 
-        # ------------------------------------------------
+                self.top_bar_title.text_color = (
+                    text_primary
+                )
+
+        # ----------------------------------------------------
         # Buttons
-        # ------------------------------------------------
+        # ----------------------------------------------------
 
         for button in (
             self.back_button,
             self.settings_button,
         ):
 
+            icon_key = getattr(
+                button,
+                "app_icon_color",
+                "icon",
+            )
+
+            background_key = getattr(
+                button,
+                "app_background_color",
+                "top_bar_button",
+            )
+
             icon_color = (
                 self.theme_manager.get(
-                    getattr(
-                        button,
-                        "app_icon_color",
-                        "icon",
-                    )
+                    icon_key
                 )
             )
 
             background_color = (
                 self.theme_manager.get(
-                    getattr(
-                        button,
-                        "app_background_color",
-                        "top_bar_button",
-                    )
+                    background_key
                 )
             )
 
-
             if icon_color is not None:
 
-                button.theme_icon_color = (
-                    "Custom"
-                )
+                if hasattr(
+                    button,
+                    "theme_icon_color",
+                ):
 
-                button.icon_color = (
-                    icon_color
-                )
+                    button.theme_icon_color = (
+                        "Custom"
+                    )
 
+                if hasattr(
+                    button,
+                    "icon_color",
+                ):
+
+                    button.icon_color = (
+                        icon_color
+                    )
 
             if background_color is not None:
 
-                button.md_bg_color = (
-                    background_color
-                )
+                if hasattr(
+                    button,
+                    "md_bg_color",
+                ):
 
+                    button.md_bg_color = (
+                        background_color
+                    )
 
-    # ====================================================
+    # ========================================================
     # Navigation
-    # ====================================================
+    # ========================================================
 
     def go_back(
         self,
-        instance,
+        instance=None,
     ):
 
         if not self.previous_screen:
-            return
 
+            return
 
         previous = (
             self.previous_screen
@@ -770,7 +785,6 @@ class BaseScreen(MDScreen):
                 previous
             )
 
-
     def navigate_to(
         self,
         screen_name,
@@ -779,24 +793,33 @@ class BaseScreen(MDScreen):
     ):
 
         if self.manager is None:
-            return
 
+            return
 
         current = (
             self.manager.current
         )
 
-
         if current == screen_name:
+
             return
 
+        try:
 
-        screen = (
-            self.manager.get_screen(
-                screen_name
+            screen = (
+                self.manager.get_screen(
+                    screen_name
+                )
             )
-        )
 
+        except Exception as error:
+
+            print(
+                f"Unable to navigate to "
+                f"'{screen_name}': {error}"
+            )
+
+            return
 
         if previous is not None:
 
@@ -810,7 +833,6 @@ class BaseScreen(MDScreen):
                 current
             )
 
-
         for key, value in kwargs.items():
 
             setattr(
@@ -819,36 +841,30 @@ class BaseScreen(MDScreen):
                 value,
             )
 
-
         self.manager.current = (
             screen_name
         )
 
-
-    # ====================================================
+    # ========================================================
     # Screen-specific theme
-    # ====================================================
+    # ========================================================
 
     def refresh_screen_theme(self):
-
         """
-        Override in child screens when the screen
-        contains theme-specific state that needs
-        refreshing.
-
-        BaseScreen handles all generic widget
-        theme updates automatically.
+        Override in child screens if necessary.
         """
 
         pass
 
-    def create_input(
-        self,
-        hint_text="",
-        **kwargs,
-    ):
+    # ========================================================
+    # Cleanup
+    # ========================================================
 
-        return self.widget_factory.create_input(
-            hint_text=hint_text,
-            **kwargs,
-        )
+    def on_leave(self):
+
+        super().on_leave()
+
+        # Do not unbind here.
+        #
+        # Screens remain alive inside ScreenManager and need
+        # to react to future theme changes.
