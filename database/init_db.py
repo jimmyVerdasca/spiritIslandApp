@@ -562,6 +562,10 @@ def create_database(path):
 
     seed_trophies(cursor)
 
+    cursor.execute(
+        f"PRAGMA user_version = {DATABASE_VERSION}"
+    )
+
 
     # =========================================================
     # COMMIT
