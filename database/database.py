@@ -6,6 +6,7 @@ from contextlib import contextmanager
 from kivy.app import App
 
 from . import queries
+from database.migrations.runner import run_migrations
 
 from models.game_status import GameStatus
 from models.game import Game
@@ -40,46 +41,12 @@ def get_database_path():
 
     target = data_dir / DB_NAME
 
-    if needs_database_update(target):
+    if not target.exists():
         install_database(target)
+    else:
+        run_migrations(target)
 
     return target
-
-
-def needs_database_update(target):
-
-    if not target.exists():
-        return True
-
-    try:
-
-        db = sqlite3.connect(target)
-
-        cursor = db.cursor()
-
-        cursor.execute(
-            """
-            SELECT version
-            FROM database_info
-            """
-        )
-
-        version = cursor.fetchone()[0]
-
-        db.close()
-
-        print(
-            "Database version:",
-            version,
-            "Required:",
-            DATABASE_VERSION
-        )
-
-        return version != DATABASE_VERSION
-
-    except Exception:
-
-        return True
 
 
 def install_database(target):

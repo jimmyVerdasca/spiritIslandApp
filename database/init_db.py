@@ -213,14 +213,8 @@ def create_database(path):
         DROP TABLE IF EXISTS scenarios;
         DROP TABLE IF EXISTS difficulties;
         DROP TABLE IF EXISTS boards;
-        DROP TABLE IF EXISTS database_info;
         DROP TABLE IF EXISTS adversary_difficulties;
         DROP TABLE IF EXISTS trophies;
-
-
-        CREATE TABLE database_info(
-            version INTEGER NOT NULL
-        );
 
 
         CREATE TABLE spirits(
@@ -274,7 +268,9 @@ def create_database(path):
 
             min_players INTEGER NOT NULL,
 
-            max_players INTEGER NOT NULL
+            max_players INTEGER NOT NULL,
+
+            is_thematic INTEGER NOT NULL DEFAULT 0
         );
 
 
@@ -303,22 +299,6 @@ def create_database(path):
             )
         );
         """
-    )
-
-
-    # =========================================================
-    # DATABASE INFO
-    # =========================================================
-
-    cursor.execute(
-        """
-        INSERT INTO database_info(version)
-        VALUES(1)
-        """
-    )
-
-    cursor.execute(
-        f"PRAGMA user_version = {DATABASE_VERSION}"
     )
 
 
