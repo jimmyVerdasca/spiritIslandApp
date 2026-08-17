@@ -68,11 +68,11 @@ def run_migrations(database_path):
             )
 
         db.execute("BEGIN IMMEDIATE")
+        next_version = current_version
+        started_version = current_version
         while current_version < DATABASE_VERSION:
             
-            next_version = (
-                current_version + 1
-            )
+            next_version +=  1
 
             migration = MIGRATIONS.get(
                 next_version
@@ -110,7 +110,7 @@ def run_migrations(database_path):
         db.commit()
         print(
             f"Database migration completed: "
-            f"version {current_version} → {next_version}"
+            f"version {started_version} → {next_version}"
         )
 
     except Exception:
