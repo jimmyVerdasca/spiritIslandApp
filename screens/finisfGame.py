@@ -8,10 +8,6 @@ from kivymd.uix.button import MDRaisedButton
 from engine.formatter import format_game
 from engine.scoring import calculate_score
 
-from database.database import (
-    finish_game,
-    get_adversary_difficulty,
-)
 
 
 class FinishGameScreen(BaseScreen):
@@ -475,46 +471,33 @@ class FinishGameScreen(BaseScreen):
     # ====================================================
 
     def get_difficulties(self):
-
+    
         if not self.game:
-
             return 0, 0
-
 
         adversary_difficulty = 0
 
-
-        for game_adversary in (
-            self.game.adversaries
-        ):
+        for game_adversary in self.game.adversaries:
 
             if game_adversary.difficulty is None:
-
                 continue
 
-
-            result = get_adversary_difficulty(
-
+            key = (
                 game_adversary.adversary.id,
-
                 game_adversary.difficulty.id,
             )
 
+            score_difficulty = (
+                self.data.adversaries_difficulties.get(key)
+            )
 
-            if result:
-
-                adversary_difficulty += (
-                    result.score_difficulty
-                )
-
+            if score_difficulty is not None:
+                adversary_difficulty += score_difficulty
 
         scenario_difficulty = sum(
-
             scenario.score_difficulty
-
             for scenario in self.game.scenarios
         )
-
 
         return (
             adversary_difficulty,
@@ -776,7 +759,7 @@ class FinishGameScreen(BaseScreen):
             return
 
 
-        finish_game(
+        self.data.finish_game(
 
             game_id=self.game.id,
 

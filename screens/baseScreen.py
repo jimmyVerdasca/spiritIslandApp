@@ -31,12 +31,15 @@ class BaseScreen(MDScreen):
 
     def __init__(
         self,
+        data,
         **kwargs,
     ):
 
         super().__init__(
             **kwargs
         )
+        
+        self.data = data
 
         # ====================================================
         # Managers

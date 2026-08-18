@@ -79,6 +79,7 @@ def row_to_game_adversary(row) -> GameAdversary:
             id=row["difficulty_id"],
             level=row["difficulty_level"],
         ),
+        score_difficulty=row["score_difficulty"],
     )
 
 

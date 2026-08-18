@@ -1,6 +1,4 @@
 
-from database.database import get_adversary_difficulty
-
 def calculate_score(
     result,
     scenario_difficulty,
@@ -109,40 +107,15 @@ def calculate_game_difficulty(game):
     """
 
 
-
-    # ====================================================
-    # Adversary difficulty
-    # ====================================================
-
-    adversary_difficulty = 0
-
-    for game_adversary in game.adversaries:
-
-        if game_adversary.difficulty is None:
-            continue
-
-        difficulty = get_adversary_difficulty(
-            game_adversary.adversary.id,
-            game_adversary.difficulty.id,
-        )
-
-        if difficulty is not None:
-            adversary_difficulty += (
-                difficulty.score_difficulty
-            )
-
-
-    # ====================================================
-    # Scenario difficulty
-    # ====================================================
-
-    scenario_difficulty = sum(
-
-        scenario.score_difficulty
-
-        for scenario in game.scenarios
+    adversary_difficulty = sum(
+        game_adversary.score_difficulty
+        for game_adversary in game.adversaries
     )
 
+    scenario_difficulty = sum(
+        scenario.score_difficulty
+        for scenario in game.scenarios
+    )
 
     return (
         adversary_difficulty,

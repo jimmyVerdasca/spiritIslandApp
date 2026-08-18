@@ -1,12 +1,7 @@
 from models.converters import row_to_adversary_difficulty
 
-
-def get_adversary_difficulty(
-    cursor,
-    adversary_id,
-    difficulty_id,
-):
-
+def get_all(cursor):
+    
     cursor.execute(
         """
         SELECT
@@ -26,18 +21,13 @@ def get_adversary_difficulty(
         JOIN difficulties d
             ON d.id = ad.difficulty_id
 
-        WHERE ad.adversary_id = ?
-        AND ad.difficulty_id = ?
-        """,
-        (
-            adversary_id,
-            difficulty_id,
-        )
+        ORDER BY
+            ad.adversary_id,
+            ad.difficulty_id
+        """
     )
 
-    row = cursor.fetchone()
-
-    if row is None:
-        return None
-
-    return row_to_adversary_difficulty(row)
+    return [
+        row_to_adversary_difficulty(row)
+        for row in cursor.fetchall()
+    ]

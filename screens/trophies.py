@@ -5,8 +5,6 @@ from kivymd.uix.scrollview import MDScrollView
 from kivymd.uix.gridlayout import MDGridLayout
 from kivymd.uix.progressbar import MDProgressBar
 
-from database.database import get_trophies
-
 from widgets.trophy_card import TrophyCard
 
 
@@ -207,7 +205,7 @@ class TrophyScreen(BaseScreen):
         ):
             return
 
-        trophies = get_trophies()
+        trophies = self.data.trophies
 
         total = len(
             trophies
@@ -242,7 +240,7 @@ class TrophyScreen(BaseScreen):
 
         self.container.clear_widgets()
 
-        trophies = get_trophies()
+        trophies = self.data.trophies
 
         total = len(
             trophies

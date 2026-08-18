@@ -1,35 +1,10 @@
 import random
-from datetime import datetime
-from database.database import database, save_game
 from models.game import *
-from models.game_status import GameStatus
-
-
-from database.queries.spirits import (
-    get_all as get_spirits,
-    get_random as get_random_spirits
-)
-
-from database.queries.boards import (
-    get_configuration,
-    get_all as get_boards
-)
-
-from database.queries.adversaries import (
-    get_all as get_adversaries
-)
-
-from database.queries.scenarios import (
-    get_all as get_scenarios
-)
-
-from database.queries.difficulties import (
-    get_all as get_difficulties
-)
 
 
 
 def generate_game(
+    data,
     players: int | None = None,
 
     configuration: BoardConfiguration | None = None,
@@ -49,353 +24,479 @@ def generate_game(
 
     print(players)
     print(configuration)
+ # ====================================================
+    # Board configuration
+    # ====================================================
 
-    with database() as db:
+    if configuration is None:
 
-        cursor = db.cursor()
-        # ----------------------------
-        # Board configuration
-        # ----------------------------
+        if players is not None:
 
-        if configuration is None:
-            configuration = get_configuration(
-                cursor,
-                players=players
-            )
+            configurations = [
+                configuration
+                for configuration in data.configurations
+                if (
+                    configuration.min_players
+                    <= players
+                    <= configuration.max_players
+                )
+            ]
 
-        available_boards = get_boards(
-            cursor
-        )
+            if configurations:
 
-        if players is None:
-            players = random.randint(
-                configuration.min_players,
-                configuration.max_players
-            )
-
-        # ----------------------------
-        # Boards
-        # ----------------------------
-
-        if boards is None:
-    
-            chosen_boards = random.sample(
-                available_boards,
-                players
-            )
+                configuration = random.choice(
+                    configurations
+                )
 
         else:
 
-            chosen_boards = []
+            configuration = random.choice(
+                data.configurations
+            )
 
-            selected_boards = [
+
+    # ====================================================
+    # Players
+    # ====================================================
+
+    if players is None:
+
+        players = random.randint(
+            configuration.min_players,
+            configuration.max_players,
+        )
+
+
+    # ====================================================
+    # Boards
+    # ====================================================
+
+    available_boards = data.boards
+
+
+    if boards is None:
+
+        chosen_boards = random.sample(
+            available_boards,
+            players,
+        )
+
+    else:
+
+        chosen_boards = [
+            board
+            for board in boards
+            if board is not None
+        ]
+
+
+        missing = players - len(
+            chosen_boards
+        )
+
+
+        if missing > 0:
+
+            available = [
                 board
-                for board in boards
-                if board is not None
+                for board in available_boards
+                if board not in chosen_boards
             ]
 
 
             chosen_boards.extend(
-                selected_boards
-            )
-
-
-            missing = players - len(chosen_boards)
-
-
-            if missing > 0:
-
-                available = [
-                    board
-                    for board in available_boards
-                    if board not in chosen_boards
-                ]
-
-                chosen_boards.extend(
-                    random.sample(
-                        available,
-                        missing
-                    )
+                random.sample(
+                    available,
+                    missing,
                 )
-
-
-        # ----------------------------
-        # Spirits
-        # ----------------------------
-
-        if spirits is None:
-
-            # completely random
-            chosen_spirits = get_random_spirits(
-                cursor,
-                players
             )
 
-        else:
 
-            all_spirits = get_spirits(cursor)
+    # ====================================================
+    # Spirits
+    # ====================================================
 
-            chosen_spirits = []
+    available_spirits = data.spirits
 
-            already_selected = [
+
+    if spirits is None:
+
+        chosen_spirits = random.sample(
+            available_spirits,
+            players,
+        )
+
+    else:
+
+        chosen_spirits = [
+            spirit
+            for spirit in spirits
+            if spirit is not None
+        ]
+
+
+        missing = players - len(
+            chosen_spirits
+        )
+
+
+        if missing > 0:
+
+            available = [
                 spirit
-                for spirit in spirits
-                if spirit is not None
+                for spirit in available_spirits
+                if spirit not in chosen_spirits
             ]
 
 
-            # keep selected spirits
             chosen_spirits.extend(
-                already_selected
+                random.sample(
+                    available,
+                    missing,
+                )
             )
 
 
-            missing = players - len(chosen_spirits)
+    # ====================================================
+    # Random counts
+    # ====================================================
+
+    user_selected_adversaries = (
+        adversaries is not None
+        and len(adversaries) > 0
+    )
+
+    user_selected_scenarios = (
+        scenarios is not None
+        and len(scenarios) > 0
+    )
 
 
-            if missing > 0:
+    # ----------------------------------------------------
+    # User selected neither
+    # ----------------------------------------------------
 
-                available = [
-                    spirit
-                    for spirit in all_spirits
-                    if spirit not in chosen_spirits
+    if (
+        not user_selected_adversaries
+        and not user_selected_scenarios
+    ):
+
+        remaining = random.randint(
+            0,
+            2,
+        )
+
+        adversary_count = random.randint(
+            0,
+            remaining,
+        )
+
+        scenario_count = (
+            remaining
+            - adversary_count
+        )
+
+
+    # ----------------------------------------------------
+    # User selected scenarios only
+    # ----------------------------------------------------
+
+    elif (
+        not user_selected_adversaries
+        and user_selected_scenarios
+    ):
+
+        adversary_count = random.randint(
+            0,
+            max(
+                0,
+                2 - len(scenarios),
+            ),
+        )
+
+
+    # ----------------------------------------------------
+    # User selected adversaries only
+    # ----------------------------------------------------
+
+    elif (
+        user_selected_adversaries
+        and not user_selected_scenarios
+    ):
+
+        scenario_count = random.randint(
+            0,
+            max(
+                0,
+                2 - len(adversaries),
+            ),
+        )
+
+
+    # ----------------------------------------------------
+    # User selected both
+    # ----------------------------------------------------
+
+    else:
+
+        adversary_count = len(
+            adversaries
+        )
+
+        scenario_count = len(
+            scenarios
+        )
+
+
+    # ====================================================
+    # Difficulty limits
+    # ====================================================
+
+    minimum = (
+        min_difficulty
+        if min_difficulty is not None
+        else 1
+    )
+
+    maximum = (
+        max_difficulty
+        if max_difficulty is not None
+        else 6
+    )
+
+
+    # More than one scenario limits total difficulty
+    if (scenario_count or 0) > 1:
+
+        maximum = min(
+            maximum,
+            4,
+        )
+
+
+    # ====================================================
+    # Adversaries
+    # ====================================================
+
+    chosen_adversaries = []
+
+
+    all_adversaries = list(
+        data.adversaries
+    )
+
+    all_difficulties = list(
+        data.difficulties
+    )
+
+
+    available_adversaries = (
+        all_adversaries.copy()
+    )
+
+
+    random_adversaries = (
+        adversaries is None
+        or len(adversaries) == 0
+    )
+
+
+    if random_adversaries:
+
+        adversaries = [
+            (None, None)
+            for _ in range(
+                adversary_count
+            )
+        ]
+
+
+    respect_total_difficulty = (
+        len(adversaries) <= 6
+    )
+
+
+    total_difficulty = 0
+
+
+    for index, (
+        adversary,
+        selected_difficulty,
+    ) in enumerate(adversaries):
+
+        # ------------------------------------------------
+        # Select adversary
+        # ------------------------------------------------
+
+        if adversary is None:
+
+            adversary = random.choice(
+                available_adversaries
+            )
+
+            available_adversaries.remove(
+                adversary
+            )
+
+
+        # ------------------------------------------------
+        # Select difficulty
+        # ------------------------------------------------
+
+        difficulty = selected_difficulty
+
+
+        if difficulty is None:
+
+            if respect_total_difficulty:
+
+                remaining_points = (
+                    maximum
+                    - total_difficulty
+                )
+
+
+                remaining_adversaries = (
+                    len(adversaries)
+                    - index
+                    - 1
+                )
+
+
+                max_for_this_adversary = (
+                    remaining_points
+                    - remaining_adversaries
+                )
+
+
+                possible_difficulties = [
+                    d
+                    for d in all_difficulties
+                    if (
+                        minimum
+                        <= d.level
+                        <= max_for_this_adversary
+                    )
                 ]
 
-                chosen_spirits.extend(
-                    random.sample(
-                        available,
-                        missing
+
+                if possible_difficulties:
+
+                    difficulty = random.choice(
+                        possible_difficulties
                     )
-                )
-
-
-        # ----------------------------
-        # Random counts
-        # ----------------------------
-
-        user_selected_adversaries = (
-            adversaries is not None
-            and len(adversaries) > 0
-        )
-
-        user_selected_scenarios = (
-            scenarios is not None
-            and len(scenarios) > 0
-        )
-
-
-        # User did not define either
-        if not user_selected_adversaries and not user_selected_scenarios:
-
-            remaining = random.randint(0, 2)
-
-            adversary_count = random.randint(
-                0,
-                remaining
-            )
-
-            scenario_count = remaining - adversary_count
-
-
-        # User selected scenarios only
-        elif not user_selected_adversaries and user_selected_scenarios:
-
-            adversary_count = random.randint(
-                0,
-                max(0, 2 - len(scenarios))
-            )
-
-
-        # User selected adversaries only
-        elif user_selected_adversaries and not user_selected_scenarios:
-
-            scenario_count = random.randint(
-                0,
-                max(0, 2 - len(adversaries))
-            )
-
-
-        else:
-            # User selected both
-            adversary_count = len(adversaries)
-            scenario_count = len(scenarios)
-
-
-        # ----------------------------
-        # Difficulty limits
-        # ----------------------------
-
-        minimum = min_difficulty or 1
-        maximum = max_difficulty or 6
-
-        if (scenario_count or 0) > 1:
-            maximum = min(maximum, 4)
-
-
-        # ----------------------------
-        # Adversaries
-        # ----------------------------
-
-        chosen_adversaries = []
-
-        all_adversaries = get_adversaries(cursor)
-        all_difficulties = get_difficulties(cursor)
-
-        available_adversaries = all_adversaries.copy()
-
-
-        random_adversaries = (
-            adversaries is None
-            or len(adversaries) == 0
-        )
-
-
-        if random_adversaries:
-
-            adversaries = [
-                (None, None)
-                for _ in range(adversary_count)
-            ]
-
-
-        respect_total_difficulty = len(adversaries) <= 6
-
-
-        total_difficulty = 0
-
-
-        for index, (adv, difficulty) in enumerate(adversaries):
-
-            if adv is None:
-
-                adv = random.choice(
-                    available_adversaries
-                )
-
-                available_adversaries.remove(
-                    adv
-                )
-
-
-            # User selected a difficulty -> keep it
-            if difficulty is None:
-
-                if respect_total_difficulty:
-
-                    remaining_points = (
-                        maximum
-                        - total_difficulty
-                    )
-
-                    remaining_adversaries = (
-                        len(adversaries)
-                        - index
-                        - 1
-                    )
-
-                    max_for_this_adversary = (
-                        remaining_points
-                        - remaining_adversaries
-                    )
-
-                    possible_difficulties = [
-                        d
-                        for d in all_difficulties
-                        if (
-                            minimum
-                            <= d.level
-                            <= max_for_this_adversary
-                        )
-                    ]
-
-                    # User choices may have made the remaining
-                    # distribution impossible
-                    if possible_difficulties:
-                        difficulty = random.choice(
-                            possible_difficulties
-                        )
-                    else:
-                        difficulty = random.choice(
-                            all_difficulties
-                        )
 
                 else:
 
-                    # More than 6 adversaries:
-                    # no balancing, just random difficulty
                     difficulty = random.choice(
                         all_difficulties
                     )
 
+            else:
 
-            total_difficulty += difficulty.level
-
-
-            chosen_adversaries.append(
-                GameAdversary(
-                    adversary=adv,
-                    difficulty=difficulty
-                )
-            )
-
-
-        # ----------------------------
-        # Scenarios
-        # ----------------------------
-
-        all_scenarios = get_scenarios(cursor)
-
-
-        if scenarios is None:
-
-            # No user input -> random amount
-            chosen_scenarios = random.sample(
-                all_scenarios,
-                scenario_count
-            )
-
-        else:
-
-            chosen_scenarios = []
-
-            selected_scenarios = [
-                s
-                for s in scenarios
-                if s is not None
-            ]
-
-            chosen_scenarios.extend(
-                selected_scenarios
-            )
-
-
-            missing = len(scenarios) - len(chosen_scenarios)
-
-
-            if missing > 0:
-
-                available = [
-                    s
-                    for s in all_scenarios
-                    if s not in chosen_scenarios
-                ]
-
-                chosen_scenarios.extend(
-                    random.sample(
-                        available,
-                        missing
-                    )
+                # More than 6 adversaries:
+                # no total-difficulty balancing.
+                difficulty = random.choice(
+                    all_difficulties
                 )
 
-        game = Game(
-            players=players,
-            configuration=configuration,
-            spirits=chosen_spirits,
-            boards=chosen_boards,
-            adversaries=chosen_adversaries,
-            scenarios=chosen_scenarios,
+
+        # ------------------------------------------------
+        # Track difficulty
+        # ------------------------------------------------
+
+        total_difficulty += (
+            difficulty.level
         )
 
-        save_game(game)
 
-        return game
+        # ------------------------------------------------
+        # Create GameAdversary
+        # ------------------------------------------------
+
+        try:
+
+            score_difficulty = data.adversaries_difficulties[
+                (
+                    adversary.id,
+                    difficulty.id,
+                )
+            ]
+
+        except KeyError:
+
+            raise RuntimeError(
+                "Invalid adversary/difficulty combination: "
+                f"({adversary.id}, {difficulty.id})"
+            )
+
+
+        chosen_adversaries.append(
+            GameAdversary(
+                adversary=adversary,
+                difficulty=difficulty,
+                score_difficulty=score_difficulty,
+            )
+        )
+
+
+    # ====================================================
+    # Scenarios
+    # ====================================================
+
+    all_scenarios = list(
+        data.scenarios
+    )
+
+
+    if scenarios is None:
+
+        chosen_scenarios = random.sample(
+            all_scenarios,
+            scenario_count,
+        )
+
+    else:
+
+        chosen_scenarios = [
+            scenario
+            for scenario in scenarios
+            if scenario is not None
+        ]
+
+
+        missing = (
+            len(scenarios)
+            - len(chosen_scenarios)
+        )
+
+
+        if missing > 0:
+
+            available = [
+                scenario
+                for scenario in all_scenarios
+                if scenario not in chosen_scenarios
+            ]
+
+
+            chosen_scenarios.extend(
+                random.sample(
+                    available,
+                    missing,
+                )
+            )
+
+
+    # ====================================================
+    # Create game
+    # ====================================================
+
+    return Game(
+        players=players,
+        configuration=configuration,
+        spirits=chosen_spirits,
+        boards=chosen_boards,
+        adversaries=chosen_adversaries,
+        scenarios=chosen_scenarios,
+    )

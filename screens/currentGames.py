@@ -5,11 +5,6 @@ from kivymd.uix.scrollview import MDScrollView
 from kivymd.uix.dialog import MDDialog
 from kivymd.uix.button import MDFlatButton
 
-from database.database import (
-    get_running_games,
-    abandon_game as db_abandon_game,
-)
-
 from engine.formatter import format_game
 
 from widgets.current_game_card import CurrentGameCard
@@ -195,7 +190,7 @@ class CurrentGamesScreen(BaseScreen):
         self.loading = True
 
 
-        games = get_running_games(
+        games = self.data.get_running_games(
 
             limit=self.page_size,
 
@@ -382,7 +377,7 @@ class CurrentGamesScreen(BaseScreen):
             self.dialog = None
 
 
-        db_abandon_game(
+        self.data.abandon_game(
             game_id
         )
 

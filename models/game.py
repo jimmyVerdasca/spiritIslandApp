@@ -45,6 +45,7 @@ class Difficulty:
 class GameAdversary:
     adversary: Adversary
     difficulty: Difficulty
+    score_difficulty: int
 
 @dataclass
 class AdversaryDifficulty:
