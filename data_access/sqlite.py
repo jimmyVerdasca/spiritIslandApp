@@ -2,7 +2,7 @@ from pathlib import Path
 
 from database import database
 from database.config import BUNDLED_DB_PATH
-from data_access.base import DataProvider
+from .base import DataProvider
 
 
 class SQLiteDataProvider(DataProvider):

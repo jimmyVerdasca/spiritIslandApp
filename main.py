@@ -23,7 +23,7 @@ from widgets.app_background import AppBackground
 from managers.language_manager import LanguageManager
 from managers.theme_manager import ThemeManager
 from managers.settings_manager import SettingsManager
-from data_access import SQLiteDataProvider
+from data_access.factory import create_data_provider
 
 from config.active import *
 
@@ -74,20 +74,9 @@ class SpiritIslandApp(MDApp):
         )
 
 
-        if MODE == "standalone":
-    
-            self.data = SQLiteDataProvider(
-                database_path=(
-                    Path(self.user_data_dir)
-                    / DB_NAME
-                )
-            )
-
-        elif MODE == "http":
-            pass
-            #self.data = HTTPDataProvider(
-            #    base_url=API_URL
-            #)
+        self.data = create_data_provider(
+            user_data_dir=self.user_data_dir,
+        )
 
     # ========================================================
     # Build
