@@ -104,9 +104,13 @@ jobs:
         run: |
           python3 -m database.init_db
 
+      - name: Select Buildozer configuration
+        run: |
+          cp ${{ matrix.spec }} buildozer.spec
+
       - name: Build APK
         run: |
-          buildozer -f ${{ matrix.spec }} android debug
+          buildozer android debug
 
       - name: Rename APK
         run: |
