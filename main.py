@@ -2,6 +2,8 @@
 # main.py
 # ============================================================
 
+from pathlib import Path
+
 from kivymd.app import MDApp
 from kivy.uix.screenmanager import ScreenManager
 from kivy.uix.floatlayout import FloatLayout
@@ -21,6 +23,9 @@ from widgets.app_background import AppBackground
 from managers.language_manager import LanguageManager
 from managers.theme_manager import ThemeManager
 from managers.settings_manager import SettingsManager
+from data_access.factory import create_data_provider
+
+from config.active import *
 
 
 class SpiritIslandApp(MDApp):
@@ -68,6 +73,11 @@ class SpiritIslandApp(MDApp):
             )
         )
 
+
+        self.data = create_data_provider(
+            user_data_dir=self.user_data_dir,
+        )
+
     # ========================================================
     # Build
     # ========================================================
@@ -102,43 +112,43 @@ class SpiritIslandApp(MDApp):
 
         screen_manager.add_widget(
             HomeScreen(
-                name="home"
+                name="home", data=self.data
             )
         )
 
         screen_manager.add_widget(
             CurrentGamesScreen(
-                name="current"
+                name="current", data=self.data
             )
         )
 
         screen_manager.add_widget(
             NewGameScreen(
-                name="new"
+                name="new", data=self.data
             )
         )
 
         screen_manager.add_widget(
             TrophyScreen(
-                name="trophies"
+                name="trophies", data=self.data
             )
         )
 
         screen_manager.add_widget(
             HistoryScreen(
-                name="history"
+                name="history", data=self.data
             )
         )
 
         screen_manager.add_widget(
             FinishGameScreen(
-                name="finish"
+                name="finish", data=self.data
             )
         )
 
         screen_manager.add_widget(
             SettingsScreen(
-                name="settings"
+                name="settings", data=self.data
             )
         )
 

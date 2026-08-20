@@ -59,7 +59,7 @@ def get_by_key(cursor, key) -> Adversary:
 
 
 def get_by_id(cursor, game_id) -> list[GameAdversary]:
-
+    
     cursor.execute(
         """
         SELECT
@@ -67,15 +67,21 @@ def get_by_id(cursor, game_id) -> list[GameAdversary]:
             a.key AS adversary_key,
 
             d.id AS difficulty_id,
-            d.level AS difficulty_level
+            d.level AS difficulty_level,
 
-        FROM adversaries a
+            ad.score_difficulty AS score_difficulty
 
-        JOIN game_adversaries ga
-            ON ga.adversary_id = a.id
+        FROM game_adversaries ga
+
+        JOIN adversaries a
+            ON a.id = ga.adversary_id
 
         JOIN difficulties d
             ON d.id = ga.difficulty_id
+
+        JOIN adversary_difficulties ad
+            ON ad.adversary_id = a.id
+            AND ad.difficulty_id = d.id
 
         WHERE ga.game_id = ?
 

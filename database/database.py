@@ -1,9 +1,7 @@
-from pathlib import Path
 import shutil
 import sqlite3
 from contextlib import contextmanager
-
-from kivy.app import App
+from pathlib import Path
 
 from . import queries
 from database.migrations.runner import run_migrations
@@ -14,79 +12,77 @@ from models.converters import row_to_game
 
 from engine.trophy_conditions import CONDITIONS
 
-from database.config import (
-    DB_NAME,
-    DATABASE_VERSION,
-    DB_PATH
-)
+from database.config import DATABASE_VERSION
 
 
-def get_database_path():
+# =========================================================
+# DATABASE INITIALIZATION
+# =========================================================
 
-    app = App.get_running_app()
+def ensure_database(
+    database_path,
+    template_path,
+):
 
-    if app is None:
-        raise RuntimeError(
-            "Kivy application is not running"
+    database_path = Path(
+        database_path
+    )
+
+    template_path = Path(
+        template_path
+    )
+
+    # -----------------------------------------------------
+    # First launch
+    # -----------------------------------------------------
+
+    if not database_path.exists():
+
+        database_path.parent.mkdir(
+            parents=True,
+            exist_ok=True,
         )
 
-    data_dir = Path(
-        app.user_data_dir
-    )
+        if not template_path.exists():
 
-    data_dir.mkdir(
-        parents=True,
-        exist_ok=True
-    )
+            raise FileNotFoundError(
+                f"Bundled database not found: "
+                f"{template_path}"
+            )
 
-    target = data_dir / DB_NAME
-
-    if not target.exists():
-        install_database(target)
-    else:
-        run_migrations(target)
-
-    return target
-
-
-def install_database(target):
-
-    source = DB_PATH
-
-    if source is None:
-        raise FileNotFoundError(
-            "Bundled database not found"
+        shutil.copyfile(
+            template_path,
+            database_path,
         )
 
-    shutil.copyfile(
-        source,
-        target
+    # -----------------------------------------------------
+    # Existing database
+    # -----------------------------------------------------
+
+    run_migrations(
+        database_path
     )
 
 
-@contextmanager
-def database():
+# =========================================================
+# CONNECTION
+# =========================================================
 
-    connection = get_connection()
+def get_connection(
+    database_path,
+    row_factory=True,
+):
 
-    try:
-        yield connection
-
-    finally:
-        connection.close()
-
-
-def get_connection(row_factory=True):
-
-    path = get_database_path()
-
-    print(
-        f"Database path: {path}"
+    database_path = Path(
+        database_path
     )
 
-    db = sqlite3.connect(path)
+    db = sqlite3.connect(
+        database_path
+    )
 
     if row_factory:
+
         db.row_factory = sqlite3.Row
 
     cursor = db.cursor()
@@ -97,36 +93,46 @@ def get_connection(row_factory=True):
 
     version = cursor.fetchone()[0]
 
-    print(
-        f"Database version: {version}"
-    )
-
     if version != DATABASE_VERSION:
-
-        print(
-            "WARNING: database version mismatch!"
-        )
-
-        print(
-            f"Expected: {DATABASE_VERSION}"
-        )
-
-        print(
-            f"Found:    {version}"
-        )
-
-    else:
-
-        print(
-            "Database version OK"
+        raise RuntimeError(
+            f"Database version mismatch: "
+            f"expected {DATABASE_VERSION}, "
+            f"found {version}"
         )
 
     return db
 
 
-def save_game(game: Game) -> int:
+@contextmanager
+def database(
+    database_path,
+):
 
-    db = get_connection()
+    connection = get_connection(
+        database_path
+    )
+
+    try:
+
+        yield connection
+
+    finally:
+
+        connection.close()
+
+
+# =========================================================
+# GAMES
+# =========================================================
+
+def save_game(
+    database_path,
+    game: Game,
+) -> int:
+
+    db = get_connection(
+        database_path
+    )
 
     try:
 
@@ -134,7 +140,7 @@ def save_game(game: Game) -> int:
 
         game_id = queries.games.save_game(
             cursor,
-            game
+            game,
         )
 
         db.commit()
@@ -144,6 +150,7 @@ def save_game(game: Game) -> int:
     except Exception:
 
         db.rollback()
+
         raise
 
     finally:
@@ -152,13 +159,16 @@ def save_game(game: Game) -> int:
 
 
 def _get_games_by_status(
+    database_path,
     status: GameStatus,
     result=None,
     limit=20,
-    offset=0
+    offset=0,
 ) -> list[Game]:
 
-    db = get_connection()
+    db = get_connection(
+        database_path
+    )
 
     try:
 
@@ -169,51 +179,55 @@ def _get_games_by_status(
             status,
             result,
             limit,
-            offset
+            offset,
         )
 
         games = []
 
         for row in rows:
 
-            game = row_to_game(row)
+            game = row_to_game(
+                row
+            )
 
             game.configuration = (
                 queries.configurations.get_by_key(
                     cursor,
-                    game.configuration
+                    game.configuration,
                 )
             )
 
             game.spirits = (
                 queries.spirits.get_by_id(
                     cursor,
-                    game.id
+                    game.id,
                 )
             )
 
             game.boards = (
                 queries.boards.get_for_game(
                     cursor,
-                    game.id
+                    game.id,
                 )
             )
 
             game.adversaries = (
                 queries.adversaries.get_by_id(
                     cursor,
-                    game.id
+                    game.id,
                 )
             )
 
             game.scenarios = (
                 queries.scenarios.get_by_id(
                     cursor,
-                    game.id
+                    game.id,
                 )
             )
 
-            games.append(game)
+            games.append(
+                game
+            )
 
         return games
 
@@ -223,230 +237,196 @@ def _get_games_by_status(
 
 
 def get_running_games(
+    database_path,
     limit=20,
-    offset=0
+    offset=0,
 ) -> list[Game]:
 
     return _get_games_by_status(
+        database_path,
         GameStatus.RUNNING,
         limit=limit,
-        offset=offset
+        offset=offset,
     )
 
 
 def get_finished_games(
+    database_path,
     result=None,
     limit=20,
-    offset=0
+    offset=0,
 ) -> list[Game]:
 
     return _get_games_by_status(
+        database_path,
         GameStatus.FINISHED,
         result=result,
         limit=limit,
-        offset=offset
+        offset=offset,
     )
 
 
 def get_abandoned_games(
+    database_path,
     limit=20,
-    offset=0
+    offset=0,
 ) -> list[Game]:
 
     return _get_games_by_status(
+        database_path,
         GameStatus.ABANDONED,
-        limit,
-        offset
+        limit=limit,
+        offset=offset,
     )
 
 
-def get_configurations():
+# =========================================================
+# STATIC DATA
+# =========================================================
 
-    db = get_connection()
-
-    try:
-
-        cursor = db.cursor()
-
-        configurations = queries.configurations.get_all(
-            cursor
-        )
-
-        return configurations
-
-    finally:
-
-        db.close()
-
-
-def get_spirits():
-
-    db = get_connection()
-
-    try:
-
-        cursor = db.cursor()
-
-        spirits = queries.spirits.get_all(
-            cursor
-        )
-
-        return spirits
-
-    finally:
-
-        db.close()
-
-
-def get_boards():
-
-    db = get_connection()
-
-    try:
-
-        cursor = db.cursor()
-
-        boards = queries.boards.get_all(
-            cursor
-        )
-
-        return boards
-
-    finally:
-
-        db.close()
-
-
-def get_adversaries():
-
-    db = get_connection()
-
-    try:
-
-        cursor = db.cursor()
-
-        adversaries = queries.adversaries.get_all(
-            cursor
-        )
-
-        return adversaries
-
-    finally:
-
-        db.close()
-
-
-def get_difficulties():
-
-    db = get_connection()
-
-    try:
-
-        cursor = db.cursor()
-
-        difficulties = queries.difficulties.get_all(
-            cursor
-        )
-
-        return difficulties
-
-    finally:
-
-        db.close()
-
-
-def get_scenarios():
-
-    db = get_connection()
-
-    try:
-
-        cursor = db.cursor()
-
-        scenarios = queries.scenarios.get_all(
-            cursor
-        )
-
-        return scenarios
-
-    finally:
-
-        db.close()
-
-
-def abandon_game(game_id):
-
-    db = get_connection()
-
-    try:
-
-        cursor = db.cursor()
-
-        queries.games.abandon_game(
-            cursor,
-            game_id
-        )
-
-        db.commit()
-
-    finally:
-
-        db.close()
-
-
-def finish_game(
-    game_id,
-    result,
-    score,
-    invader_cards,
-    dahan,
-    blight
+def get_configurations(
+    database_path,
 ):
 
-    db = get_connection()
+    db = get_connection(
+        database_path
+    )
 
     try:
 
         cursor = db.cursor()
 
-        queries.games.finish_game(
-            cursor,
-            game_id,
-            result,
-            score,
-            invader_cards,
-            dahan,
-            blight
+        return queries.configurations.get_all(
+            cursor
         )
-
-        db.commit()
 
     finally:
 
         db.close()
 
 
-def get_adversary_difficulty(
-    adversary_id,
-    difficulty_id
+def get_spirits(
+    database_path,
 ):
 
-    db = get_connection()
+    db = get_connection(
+        database_path
+    )
 
     try:
 
         cursor = db.cursor()
 
-        adversary_difficulty = (
-            queries.adversary_difficulty
-            .get_adversary_difficulty(
-                cursor,
-                adversary_id,
-                difficulty_id
+        return queries.spirits.get_all(
+            cursor
+        )
+
+    finally:
+
+        db.close()
+
+
+def get_boards(
+    database_path,
+):
+
+    db = get_connection(
+        database_path
+    )
+
+    try:
+
+        cursor = db.cursor()
+
+        return queries.boards.get_all(
+            cursor
+        )
+
+    finally:
+
+        db.close()
+
+
+def get_adversaries(
+    database_path,
+):
+
+    db = get_connection(
+        database_path
+    )
+
+    try:
+
+        cursor = db.cursor()
+
+        return queries.adversaries.get_all(
+            cursor
+        )
+
+    finally:
+
+        db.close()
+
+
+def get_difficulties(
+    database_path,
+):
+
+    db = get_connection(
+        database_path
+    )
+
+    try:
+
+        cursor = db.cursor()
+
+        return queries.difficulties.get_all(
+            cursor
+        )
+
+    finally:
+
+        db.close()
+
+
+def get_scenarios(
+    database_path,
+):
+
+    db = get_connection(
+        database_path
+    )
+
+    try:
+
+        cursor = db.cursor()
+
+        return queries.scenarios.get_all(
+            cursor
+        )
+
+    finally:
+
+        db.close()
+
+
+def get_adversaries_difficulties(
+    database_path,
+):
+
+    db = get_connection(
+        database_path
+    )
+
+    try:
+
+        cursor = db.cursor()
+
+        return (
+            queries.adversary_difficulty.get_all(
+                cursor
             )
         )
-
-        return adversary_difficulty
 
     finally:
 
@@ -454,19 +434,23 @@ def get_adversary_difficulty(
 
 
 def get_scenario_difficulty(
-    scenario_id
+    database_path,
+    scenario_id,
 ):
 
-    db = get_connection()
+    db = get_connection(
+        database_path
+    )
 
     try:
 
         cursor = db.cursor()
 
         scenario = (
-            queries.scenarios.get_scenario_difficulty(
+            queries.scenarios
+            .get_scenario_difficulty(
                 cursor,
-                scenario_id
+                scenario_id,
             )
         )
 
@@ -480,9 +464,81 @@ def get_scenario_difficulty(
         db.close()
 
 
-def get_trophies():
+# =========================================================
+# GAME STATE
+# =========================================================
 
-    db = get_connection()
+def abandon_game(
+    database_path,
+    game_id,
+):
+
+    db = get_connection(
+        database_path
+    )
+
+    try:
+
+        cursor = db.cursor()
+
+        queries.games.abandon_game(
+            cursor,
+            game_id,
+        )
+
+        db.commit()
+
+    finally:
+
+        db.close()
+
+
+def finish_game(
+    database_path,
+    game_id,
+    result,
+    score,
+    invader_cards,
+    dahan,
+    blight,
+):
+
+    db = get_connection(
+        database_path
+    )
+
+    try:
+
+        cursor = db.cursor()
+
+        queries.games.finish_game(
+            cursor,
+            game_id,
+            result,
+            score,
+            invader_cards,
+            dahan,
+            blight,
+        )
+
+        db.commit()
+
+    finally:
+
+        db.close()
+
+
+# =========================================================
+# TROPHIES
+# =========================================================
+
+def get_trophies(
+    database_path,
+):
+
+    db = get_connection(
+        database_path
+    )
 
     try:
 
@@ -494,9 +550,12 @@ def get_trophies():
 
         for trophy in trophies:
 
-            trophy.unlocked = check_trophy_condition(
-                cursor,
-                trophy
+            trophy.unlocked = (
+                check_trophy_condition(
+                    cursor,
+                    trophy,
+                    database_path,
+                )
             )
 
         return trophies
@@ -508,7 +567,8 @@ def get_trophies():
 
 def check_trophy_condition(
     cursor,
-    trophy
+    trophy,
+    database_path,
 ):
 
     if trophy.sql_condition:
@@ -524,17 +584,21 @@ def check_trophy_condition(
     if trophy.python_condition:
 
         return check_python_condition(
-            trophy.python_condition
+            trophy.python_condition,
+            database_path,
         )
 
     return False
 
 
 def check_python_condition(
-    condition_name
+    condition_name,
+    database_path,
 ):
 
-    games = get_finished_games()
+    games = get_finished_games(
+        database_path
+    )
 
     condition = CONDITIONS.get(
         condition_name
@@ -543,4 +607,6 @@ def check_python_condition(
     if condition is None:
         return False
 
-    return condition(games)
+    return condition(
+        games
+    )

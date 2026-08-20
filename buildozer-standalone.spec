@@ -3,7 +3,7 @@
 title = Spirit Island Companion
 
 package.name = spiritisland
-package.domain = org.spiritisland
+package.domain = org.spiritisland.standalone
 
 version = 0.1.0
 

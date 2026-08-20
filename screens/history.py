@@ -3,8 +3,6 @@ from .baseScreen import BaseScreen
 from kivymd.uix.boxlayout import MDBoxLayout
 from kivymd.uix.scrollview import MDScrollView
 
-from database.database import get_finished_games
-
 from widgets.history_card import HistoryCard
 
 
@@ -320,11 +318,11 @@ class HistoryScreen(BaseScreen):
 
         if self.current_filter == "ALL":
 
-            games = get_finished_games()
+            games = self.data.get_finished_games()
 
         else:
 
-            games = get_finished_games(
+            games = self.data.get_finished_games(
                 result=self.current_filter
             )
 

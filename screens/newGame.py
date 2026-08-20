@@ -6,14 +6,6 @@ from kivymd.uix.dialog import MDDialog
 
 from .baseScreen import BaseScreen
 
-from database.database import (
-    get_configurations,
-    get_spirits,
-    get_boards,
-    get_adversaries,
-    get_difficulties,
-    get_scenarios,
-)
 
 from engine.generator import generate_game
 from engine.formatter import format_game
@@ -21,7 +13,6 @@ from widgets.section_header import SectionHeader
 from widgets.player_card import PlayerCard
 from widgets.selection_row import SelectionRow
 from widgets.section_header import SectionHeader
-from widgets.selection_menu_item import SelectionMenuItem
 
 class NewGameScreen(BaseScreen):
 
@@ -921,7 +912,7 @@ class NewGameScreen(BaseScreen):
     ):
 
         configurations = (
-            get_configurations()
+            self.data.get_configurations()
         )
 
 
@@ -1180,7 +1171,7 @@ class NewGameScreen(BaseScreen):
         index,
     ):
 
-        adversaries = get_adversaries()
+        adversaries = self.data.get_adversaries()
 
 
         selected = [
@@ -1313,7 +1304,7 @@ class NewGameScreen(BaseScreen):
         index,
     ):
 
-        difficulties = get_difficulties()
+        difficulties = self.data.get_difficulties()
 
 
         items = [
@@ -1468,7 +1459,7 @@ class NewGameScreen(BaseScreen):
     ):
 
         max_adversaries = len(
-            get_adversaries()
+            self.data.get_adversaries()
         )
 
 
@@ -1567,7 +1558,7 @@ class NewGameScreen(BaseScreen):
         index,
     ):
 
-        scenarios = get_scenarios()
+        scenarios = self.data.get_scenarios()
 
 
         selected = [
@@ -1733,7 +1724,7 @@ class NewGameScreen(BaseScreen):
     ):
 
         max_scenarios = len(
-            get_scenarios()
+            self.data.get_scenarios()
         )
 
 
@@ -1815,7 +1806,7 @@ class NewGameScreen(BaseScreen):
         index,
     ):
 
-        spirits = get_spirits()
+        spirits = self.data.get_spirits()
 
 
         items = [
@@ -1952,7 +1943,7 @@ class NewGameScreen(BaseScreen):
         index,
     ):
 
-        boards = get_boards()
+        boards = self.data.get_boards()
 
 
         items = [
@@ -2123,6 +2114,7 @@ class NewGameScreen(BaseScreen):
 
 
         game = generate_game(
+            data=self.data,
             players=self.players,
             configuration=self.configuration,
             spirits=spirits,
@@ -2131,6 +2123,7 @@ class NewGameScreen(BaseScreen):
             scenarios=scenarios,
         )
 
+        self.data.save_game(game)
 
         self.result.text = format_game(
             game
