@@ -15,7 +15,7 @@ from models.game_status import GameStatus
 
 
 # =========================================================
-# SPIRIT
+# SQL row converters
 # =========================================================
 
 def row_to_spirit(row) -> Spirit:
@@ -26,10 +26,6 @@ def row_to_spirit(row) -> Spirit:
     )
 
 
-# =========================================================
-# BOARD
-# =========================================================
-
 def row_to_board(row) -> Board:
 
     return Board(
@@ -37,10 +33,6 @@ def row_to_board(row) -> Board:
         key=row["key"],
     )
 
-
-# =========================================================
-# ADVERSARY
-# =========================================================
 
 def row_to_adversary(row) -> Adversary:
 
@@ -50,10 +42,6 @@ def row_to_adversary(row) -> Adversary:
     )
 
 
-# =========================================================
-# DIFFICULTY
-# =========================================================
-
 def row_to_difficulty(row) -> Difficulty:
 
     return Difficulty(
@@ -61,10 +49,6 @@ def row_to_difficulty(row) -> Difficulty:
         level=row["level"],
     )
 
-
-# =========================================================
-# GAME ADVERSARY
-# =========================================================
 
 def row_to_game_adversary(row) -> GameAdversary:
 
@@ -82,10 +66,6 @@ def row_to_game_adversary(row) -> GameAdversary:
         score_difficulty=row["score_difficulty"],
     )
 
-
-# =========================================================
-# ADVERSARY DIFFICULTY
-# =========================================================
 
 def row_to_adversary_difficulty(row) -> AdversaryDifficulty:
 
@@ -106,10 +86,6 @@ def row_to_adversary_difficulty(row) -> AdversaryDifficulty:
     )
 
 
-# =========================================================
-# SCENARIO
-# =========================================================
-
 def row_to_scenario(row) -> Scenario:
 
     return Scenario(
@@ -118,10 +94,6 @@ def row_to_scenario(row) -> Scenario:
         score_difficulty=row["score_difficulty"],
     )
 
-
-# =========================================================
-# BOARD CONFIGURATION
-# =========================================================
 
 def row_to_configuration(row) -> BoardConfiguration:
 
@@ -132,10 +104,6 @@ def row_to_configuration(row) -> BoardConfiguration:
         max_players=row["max_players"],
     )
 
-
-# =========================================================
-# GAME
-# =========================================================
 
 def row_to_game(row) -> Game:
 
@@ -152,10 +120,6 @@ def row_to_game(row) -> Game:
         created_at=row["created_at"],
     )
 
-
-# =========================================================
-# BUILD GAME
-# =========================================================
 
 def build_game(
     game_row,
@@ -177,10 +141,6 @@ def build_game(
     return game
 
 
-# =========================================================
-# TROPHY
-# =========================================================
-
 def row_to_trophy(row) -> Trophy:
 
     return Trophy(
@@ -191,3 +151,328 @@ def row_to_trophy(row) -> Trophy:
         sql_condition=row["sql_condition"],
         python_condition=row["python_condition"],
     )
+
+
+
+
+# =========================================================
+# JSON converters
+# =========================================================
+
+def json_to_spirit(data) -> Spirit:
+
+    return Spirit(
+        id=data["id"],
+        key=data["key"],
+    )
+
+
+def spirit_to_json(spirit: Spirit) -> dict:
+
+    return {
+        "id": spirit.id,
+        "key": spirit.key,
+    }
+
+
+def json_to_board(data) -> Board:
+
+    return Board(
+        id=data["id"],
+        key=data["key"],
+    )
+
+
+def board_to_json(board: Board) -> dict:
+
+    return {
+        "id": board.id,
+        "key": board.key,
+    }
+
+
+def json_to_configuration(
+    data,
+) -> BoardConfiguration:
+
+    return BoardConfiguration(
+        id=data["id"],
+        key=data["key"],
+        min_players=data["min_players"],
+        max_players=data["max_players"],
+    )
+
+
+def configuration_to_json(
+    configuration: BoardConfiguration,
+) -> dict:
+
+    return {
+        "id": configuration.id,
+        "key": configuration.key,
+        "min_players": configuration.min_players,
+        "max_players": configuration.max_players,
+    }
+
+
+def json_to_adversary(data) -> Adversary:
+
+    return Adversary(
+        id=data["id"],
+        key=data["key"],
+    )
+
+
+def adversary_to_json(
+    adversary: Adversary,
+) -> dict:
+
+    return {
+        "id": adversary.id,
+        "key": adversary.key,
+    }
+
+
+def json_to_difficulty(data) -> Difficulty:
+
+    return Difficulty(
+        id=data["id"],
+        level=data["level"],
+    )
+
+
+def difficulty_to_json(
+    difficulty: Difficulty,
+) -> dict:
+
+    return {
+        "id": difficulty.id,
+        "level": difficulty.level,
+    }
+
+
+def json_to_game_adversary(
+    data,
+) -> GameAdversary:
+
+    return GameAdversary(
+        adversary=json_to_adversary(
+            data["adversary"]
+        ),
+        difficulty=json_to_difficulty(
+            data["difficulty"]
+        ),
+        score_difficulty=data["score_difficulty"],
+    )
+
+
+def game_adversary_to_json(
+    adversary: GameAdversary,
+) -> dict:
+
+    return {
+        "adversary": adversary_to_json(
+            adversary.adversary
+        ),
+        "difficulty": difficulty_to_json(
+            adversary.difficulty
+        ),
+        "score_difficulty": (
+            adversary.score_difficulty
+        ),
+    }
+
+
+def json_to_adversary_difficulty(
+    data,
+) -> AdversaryDifficulty:
+
+    return AdversaryDifficulty(
+        adversary=json_to_adversary(
+            data["adversary"]
+        ),
+        difficulty=json_to_difficulty(
+            data["difficulty"]
+        ),
+        score_difficulty=data["score_difficulty"],
+    )
+
+
+def adversary_difficulty_to_json(
+    combination: AdversaryDifficulty,
+) -> dict:
+
+    return {
+        "adversary": adversary_to_json(
+            combination.adversary
+        ),
+        "difficulty": difficulty_to_json(
+            combination.difficulty
+        ),
+        "score_difficulty": (
+            combination.score_difficulty
+        ),
+    }
+
+
+def json_to_scenario(data) -> Scenario:
+
+    return Scenario(
+        id=data["id"],
+        key=data["key"],
+        score_difficulty=data["score_difficulty"],
+    )
+
+
+def scenario_to_json(
+    scenario: Scenario,
+) -> dict:
+
+    return {
+        "id": scenario.id,
+        "key": scenario.key,
+        "score_difficulty": (
+            scenario.score_difficulty
+        ),
+    }
+
+
+def json_to_game(data) -> Game:
+
+    return Game(
+        id=data.get("id"),
+        players=data.get("players", 0),
+
+        configuration=(
+            json_to_configuration(
+                data["configuration"]
+            )
+            if data.get("configuration") is not None
+            else None
+        ),
+
+        spirits=[
+            json_to_spirit(item)
+            for item in data.get("spirits", [])
+        ],
+
+        boards=[
+            json_to_board(item)
+            for item in data.get("boards", [])
+        ],
+
+        adversaries=[
+            json_to_game_adversary(item)
+            for item in data.get("adversaries", [])
+        ],
+
+        scenarios=[
+            json_to_scenario(item)
+            for item in data.get("scenarios", [])
+        ],
+
+        status=GameStatus(
+            data.get(
+                "status",
+                GameStatus.RUNNING.value,
+            )
+        ),
+
+        result=data.get("result"),
+        score=data.get("score"),
+
+        invader_cards_remaining=(
+            data.get("invader_cards_remaining")
+        ),
+
+        dahan_remaining=(
+            data.get("dahan_remaining")
+        ),
+
+        blight_remaining=(
+            data.get("blight_remaining")
+        ),
+
+        created_at=data.get("created_at"),
+    )
+
+
+def game_to_json(game: Game) -> dict:
+
+    return {
+        "id": game.id,
+        "players": game.players,
+
+        "configuration": (
+            configuration_to_json(
+                game.configuration
+            )
+            if game.configuration is not None
+            else None
+        ),
+
+        "spirits": [
+            spirit_to_json(spirit)
+            for spirit in game.spirits
+        ],
+
+        "boards": [
+            board_to_json(board)
+            for board in game.boards
+        ],
+
+        "adversaries": [
+            game_adversary_to_json(adversary)
+            for adversary in game.adversaries
+        ],
+
+        "scenarios": [
+            scenario_to_json(scenario)
+            for scenario in game.scenarios
+        ],
+
+        "status": game.status.value,
+
+        "result": game.result,
+        "score": game.score,
+
+        "invader_cards_remaining": (
+            game.invader_cards_remaining
+        ),
+
+        "dahan_remaining": (
+            game.dahan_remaining
+        ),
+
+        "blight_remaining": (
+            game.blight_remaining
+        ),
+
+        "created_at": game.created_at,
+    }
+
+
+def json_to_trophy(data) -> Trophy:
+
+    return Trophy(
+        id=data["id"],
+        key=data["key"],
+        locked_image=data["locked_image"],
+        unlocked_image=data["unlocked_image"],
+        sql_condition=data["sql_condition"],
+        python_condition=data["python_condition"],
+        unlocked=data.get("unlocked", False),
+    )
+
+
+def trophy_to_json(trophy: Trophy) -> dict:
+
+    return {
+        "id": trophy.id,
+        "key": trophy.key,
+        "locked_image": trophy.locked_image,
+        "unlocked_image": trophy.unlocked_image,
+        "sql_condition": trophy.sql_condition,
+        "python_condition": trophy.python_condition,
+        "unlocked": trophy.unlocked,
+    }
