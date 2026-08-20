@@ -23,13 +23,13 @@ jobs:
         include:
 
           - name: standalone
-            spec: buildozer-standalone.spec
+            spec: frontend/buildozer-standalone.spec
             package: spirit-island-standalone
             mode: standalone
             initialize_database: true
 
           - name: http
-            spec: buildozer-http.spec
+            spec: frontend/buildozer-http.spec
             package: spirit-island-http
             mode: http
             initialize_database: false
@@ -102,7 +102,7 @@ jobs:
       - name: Initialize database
         if: ${{ matrix.initialize_database }}
         run: |
-          python3 -m database.init_db
+          python3 -m shared.database.init_db
 
       - name: Select Buildozer configuration
         run: |

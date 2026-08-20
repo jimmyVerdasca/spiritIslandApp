@@ -9,6 +9,7 @@ version = 0.1.0
 
 source.dir = .
 source.include_exts = py,png,jpg,kv,atlas,db,sql,mp3
+source.include_patterns = frontend/**,shared/**
 
 requirements = python3==3.10.11,hostpython3==3.10.11,kivy==2.2.1,kivymd==1.2.0,requests==2.32.3
 
