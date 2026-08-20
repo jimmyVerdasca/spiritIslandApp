@@ -3,6 +3,8 @@ from kivy.clock import Clock
 from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.image import Image
 
+from frontend.managers.assets_manager import AssetManager
+
 
 class AppBackground(FloatLayout):
 
@@ -10,7 +12,7 @@ class AppBackground(FloatLayout):
         super().__init__(**kwargs)
 
         self.background_image = Image(
-            source="assets/home/island.png",
+            source=AssetManager.path("home", "island.png"),
             size_hint=(1.12, 1.12),
             pos_hint={
                 "center_x": 0.5,

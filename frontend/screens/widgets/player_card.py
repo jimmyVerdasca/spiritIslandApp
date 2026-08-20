@@ -4,6 +4,8 @@ from kivy.uix.image import Image
 from kivymd.uix.boxlayout import MDBoxLayout
 from kivymd.uix.card import MDCard
 
+from frontend.managers.assets_manager import AssetManager
+
 
 class PlayerCard(MDCard):
 
@@ -140,18 +142,12 @@ class PlayerCard(MDCard):
         # =================================================
 
         self.spirit_image = Image(
-
-            source=(
-                "assets/spirits/Any.png"
-            ),
-
+            source=AssetManager.path("spirits", "Any.png",),
             size_hint=(1, 1),
-
             pos_hint={
                 "x": 0,
                 "y": 0,
             },
-
             fit_mode="cover",
         )
 
@@ -184,23 +180,12 @@ class PlayerCard(MDCard):
         # =================================================
 
         self.board_image = Image(
-
-            source=(
-                "assets/boards/Any.png"
-            ),
-
+            source=AssetManager.path("boards", "Any.png",),
             size_hint=(1, 1),
-
-            # IMPORTANT:
-            # Keep the original fixed vertical positioning.
-            #
-            # The board image is deliberately shifted downward
-            # inside its container.
             pos_hint={
                 "x": 0,
                 "y": -0.5,
             },
-
             fit_mode="contain",
         )
 
@@ -518,9 +503,7 @@ class PlayerCard(MDCard):
 
             self.spirit_name_label.text = ""
 
-            self.spirit_image.source = (
-                "assets/spirits/Any.png"
-            )
+            self.spirit_image.source = AssetManager.path("spirits", "Any.png")
 
         else:
 
@@ -530,9 +513,7 @@ class PlayerCard(MDCard):
                 )
             )
 
-            self.spirit_image.source = (
-                f"assets/spirits/{spirit.key}.png"
-            )
+            self.spirit_image.source = AssetManager.path("spirits", f"{spirit.key}.png")
 
 
         # Make sure Kivy notices the image change.
@@ -556,9 +537,7 @@ class PlayerCard(MDCard):
                 self.t("any")
             )
 
-            self.board_image.source = (
-                "assets/boards/Any.png"
-            )
+            self.board_image.source = AssetManager.path("boards", "Any.png")
 
         else:
 
@@ -568,9 +547,7 @@ class PlayerCard(MDCard):
                 )
             )
 
-            self.board_image.source = (
-                f"assets/boards/{board.key}.png"
-            )
+            self.board_image.source = AssetManager.path("boards", f"{board.key}.png")
 
 
         # Make sure Kivy notices the image change.

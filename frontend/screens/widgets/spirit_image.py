@@ -9,9 +9,7 @@ from kivymd.uix.label import MDLabel
 
 from theme import get_theme
 from theme.translations import t
-
-
-SPIRIT_IMAGE_PATH = "assets/spirits/"
+from frontend.managers.assets_manager import AssetManager
 
 
 class SpiritImage(MDCard):
@@ -172,10 +170,7 @@ class SpiritImage(MDCard):
         else:
 
             # The key is used for the asset filename
-            self.image.source = (
-                f"{SPIRIT_IMAGE_PATH}"
-                f"{spirit.key}.png"
-            )
+            self.image.source = AssetManager.path("spirits", f"{spirit.key}.png")
 
             # The key is translated for display
             self.name_label.text = t(

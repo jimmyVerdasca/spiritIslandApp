@@ -1,15 +1,13 @@
 from kivymd.app import MDApp
-
 from kivymd.uix.card import MDCard
 from kivymd.uix.label import MDLabel
-
 from kivy.uix.image import Image
 from kivy.metrics import dp
 
+from frontend.managers.assets_manager import AssetManager
+
 
 class TrophyCard(MDCard):
-
-    TROPHY_IMAGE_PATH = "assets/trophies/"
 
     def __init__(self, trophy, **kwargs):
 
@@ -47,11 +45,9 @@ class TrophyCard(MDCard):
 
         self.image = Image(
             source=(
-                self.TROPHY_IMAGE_PATH
-                + (
-                    trophy.unlocked_image
-                    if trophy.unlocked
-                    else trophy.locked_image
+                AssetManager.path(
+                    "trophies",
+                    trophy.unlocked_image if trophy.unlocked else trophy.locked_image
                 )
             ),
             allow_stretch=True,

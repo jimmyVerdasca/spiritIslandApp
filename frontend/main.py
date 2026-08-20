@@ -21,6 +21,7 @@ from .managers.language_manager import LanguageManager
 from .managers.theme_manager import ThemeManager
 from .managers.settings_manager import SettingsManager
 from .managers.music_manager import MusicManager
+from .managers.assets_manager import AssetManager
 
 from shared.data_access.factory import create_data_provider
 from config.active import *
@@ -28,7 +29,7 @@ from config.active import *
 
 class SpiritIslandApp(MDApp):
 
-    icon = "assets/home/logoApp.png"
+    icon = AssetManager.path("home", "logoApp.png")
 
     def __init__(
         self,

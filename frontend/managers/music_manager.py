@@ -1,5 +1,6 @@
 from kivy.core.audio import SoundLoader
 
+from frontend.managers.assets_manager import AssetManager
 
 class MusicManager:
 
@@ -13,7 +14,7 @@ class MusicManager:
             return
 
         cls.sound = SoundLoader.load(
-            "assets/home/Spirit Island Theme.mp3"
+            AssetManager.path("home", "Spirit Island Theme.mp3")
         )
 
         if cls.sound is None:
