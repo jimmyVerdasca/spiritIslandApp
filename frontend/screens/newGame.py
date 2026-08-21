@@ -9,6 +9,7 @@ from .widgets.section_header import SectionHeader
 from .widgets.player_card import PlayerCard
 from .widgets.selection_row import SelectionRow
 from .widgets.section_header import SectionHeader
+from .widgets.selection_menu_item import SelectionMenuItem
 
 
 from shared.engine.generator import generate_game
@@ -1171,7 +1172,7 @@ class NewGameScreen(BaseScreen):
         index,
     ):
 
-        adversaries = self.data.get_adversaries()
+        adversaries = self.data.adversaries
 
 
         selected = [
@@ -1304,7 +1305,7 @@ class NewGameScreen(BaseScreen):
         index,
     ):
 
-        difficulties = self.data.get_difficulties()
+        difficulties = self.data.difficulties
 
 
         items = [
@@ -1459,7 +1460,7 @@ class NewGameScreen(BaseScreen):
     ):
 
         max_adversaries = len(
-            self.data.get_adversaries()
+            self.data.adversaries
         )
 
 
@@ -1558,7 +1559,7 @@ class NewGameScreen(BaseScreen):
         index,
     ):
 
-        scenarios = self.data.get_scenarios()
+        scenarios = self.data.scenarios
 
 
         selected = [
@@ -1724,7 +1725,7 @@ class NewGameScreen(BaseScreen):
     ):
 
         max_scenarios = len(
-            self.data.get_scenarios()
+            self.data.scenarios
         )
 
 
@@ -1806,7 +1807,7 @@ class NewGameScreen(BaseScreen):
         index,
     ):
 
-        spirits = self.data.get_spirits()
+        spirits = self.data.spirits
 
 
         items = [
@@ -1943,7 +1944,7 @@ class NewGameScreen(BaseScreen):
         index,
     ):
 
-        boards = self.data.get_boards()
+        boards = self.data.boards
 
 
         items = [

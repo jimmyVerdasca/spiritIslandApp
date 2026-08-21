@@ -141,4 +141,4 @@ pip install -r frontend/requirements.txt
 python -m shared.database.init_db --app-data
 
 # Run the application
-python -m frontend.main
+python main.py
