@@ -93,9 +93,14 @@ jobs:
 
       - name: Generate active configuration
         run: |
-          cat > config/active.py << 'EOF'
-          MODE = "${{ matrix.mode }}"
-          EOF
+          if [ "${{ matrix.mode }}" = "standalone" ]; then
+            echo "from .standalone import *" > config/active.py
+          elif [ "${{ matrix.mode }}" = "http" ]; then
+            echo "from .http import *" > config/active.py
+          else
+            echo "Unknown mode: ${{ matrix.mode }}"
+            exit 1
+          fi
 
           cat config/active.py
 
@@ -125,3 +130,87 @@ jobs:
         with:
           name: ${{ matrix.package }}
           path: artifacts/${{ matrix.package }}.apk
+
+  # =========================================================
+  # BACKEND
+  # =========================================================
+
+  backend:
+    runs-on: ubuntu-22.04
+
+    steps:
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10.11"
+
+      - name: Generate active configuration
+        run: |
+          echo "from .http import *" > config/active.py
+          cat config/active.py
+
+
+      - name: Create backend virtual environment
+        run: |
+          python -m venv backend/.venv
+
+
+      - name: Install backend dependencies
+        run: |
+          backend/.venv/bin/python -m pip install \
+            -r backend/requirements.txt
+
+
+      - name: Verify backend imports
+        run: |
+          backend/.venv/bin/python -c \
+            "import backend.main"
+
+
+      - name: Initialize backend database
+        run: |
+          backend/.venv/bin/python \
+            -m shared.database.init_db \
+            --app-data
+
+
+      - name: Test backend application
+        run: |
+          backend/.venv/bin/python -c \
+            "from backend.main import app; print(app.title)"
+
+
+      - name: Create backend artifact
+        run: |
+          rm -rf backend/.venv
+          rm -rf artifacts
+
+          mkdir -p artifacts/backend
+
+          cp -r backend artifacts/backend/
+          cp -r shared artifacts/backend/
+          cp -r config artifacts/backend/
+
+          cd artifacts/backend
+
+          zip -r ../spirit-island-backend.zip \
+            backend \
+            shared \
+            config
+
+          cd ../..
+
+          echo "Backend artifact:"
+          unzip -l artifacts/spirit-island-backend.zip
+
+
+      - name: Upload backend
+        uses: actions/upload-artifact@v4
+        with:
+          name: spirit-island-backend
+          path: artifacts/spirit-island-backend.zip

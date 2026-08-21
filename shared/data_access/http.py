@@ -1,6 +1,6 @@
 import requests
 
-from models.converters import (
+from shared.models.converters import (
     game_to_json,
     json_to_adversary,
     json_to_adversary_difficulty,
@@ -26,6 +26,19 @@ class HTTPDataProvider(DataProvider):
         self.base_url = base_url.rstrip("/")
 
         self.session = requests.Session()
+
+        # -------------------------------------------------
+        # Static-data cache
+        # -------------------------------------------------
+
+        self._configurations = None
+        self._spirits = None
+        self._boards = None
+        self._adversaries = None
+        self._difficulties = None
+        self._scenarios = None
+        self._adversaries_difficulties = None
+        self._trophies = None
 
         super().__init__()
 
@@ -84,6 +97,98 @@ class HTTPDataProvider(DataProvider):
 
     # =================================================
     # Static data
+    # =================================================
+
+    @property
+    def configurations(self):
+
+        if self._configurations is None:
+
+            self._configurations = (
+                self._load_configurations()
+            )
+
+        return self._configurations
+
+    @property
+    def spirits(self):
+
+        if self._spirits is None:
+
+            self._spirits = (
+                self._load_spirits()
+            )
+
+        return self._spirits
+
+    @property
+    def boards(self):
+
+        if self._boards is None:
+
+            self._boards = (
+                self._load_boards()
+            )
+
+        return self._boards
+
+    @property
+    def adversaries(self):
+
+        if self._adversaries is None:
+
+            self._adversaries = (
+                self._load_adversaries()
+            )
+
+        return self._adversaries
+
+    @property
+    def difficulties(self):
+
+        if self._difficulties is None:
+
+            self._difficulties = (
+                self._load_difficulties()
+            )
+
+        return self._difficulties
+
+    @property
+    def scenarios(self):
+
+        if self._scenarios is None:
+
+            self._scenarios = (
+                self._load_scenarios()
+            )
+
+        return self._scenarios
+
+    @property
+    def adversaries_difficulties(self):
+
+        if self._adversaries_difficulties is None:
+
+            self._adversaries_difficulties = (
+                self._load_adversaries_difficulties()
+            )
+
+        return self._adversaries_difficulties
+
+    @property
+    def trophies(self):
+
+        if self._trophies is None:
+
+            self._trophies = (
+                self._load_trophies()
+            )
+
+        return self._trophies
+
+    # =================================================
+    # Static-data loaders
     # =================================================
 
     def _load_configurations(self):
@@ -206,6 +311,7 @@ class HTTPDataProvider(DataProvider):
         }
 
         if result is not None:
+
             params["result"] = result
 
         data = self._get(

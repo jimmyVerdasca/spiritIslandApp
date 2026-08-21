@@ -1,2 +1,2 @@
 MODE = "http"
-API_URL = "https://api.example.com"
+API_URL = "http://192.168.1.140:8000"
