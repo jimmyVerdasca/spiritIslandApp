@@ -162,21 +162,15 @@ jobs:
 
       - name: Install backend dependencies
         run: |
-          backend/.venv/bin/python -m pip install \
-            -r backend/requirements.txt
-
-
-      - name: Verify backend imports
-        run: |
-          backend/.venv/bin/python -c \
-            "import backend.main"
-
+          backend/.venv/bin/python -m pip install -r backend/requirements.txt
 
       - name: Initialize backend database
         run: |
-          backend/.venv/bin/python \
-            -m shared.database.init_db \
-            --app-data
+          backend/.venv/bin/python -m shared.database.init_db
+
+      - name: Verify backend imports
+        run: |
+          backend/.venv/bin/python -c "import backend.main"
 
 
       - name: Test backend application
