@@ -132,17 +132,13 @@ python -m venv venv
 source venv/Scripts/activate
 
 # Install dependencies
-pip install -r requirements.txt
+pip install -r frontend/requirements.txt
 
 # Generate the database
 # (When using the Microsoft Store version of Python, the database is created under:
 # C:\Users\<Username>\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.10_qbz5n2kfra8p0\LocalCache\Roaming\spiritisland\spirit_island.db)
 
-python -m database.init_db --app-data
-
-# or
-
-python -m database.init_db
+python -m shared.database.init_db --app-data
 
 # Run the application
 python main.py
