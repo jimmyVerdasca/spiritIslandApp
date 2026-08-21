@@ -71,7 +71,9 @@ def generate_game(
     # Boards
     # ====================================================
 
-    available_boards = data.boards
+    available_boards = list(
+        data.boards
+    )
 
 
     if boards is None:
@@ -83,40 +85,52 @@ def generate_game(
 
     else:
 
-        chosen_boards = [
+        # Preserve player positions
+        chosen_boards = list(
+            boards
+        )
+
+
+        # Boards already explicitly selected
+        selected_boards = [
             board
-            for board in boards
+            for board in chosen_boards
             if board is not None
         ]
 
 
-        missing = players - len(
+        available = [
+            board
+            for board in available_boards
+            if board not in selected_boards
+        ]
+
+
+        # Fill only the "Any" positions
+        for index, board in enumerate(
             chosen_boards
-        )
+        ):
 
+            if board is None:
 
-        if missing > 0:
-
-            available = [
-                board
-                for board in available_boards
-                if board not in chosen_boards
-            ]
-
-
-            chosen_boards.extend(
-                random.sample(
-                    available,
-                    missing,
+                chosen_boards[index] = (
+                    random.choice(
+                        available
+                    )
                 )
-            )
+
+                available.remove(
+                    chosen_boards[index]
+                )
 
 
     # ====================================================
     # Spirits
     # ====================================================
 
-    available_spirits = data.spirits
+    available_spirits = list(
+        data.spirits
+    )
 
 
     if spirits is None:
@@ -128,33 +142,43 @@ def generate_game(
 
     else:
 
-        chosen_spirits = [
+        # Preserve player positions
+        chosen_spirits = list(
+            spirits
+        )
+
+
+        # Spirits already explicitly selected
+        selected_spirits = [
             spirit
-            for spirit in spirits
+            for spirit in chosen_spirits
             if spirit is not None
         ]
 
 
-        missing = players - len(
+        available = [
+            spirit
+            for spirit in available_spirits
+            if spirit not in selected_spirits
+        ]
+
+
+        # Fill only the "Any" positions
+        for index, spirit in enumerate(
             chosen_spirits
-        )
+        ):
 
+            if spirit is None:
 
-        if missing > 0:
-
-            available = [
-                spirit
-                for spirit in available_spirits
-                if spirit not in chosen_spirits
-            ]
-
-
-            chosen_spirits.extend(
-                random.sample(
-                    available,
-                    missing,
+                chosen_spirits[index] = (
+                    random.choice(
+                        available
+                    )
                 )
-            )
+
+                available.remove(
+                    chosen_spirits[index]
+                )
 
 
     # ====================================================
