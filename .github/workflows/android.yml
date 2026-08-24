@@ -210,7 +210,7 @@ jobs:
           path: artifacts/spirit-island-backend.zip
 
   android-tests:
-    name: Android tests (${{ matrix.mode }})
+    name: Android tests (${{ matrix.mode }}
 
     runs-on: ubuntu-22.04
 
@@ -226,6 +226,10 @@ jobs:
 
     steps:
 
+      # =====================================================
+      # Checkout
+      # =====================================================
+
       - name: Checkout repository
         uses: actions/checkout@v4
 
@@ -237,8 +241,13 @@ jobs:
       - name: Configure HTTP test API URL
         if: matrix.mode == 'http'
         run: |
-          echo "SPIRIT_ISLAND_API_URL=http://127.0.0.1:8000" >> "$GITHUB_ENV"
+          echo "SPIRIT_ISLAND_API_URL=http://127.0.0.1:8000" \
+            >> "$GITHUB_ENV"
 
+
+      # =====================================================
+      # Python for HTTP backend
+      # =====================================================
 
       - name: Setup Python
         if: matrix.mode == 'http'
@@ -248,7 +257,7 @@ jobs:
 
 
       # =====================================================
-      # Download frontend
+      # Download APK
       # =====================================================
 
       - name: Download APK
@@ -256,6 +265,7 @@ jobs:
         with:
           name: spirit-island-${{ matrix.mode }}
           path: apk
+
 
       - name: Inspect downloaded APK
         run: |
@@ -308,14 +318,16 @@ jobs:
       - name: Configure backend database
         if: matrix.mode == 'http'
         run: |
-          echo "SPIRIT_ISLAND_DB_PATH=$RUNNER_TEMP/android-test.db" >> "$GITHUB_ENV"
+          echo "SPIRIT_ISLAND_DB_PATH=$RUNNER_TEMP/android-test.db" \
+            >> "$GITHUB_ENV"
 
 
       - name: Prepare backend database
         if: matrix.mode == 'http'
         working-directory: backend-runtime
         run: |
-          .venv/bin/python -m shared.database.init_db
+          .venv/bin/python \
+            -m shared.database.init_db
 
 
       - name: Start backend
@@ -349,7 +361,11 @@ jobs:
           done
 
           echo "Backend failed to start."
-          cat "$RUNNER_TEMP/backend.log"
+
+          if [ -f "$RUNNER_TEMP/backend.log" ]; then
+            cat "$RUNNER_TEMP/backend.log"
+          fi
+
           exit 1
 
 
@@ -367,7 +383,7 @@ jobs:
 
 
       # =====================================================
-      # Android emulator - standalone
+      # Standalone Android smoke test
       # =====================================================
 
       - name: Run standalone Android application
@@ -391,90 +407,11 @@ jobs:
           disable-animations: true
 
           script: |
-            set -eux
-
-            echo "========================================"
-            echo "Android device"
-            echo "========================================"
-
-            adb devices
-
-            adb shell getprop ro.build.version.release
-            adb shell getprop ro.product.model
-
-            echo "========================================"
-            echo "Install APK"
-            echo "========================================"
-
-            APK=$(find apk -type f -name "*.apk" | head -n 1)
-
-            if [ -z "$APK" ]; then
-              echo "ERROR: No APK found."
-              echo "Contents of apk/:"
-              find apk -maxdepth 5 -print
-              exit 1
-            fi
-
-            echo "Installing APK: $APK"
-
-            adb install -r "$APK"
-
-            test -n "$APK"
-
-            echo "Installing $APK"
-
-            adb install -r "$APK"
-
-            echo "========================================"
-            echo "Find package/activity"
-            echo "========================================"
-
-            BUILD_TOOLS="$ANDROID_HOME/build-tools/$(ls "$ANDROID_HOME/build-tools" | sort -V | tail -n 1)"
-
-            PACKAGE=$(
-              "$BUILD_TOOLS/aapt" dump badging "$APK" |
-              sed -n "s/^package: name='\([^']*\)'.*/\1/p"
-            )
-
-            ACTIVITY=$(
-              "$BUILD_TOOLS/aapt" dump badging "$APK" |
-              sed -n "s/^launchable-activity: name='\([^']*\)'.*/\1/p"
-            )
-
-            echo "PACKAGE=$PACKAGE"
-            echo "ACTIVITY=$ACTIVITY"
-
-            test -n "$PACKAGE"
-            test -n "$ACTIVITY"
-
-            echo "========================================"
-            echo "Launch application"
-            echo "========================================"
-
-            adb shell am force-stop "$PACKAGE"
-
-            adb shell am start \
-              -n "$PACKAGE/$ACTIVITY"
-
-            sleep 15
-
-            echo "========================================"
-            echo "Check application"
-            echo "========================================"
-
-            adb shell pidof "$PACKAGE"
-
-            echo "Application is running."
-
-            sleep 10
-
-            adb shell pidof "$PACKAGE"
-
-            echo "Android standalone smoke test passed."
+            bash ./tests/android-smoke-test.sh standalone
 
 
       # =====================================================
-      # Android emulator - HTTP
+      # HTTP Android smoke test
       # =====================================================
 
       - name: Run HTTP Android application
@@ -498,95 +435,7 @@ jobs:
           disable-animations: true
 
           script: |
-            set -eux
-
-            echo "========================================"
-            echo "Android device"
-            echo "========================================"
-
-            adb devices
-
-            adb shell getprop ro.build.version.release
-            adb shell getprop ro.product.model
-
-            echo "========================================"
-            echo "Configure HTTP connectivity"
-            echo "========================================"
-
-            adb reverse tcp:8000 tcp:8000
-
-            echo "ADB reverse:"
-            adb reverse --list
-
-            echo "========================================"
-            echo "Install APK"
-            echo "========================================"
-
-            APK=$(find apk -type f -name "*.apk" | head -n 1)
-
-            if [ -z "$APK" ]; then
-              echo "ERROR: No APK found."
-              echo "Contents of apk/:"
-              find apk -maxdepth 5 -print
-              exit 1
-            fi
-
-            echo "Installing APK: $APK"
-
-            adb install -r "$APK"
-
-            test -n "$APK"
-
-            echo "Installing $APK"
-
-            adb install -r "$APK"
-
-            echo "========================================"
-            echo "Find package/activity"
-            echo "========================================"
-
-            BUILD_TOOLS="$ANDROID_HOME/build-tools/$(ls "$ANDROID_HOME/build-tools" | sort -V | tail -n 1)"
-
-            PACKAGE=$(
-              "$BUILD_TOOLS/aapt" dump badging "$APK" |
-              sed -n "s/^package: name='\([^']*\)'.*/\1/p"
-            )
-
-            ACTIVITY=$(
-              "$BUILD_TOOLS/aapt" dump badging "$APK" |
-              sed -n "s/^launchable-activity: name='\([^']*\)'.*/\1/p"
-            )
-
-            echo "PACKAGE=$PACKAGE"
-            echo "ACTIVITY=$ACTIVITY"
-
-            test -n "$PACKAGE"
-            test -n "$ACTIVITY"
-
-            echo "========================================"
-            echo "Launch application"
-            echo "========================================"
-
-            adb shell am force-stop "$PACKAGE"
-
-            adb shell am start \
-              -n "$PACKAGE/$ACTIVITY"
-
-            sleep 15
-
-            echo "========================================"
-            echo "Check application"
-            echo "========================================"
-
-            adb shell pidof "$PACKAGE"
-
-            echo "Application is running."
-
-            sleep 10
-
-            adb shell pidof "$PACKAGE"
-
-            echo "Android HTTP smoke test passed."
+            bash ./tests/android-smoke-test.sh http
 
 
       # =====================================================
@@ -600,6 +449,10 @@ jobs:
             cat "$RUNNER_TEMP/backend.log"
           fi
 
+
+      # =====================================================
+      # Stop backend
+      # =====================================================
 
       - name: Stop backend
         if: always() && matrix.mode == 'http'
