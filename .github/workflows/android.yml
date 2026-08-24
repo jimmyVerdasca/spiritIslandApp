@@ -251,20 +251,19 @@ jobs:
       # Download frontend
       # =====================================================
 
-      - name: Download standalone APK
-        if: matrix.mode == 'standalone'
+      - name: Download APK
         uses: actions/download-artifact@v4
         with:
-          name: spirit-island-standalone
+          name: spirit-island-${{ matrix.mode }}
           path: apk
 
+      - name: Inspect downloaded APK
+        run: |
+          echo "Downloaded files:"
+          find apk -maxdepth 5 -type f -print
 
-      - name: Download HTTP APK
-        if: matrix.mode == 'http'
-        uses: actions/download-artifact@v4
-        with:
-          name: spirit-island-http
-          path: apk
+          echo "APK directory:"
+          ls -laR apk
 
 
       # =====================================================
@@ -407,7 +406,18 @@ jobs:
             echo "Install APK"
             echo "========================================"
 
-            APK=$(find apk -name "*.apk" | head -n 1)
+            APK=$(find apk -type f -name "*.apk" | head -n 1)
+
+            if [ -z "$APK" ]; then
+              echo "ERROR: No APK found."
+              echo "Contents of apk/:"
+              find apk -maxdepth 5 -print
+              exit 1
+            fi
+
+            echo "Installing APK: $APK"
+
+            adb install -r "$APK"
 
             test -n "$APK"
 
@@ -512,7 +522,18 @@ jobs:
             echo "Install APK"
             echo "========================================"
 
-            APK=$(find apk -name "*.apk" | head -n 1)
+            APK=$(find apk -type f -name "*.apk" | head -n 1)
+
+            if [ -z "$APK" ]; then
+              echo "ERROR: No APK found."
+              echo "Contents of apk/:"
+              find apk -maxdepth 5 -print
+              exit 1
+            fi
+
+            echo "Installing APK: $APK"
+
+            adb install -r "$APK"
 
             test -n "$APK"
 
