@@ -125,6 +125,7 @@ SpiritIslandApp/
 git clone <repository-url>
 cd SpiritIslandApp
 
+#FRONTEND
 # Create the virtual environment
 python -m venv venv
 
@@ -134,11 +135,32 @@ source venv/Scripts/activate
 # Install dependencies
 pip install -r frontend/requirements.txt
 
-# Generate the database
+# Generate the database (if on standalone mode)
 # (When using the Microsoft Store version of Python, the database is created under:
 # C:\Users\<Username>\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.10_qbz5n2kfra8p0\LocalCache\Roaming\spiritisland\spirit_island.db)
 
 python -m shared.database.init_db --app-data
 
-# Run the application
+# Run the frontend
 python main.py
+
+# BACKEND
+# Create the virtual environment
+python -m venv backend/.venv
+# activate the virtual environment
+source backend/.venv/Scripts/activate
+
+# create db on first installation (migration will update on later installs)
+python -m shared.database.init_db --app-data 
+
+# run the backend
+python -m uvicorn backend.main:app --reload
+
+# TESTING
+# create venv test
+python -m venv tests/.venv
+# install dependencies
+tests/venv/Scripts/python.exe -m pip install -r tests/requirements.txt
+
+# run tests
+tests/venv/Scripts/python.exe -m pytest -s

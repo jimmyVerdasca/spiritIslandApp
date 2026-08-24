@@ -75,6 +75,7 @@ class SpiritIslandApp(MDApp):
 
         self.data = create_data_provider(
             user_data_dir=self.user_data_dir,
+            application="frontend",
         )
 
     # ========================================================

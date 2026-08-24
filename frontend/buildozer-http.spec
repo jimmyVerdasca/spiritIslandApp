@@ -25,6 +25,8 @@ android.minapi = 24
 android.ndk = 25b
 android.ndk_api = 24
 
+android.permissions = INTERNET
+
 android.accept_sdk_license = True
 
 android.release_artifact = aab

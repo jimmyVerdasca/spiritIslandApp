@@ -59,17 +59,11 @@ class SQLiteDataProvider(DataProvider):
             )
         )
 
-        self._adversaries_difficulties = {
-            (
-                combination.adversary.id,
-                combination.difficulty.id,
-            ): combination.score_difficulty
-
-            for combination
-            in database.get_adversaries_difficulties(
+        self._adversaries_difficulties = (
+            database.get_adversaries_difficulties(
                 self.database_path
             )
-        }
+        )
 
         self._trophies = (
             database.get_trophies(

@@ -4,26 +4,66 @@ from config.active import MODE
 
 
 def create_data_provider(
-    user_data_dir,
+    user_data_dir=None,
+    application="frontend",
 ):
+    if application == "backend":
 
-    if MODE == "standalone":
-
-        from shared.database.config import BUNDLED_DB_FILENAME as DB_NAME
-        from shared.data_access.sqlite import SQLiteDataProvider
-
-        database_path = Path(user_data_dir) / DB_NAME
-
-        return SQLiteDataProvider(database_path=database_path)
-
-    if MODE == "http":
-        from config.http import API_URL
-        from shared.data_access.http import HTTPDataProvider
-
-        return HTTPDataProvider(
-            base_url=API_URL
+        from shared.database.config import (
+            BUNDLED_DB_PATH,
+            DB_PATH,
+        )
+        from shared.data_access.sqlite import (
+            SQLiteDataProvider
         )
 
+        database_path = (
+            DB_PATH
+            if DB_PATH is not None
+            else BUNDLED_DB_PATH
+        )
+
+        return SQLiteDataProvider(
+            database_path=database_path,
+        )
+
+    if application == "frontend":
+
+        if MODE == "standalone":
+
+            from shared.database.config import (
+                BUNDLED_DB_FILENAME,
+                DB_PATH,
+            )
+            from shared.data_access.sqlite import (
+                SQLiteDataProvider
+            )
+
+            database_path = (
+                DB_PATH
+                if DB_PATH is not None
+                else (
+                    Path(user_data_dir)
+                    / BUNDLED_DB_FILENAME
+                )
+            )
+
+            return SQLiteDataProvider(
+                database_path=database_path,
+            )
+
+        if MODE == "http":
+
+            from config.http import API_URL
+            from shared.data_access.http import (
+                HTTPDataProvider
+            )
+
+            return HTTPDataProvider(
+                base_url=API_URL,
+            )
+
     raise ValueError(
-        f"Unknown application mode: {MODE}"
+        f"Unknown application/mode combination: "
+        f"{application}/{MODE}"
     )

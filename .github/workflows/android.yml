@@ -93,9 +93,14 @@ jobs:
 
       - name: Generate active configuration
         run: |
-          cat > config/active.py << 'EOF'
-          MODE = "${{ matrix.mode }}"
-          EOF
+          if [ "${{ matrix.mode }}" = "standalone" ]; then
+            echo "from .standalone import *" > config/active.py
+          elif [ "${{ matrix.mode }}" = "http" ]; then
+            echo "from .http import *" > config/active.py
+          else
+            echo "Unknown mode: ${{ matrix.mode }}"
+            exit 1
+          fi
 
           cat config/active.py
 
@@ -125,3 +130,339 @@ jobs:
         with:
           name: ${{ matrix.package }}
           path: artifacts/${{ matrix.package }}.apk
+
+  # =========================================================
+  # BACKEND
+  # =========================================================
+
+  backend:
+    runs-on: ubuntu-22.04
+
+    steps:
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10.11"
+
+
+      - name: Generate active configuration
+        run: |
+          echo "from .http import *" > config/active.py
+          cat config/active.py
+
+
+      # =====================================================
+      # Backend / test environment
+      # =====================================================
+
+      - name: Configure integration test API URL
+        run: |
+          echo "SPIRIT_ISLAND_API_URL=http://127.0.0.1:8000" >> "$GITHUB_ENV"
+
+      - name: Create test virtual environment
+        run: |
+          python -m venv tests/.venv
+
+
+      - name: Install test dependencies
+        run: |
+          tests/.venv/bin/python -m pip install --upgrade pip
+          tests/.venv/bin/python -m pip install \
+            -r tests/integration/requirements.txt
+
+
+      # =====================================================
+      # Database
+      # =====================================================
+
+      - name: Initialize backend database
+        run: |
+          tests/.venv/bin/python \
+            -m shared.database.init_db
+
+
+      # =====================================================
+      # Tests
+      # =====================================================
+
+      - name: Run backend tests
+        run: |
+          tests/.venv/bin/python \
+            -m pytest tests/backend -v
+
+
+      - name: Run integration tests
+        run: |
+          tests/.venv/bin/python \
+            -m pytest tests/integration -v -s
+
+
+      # =====================================================
+      # Verify backend imports
+      # =====================================================
+
+      - name: Verify backend imports
+        run: |
+          tests/.venv/bin/python \
+            -c "import backend.main"
+
+
+      # =====================================================
+      # Backend artifact
+      # =====================================================
+
+      - name: Create backend artifact
+        run: |
+          rm -rf tests/.venv
+          rm -rf artifacts
+
+          mkdir -p artifacts/backend
+
+          cp -r backend artifacts/backend/
+          cp -r shared artifacts/backend/
+          cp -r config artifacts/backend/
+
+          cd artifacts/backend
+
+          zip -r ../spirit-island-backend.zip \
+            backend \
+            shared \
+            config
+
+          cd ../..
+
+          echo "Backend artifact:"
+          unzip -l artifacts/spirit-island-backend.zip
+
+
+      - name: Upload backend
+        uses: actions/upload-artifact@v4
+        with:
+          name: spirit-island-backend
+          path: artifacts/spirit-island-backend.zip
+
+  android-tests:
+    name: Android tests (${{ matrix.mode }}
+
+    runs-on: ubuntu-22.04
+
+    needs:
+      - build
+      - backend
+
+    strategy:
+      matrix:
+        mode:
+          - standalone
+          - http
+
+    steps:
+
+      # =====================================================
+      # Checkout
+      # =====================================================
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+
+      # =====================================================
+      # HTTP configuration
+      # =====================================================
+
+      - name: Configure HTTP test API URL
+        if: matrix.mode == 'http'
+        run: |
+          echo "SPIRIT_ISLAND_API_URL=http://127.0.0.1:8000" >> "$GITHUB_ENV"
+
+
+      - name: Setup Python
+        if: matrix.mode == 'http'
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10.11"
+
+
+      # =====================================================
+      # Download APK
+      # =====================================================
+
+      - name: Download APK
+        uses: actions/download-artifact@v4
+        with:
+          name: spirit-island-${{ matrix.mode }}
+          path: apk
+
+
+      - name: Inspect downloaded APK
+        run: |
+          echo "Downloaded files:"
+          find apk -maxdepth 5 -type f -print
+
+          echo "APK directory:"
+          ls -laR apk
+
+
+      # =====================================================
+      # HTTP backend
+      # =====================================================
+
+      - name: Download backend
+        if: matrix.mode == 'http'
+        uses: actions/download-artifact@v4
+        with:
+          name: spirit-island-backend
+          path: backend-artifact
+
+
+      - name: Extract backend
+        if: matrix.mode == 'http'
+        run: |
+          mkdir -p backend-runtime
+
+          unzip \
+            backend-artifact/spirit-island-backend.zip \
+            -d backend-runtime
+
+
+      - name: Create backend virtual environment
+        if: matrix.mode == 'http'
+        run: |
+          python -m venv backend-runtime/.venv
+
+
+      - name: Install backend dependencies
+        if: matrix.mode == 'http'
+        run: |
+          backend-runtime/.venv/bin/python \
+            -m pip install --upgrade pip
+
+          backend-runtime/.venv/bin/python \
+            -m pip install \
+            -r backend-runtime/backend/requirements.txt
+
+
+      - name: Configure backend database
+        if: matrix.mode == 'http'
+        run: |
+          echo "SPIRIT_ISLAND_DB_PATH=$RUNNER_TEMP/android-test.db" >> "$GITHUB_ENV"
+
+
+      - name: Prepare backend database
+        if: matrix.mode == 'http'
+        working-directory: backend-runtime
+        run: |
+          .venv/bin/python \
+            -m shared.database.init_db
+
+
+      - name: Start backend
+        if: matrix.mode == 'http'
+        working-directory: backend-runtime
+        run: |
+          .venv/bin/python \
+            -m uvicorn \
+            backend.main:app \
+            > "$RUNNER_TEMP/backend.log" 2>&1 &
+
+          echo $! > "$RUNNER_TEMP/backend.pid"
+
+
+      - name: Wait for backend
+        if: matrix.mode == 'http'
+        run: |
+          for i in $(seq 1 60); do
+
+            if curl \
+              --fail \
+              --silent \
+              "$SPIRIT_ISLAND_API_URL" \
+              > /dev/null
+            then
+              echo "Backend is ready."
+              exit 0
+            fi
+
+            sleep 1
+          done
+
+          echo "Backend failed to start."
+          cat "$RUNNER_TEMP/backend.log"
+          exit 1
+
+
+      # =====================================================
+      # Android emulator
+      # =====================================================
+
+      - name: Enable KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' \
+            | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+
+
+      # =====================================================
+      # Android smoke test
+      # =====================================================
+
+      - name: Run Android smoke test
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 35
+          target: google_apis
+          arch: x86_64
+          profile: pixel_2
+
+          emulator-options: >-
+            -no-window
+            -gpu swiftshader_indirect
+            -no-snapshot
+            -noaudio
+            -no-boot-anim
+            -camera-back none
+            -camera-front none
+
+          disable-animations: true
+
+          script: |
+            set -eux
+
+            chmod +x ./tests/smoke/android-smoke-test.sh
+
+            bash ./tests/smoke/android-smoke-test.sh "${{ matrix.mode }}"
+
+
+      # =====================================================
+      # Backend diagnostics
+      # =====================================================
+
+      - name: Backend logs
+        if: always() && matrix.mode == 'http'
+        run: |
+          if [ -f "$RUNNER_TEMP/backend.log" ]; then
+            echo "========================================"
+            echo "Backend logs"
+            echo "========================================"
+
+            cat "$RUNNER_TEMP/backend.log"
+          fi
+
+
+      # =====================================================
+      # Stop backend
+      # =====================================================
+
+      - name: Stop backend
+        if: always() && matrix.mode == 'http'
+        run: |
+          if [ -f "$RUNNER_TEMP/backend.pid" ]; then
+            kill "$(cat "$RUNNER_TEMP/backend.pid")" || true
+          fi

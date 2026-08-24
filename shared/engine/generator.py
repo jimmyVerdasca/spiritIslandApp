@@ -439,20 +439,23 @@ def generate_game(
         # ------------------------------------------------
 
         try:
-
-            score_difficulty = data.adversaries_difficulties[
-                (
-                    adversary.id,
-                    difficulty.id,
+            combination = next(
+                combination
+                for combination in data.adversaries_difficulties
+                if (
+                    combination.adversary.id == adversary.id
+                    and
+                    combination.difficulty.id == difficulty.id
                 )
-            ]
+            )
 
-        except KeyError:
-
+        except StopIteration:
             raise RuntimeError(
                 "Invalid adversary/difficulty combination: "
                 f"({adversary.id}, {difficulty.id})"
             )
+
+        score_difficulty = combination.score_difficulty
 
 
         chosen_adversaries.append(

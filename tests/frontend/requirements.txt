@@ -1,0 +1,4 @@
+-r ../../frontend/requirements.txt
+pytest
+httpx2
+pytest-env
