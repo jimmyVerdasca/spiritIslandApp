@@ -358,6 +358,10 @@ jobs:
           sudo udevadm control --reload-rules
           sudo udevadm trigger --name-match=kvm
 
+      - name: List Android emulator profiles
+        run: |
+          avdmanager list device
+
 
       - name: Run Android application
         uses: reactivecircus/android-emulator-runner@v2
@@ -365,7 +369,7 @@ jobs:
           api-level: 35
           target: google_apis
           arch: x86_64
-          profile: pixel_7
+          profile: pixel_2
 
           emulator-options: >-
             -no-window
