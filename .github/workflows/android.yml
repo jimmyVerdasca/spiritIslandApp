@@ -209,267 +209,309 @@ jobs:
           name: spirit-island-backend
           path: artifacts/spirit-island-backend.zip
 
-  android-tests:
-    name: Android tests (${{ matrix.mode }})
+    android-tests:
+      name: Android tests (${{ matrix.mode }})
 
-    runs-on: ubuntu-22.04
+      runs-on: ubuntu-22.04
 
-    needs:
-      - build
-      - backend
+      needs:
+        - build
+        - backend
 
-    strategy:
-      matrix:
-        mode:
-          - standalone
-          - http
+      strategy:
+        matrix:
+          mode:
+            - standalone
+            - http
 
-    steps:
+      steps:
 
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-
-      - name: Configure HTTP test API URL
-        if: matrix.mode == 'http'
-        run: |
-          echo "SPIRIT_ISLAND_API_URL=http://127.0.0.1:8000" >> "$GITHUB_ENV"
-
-          
-      - name: Setup Python
-        if: matrix.mode == 'http'
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.10.11"
+        - name: Checkout repository
+          uses: actions/checkout@v4
 
 
-      # =====================================================
-      # Download frontend
-      # =====================================================
+        # =====================================================
+        # HTTP configuration
+        # =====================================================
 
-      - name: Download standalone APK
-        if: matrix.mode == 'standalone'
-        uses: actions/download-artifact@v4
-        with:
-          name: spirit-island-standalone
-          path: apk
+        - name: Configure HTTP test API URL
+          if: matrix.mode == 'http'
+          run: |
+            echo "SPIRIT_ISLAND_API_URL=http://127.0.0.1:8000" >> "$GITHUB_ENV"
 
 
-      - name: Download HTTP APK
-        if: matrix.mode == 'http'
-        uses: actions/download-artifact@v4
-        with:
-          name: spirit-island-http
-          path: apk
+        - name: Setup Python
+          if: matrix.mode == 'http'
+          uses: actions/setup-python@v5
+          with:
+            python-version: "3.10.11"
 
 
-      # =====================================================
-      # HTTP backend
-      # =====================================================
+        # =====================================================
+        # Download frontend
+        # =====================================================
 
-      - name: Download backend
-        if: matrix.mode == 'http'
-        uses: actions/download-artifact@v4
-        with:
-          name: spirit-island-backend
-          path: backend-artifact
-
-
-      - name: Extract backend
-        if: matrix.mode == 'http'
-        run: |
-          mkdir -p backend-runtime
-
-          unzip \
-            backend-artifact/spirit-island-backend.zip \
-            -d backend-runtime
+        - name: Download standalone APK
+          if: matrix.mode == 'standalone'
+          uses: actions/download-artifact@v4
+          with:
+            name: spirit-island-standalone
+            path: apk
 
 
-      - name: Create backend virtual environment
-        if: matrix.mode == 'http'
-        run: |
-          python -m venv backend-runtime/.venv
+        - name: Download HTTP APK
+          if: matrix.mode == 'http'
+          uses: actions/download-artifact@v4
+          with:
+            name: spirit-island-http
+            path: apk
 
 
-      - name: Install backend dependencies
-        if: matrix.mode == 'http'
-        run: |
-          backend-runtime/.venv/bin/python \
-            -m pip install --upgrade pip
+        # =====================================================
+        # HTTP backend
+        # =====================================================
 
-          backend-runtime/.venv/bin/python \
-            -m pip install \
-            -r backend-runtime/backend/requirements.txt
-      
-      - name: Configure backend database
-        if: matrix.mode == 'http'
-        run: |
-          echo "SPIRIT_ISLAND_DB_PATH=$RUNNER_TEMP/android-test.db" >> "$GITHUB_ENV"
-
-      - name: Prepare backend database
-        if: matrix.mode == 'http'
-        working-directory: backend-runtime
-        run: |
-          .venv/bin/python -m shared.database.init_db
-
-      - name: Start backend
-        if: matrix.mode == 'http'
-        working-directory: backend-runtime
-        run: |
-          .venv/bin/python \
-            -m uvicorn \
-            backend.main:app \
-            > "$RUNNER_TEMP/backend.log" 2>&1 &
-
-          echo $! > "$RUNNER_TEMP/backend.pid"
-
-      - name: Wait for backend
-        if: matrix.mode == 'http'
-        run: |
-          for i in $(seq 1 60); do
-
-            if curl \
-              --fail \
-              --silent \
-              $SPIRIT_ISLAND_API_URL \
-              > /dev/null
-            then
-              echo "Backend is ready."
-              exit 0
-            fi
-
-            sleep 1
-          done
-
-          echo "Backend failed to start."
-          cat "$RUNNER_TEMP/backend.log"
-          exit 1
+        - name: Download backend
+          if: matrix.mode == 'http'
+          uses: actions/download-artifact@v4
+          with:
+            name: spirit-island-backend
+            path: backend-artifact
 
 
-      # =====================================================
-      # Android emulator
-      # =====================================================
+        - name: Extract backend
+          if: matrix.mode == 'http'
+          run: |
+            mkdir -p backend-runtime
 
-      - name: Enable KVM
-        run: |
-          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' \
-            | sudo tee /etc/udev/rules.d/99-kvm4all.rules
-
-          sudo udevadm control --reload-rules
-          sudo udevadm trigger --name-match=kvm
+            unzip \
+              backend-artifact/spirit-island-backend.zip \
+              -d backend-runtime
 
 
-      - name: Run Android application
-        uses: reactivecircus/android-emulator-runner@v2
-        with:
-          api-level: 35
-          target: google_apis
-          arch: x86_64
-          profile: pixel_2
+        - name: Create backend virtual environment
+          if: matrix.mode == 'http'
+          run: |
+            python -m venv backend-runtime/.venv
 
-          emulator-options: >-
-            -no-window
-            -gpu swiftshader_indirect
-            -no-snapshot
-            -noaudio
-            -no-boot-anim
-            -camera-back none
-            -camera-front none
 
-          disable-animations: true
+        - name: Install backend dependencies
+          if: matrix.mode == 'http'
+          run: |
+            backend-runtime/.venv/bin/python \
+              -m pip install --upgrade pip
 
-          script: |
-            set -eux
+            backend-runtime/.venv/bin/python \
+              -m pip install \
+              -r backend-runtime/backend/requirements.txt
 
-            adb devices
 
-            adb shell getprop ro.build.version.release
-            adb shell getprop ro.product.model
+        - name: Configure backend database
+          if: matrix.mode == 'http'
+          run: |
+            echo "SPIRIT_ISLAND_DB_PATH=$RUNNER_TEMP/android-test.db" >> "$GITHUB_ENV"
 
-            if [ "${{ matrix.mode }}" = "http" ]; then
-              echo "Configuring HTTP backend connectivity..."
 
-              adb reverse tcp:8000 tcp:8000
+        - name: Prepare backend database
+          if: matrix.mode == 'http'
+          working-directory: backend-runtime
+          run: |
+            .venv/bin/python -m shared.database.init_db
 
-              echo "ADB reverse:"
-              adb reverse --list
 
-              echo "Testing backend from emulator..."
+        - name: Start backend
+          if: matrix.mode == 'http'
+          working-directory: backend-runtime
+          run: |
+            .venv/bin/python \
+              -m uvicorn \
+              backend.main:app \
+              > "$RUNNER_TEMP/backend.log" 2>&1 &
 
-              adb shell curl \
+            echo $! > "$RUNNER_TEMP/backend.pid"
+
+
+        - name: Wait for backend
+          if: matrix.mode == 'http'
+          run: |
+            for i in $(seq 1 60); do
+
+              if curl \
                 --fail \
                 --silent \
-                $SPIRIT_ISLAND_API_URL \
+                "$SPIRIT_ISLAND_API_URL" \
                 > /dev/null
+              then
+                echo "Backend is ready."
+                exit 0
+              fi
 
-              echo "Backend reachable from emulator."
-            fi
+              sleep 1
+            done
 
-            APK=$(find apk -name "*.apk" | head -n 1)
-
-            test -n "$APK"
-
-            adb install -r "$APK"
-
-            BUILD_TOOLS="$ANDROID_HOME/build-tools/$(ls "$ANDROID_HOME/build-tools" | sort -V | tail -n 1)"
-
-            PACKAGE=$(
-              "$BUILD_TOOLS/aapt" dump badging "$APK" |
-              sed -n "s/^package: name='\([^']*\)'.*/\1/p"
-            )
-
-            ACTIVITY=$(
-              "$BUILD_TOOLS/aapt" dump badging "$APK" |
-              sed -n "s/^launchable-activity: name='\([^']*\)'.*/\1/p"
-            )
-
-            echo "PACKAGE=$PACKAGE"
-            echo "ACTIVITY=$ACTIVITY"
-
-            test -n "$PACKAGE"
-            test -n "$ACTIVITY"
-
-            adb shell am force-stop "$PACKAGE"
-
-            adb shell am start \
-              -n "$PACKAGE/$ACTIVITY"
-
-            sleep 15
-
-            if ! adb shell pidof "$PACKAGE"; then
-              echo "Application failed to start."
-              adb logcat -d -t 1500
-              exit 1
-            fi
-
-            echo "Application is running."
-
-            sleep 10
-
-            if ! adb shell pidof "$PACKAGE"; then
-              echo "Application crashed after startup."
-              adb logcat -d -t 1500
-              exit 1
-            fi
-
-            echo "Android smoke test passed."
-
-
-      # =====================================================
-      # Backend diagnostics
-      # =====================================================
-
-      - name: Backend logs
-        if: always() && matrix.mode == 'http'
-        run: |
-          if [ -f "$RUNNER_TEMP/backend.log" ]; then
+            echo "Backend failed to start."
             cat "$RUNNER_TEMP/backend.log"
-          fi
+            exit 1
 
 
-      - name: Stop backend
-        if: always() && matrix.mode == 'http'
-        run: |
-          if [ -f "$RUNNER_TEMP/backend.pid" ]; then
-            kill "$(cat "$RUNNER_TEMP/backend.pid")" || true
-          fi
+        # =====================================================
+        # Android emulator
+        # =====================================================
+
+        - name: Enable KVM
+          run: |
+            echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' \
+              | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+
+            sudo udevadm control --reload-rules
+            sudo udevadm trigger --name-match=kvm
+
+
+        - name: Run Android application
+          uses: reactivecircus/android-emulator-runner@v2
+          with:
+            api-level: 35
+            target: google_apis
+            arch: x86_64
+            profile: pixel_2
+
+            emulator-options: >-
+              -no-window
+              -gpu swiftshader_indirect
+              -no-snapshot
+              -noaudio
+              -no-boot-anim
+              -camera-back none
+              -camera-front none
+
+            disable-animations: true
+
+            script: |
+              set -eux
+
+              echo "========================================"
+              echo "Android device"
+              echo "========================================"
+
+              adb devices
+
+              adb shell getprop ro.build.version.release
+              adb shell getprop ro.product.model
+
+
+              echo "========================================"
+              echo "HTTP connectivity"
+              echo "========================================"
+
+              if [ "${{ matrix.mode }}" = "http" ]; then
+                adb reverse tcp:8000 tcp:8000
+                adb reverse --list
+              fi
+
+
+              echo "========================================"
+              echo "Install APK"
+              echo "========================================"
+
+              APK=$(find apk -name "*.apk" | head -n 1)
+
+              if [ -z "$APK" ]; then
+                echo "No APK found."
+                exit 1
+              fi
+
+              echo "Installing $APK"
+
+              adb install -r "$APK"
+
+
+              echo "========================================"
+              echo "Find package/activity"
+              echo "========================================"
+
+              BUILD_TOOLS="$ANDROID_HOME/build-tools/$(ls "$ANDROID_HOME/build-tools" | sort -V | tail -n 1)"
+
+              PACKAGE=$(
+                "$BUILD_TOOLS/aapt" dump badging "$APK" |
+                sed -n "s/^package: name='\([^']*\)'.*/\1/p"
+              )
+
+              ACTIVITY=$(
+                "$BUILD_TOOLS/aapt" dump badging "$APK" |
+                sed -n "s/^launchable-activity: name='\([^']*\)'.*/\1/p"
+              )
+
+              echo "PACKAGE=$PACKAGE"
+              echo "ACTIVITY=$ACTIVITY"
+
+              test -n "$PACKAGE"
+              test -n "$ACTIVITY"
+
+
+              echo "========================================"
+              echo "Launch application"
+              echo "========================================"
+
+              adb shell am force-stop "$PACKAGE"
+
+              adb shell am start \
+                -n "$PACKAGE/$ACTIVITY"
+
+
+              echo "========================================"
+              echo "Wait for application"
+              echo "========================================"
+
+              sleep 15
+
+
+              echo "========================================"
+              echo "Check application process"
+              echo "========================================"
+
+              if ! adb shell pidof "$PACKAGE"; then
+                echo "Application failed to start."
+                adb logcat -d -t 1500
+                exit 1
+              fi
+
+              echo "Application is running."
+
+
+              echo "========================================"
+              echo "Allow application to initialize"
+              echo "========================================"
+
+              sleep 10
+
+
+              if ! adb shell pidof "$PACKAGE"; then
+                echo "Application crashed after startup."
+                adb logcat -d -t 1500
+                exit 1
+              fi
+
+
+              echo "========================================"
+              echo "Android smoke test passed"
+              echo "========================================"
+
+
+        # =====================================================
+        # Backend diagnostics
+        # =====================================================
+
+        - name: Backend logs
+          if: always() && matrix.mode == 'http'
+          run: |
+            if [ -f "$RUNNER_TEMP/backend.log" ]; then
+              cat "$RUNNER_TEMP/backend.log"
+            fi
+
+
+        - name: Stop backend
+          if: always() && matrix.mode == 'http'
+          run: |
+            if [ -f "$RUNNER_TEMP/backend.pid" ]; then
+              kill "$(cat "$RUNNER_TEMP/backend.pid")" || true
+            fi
