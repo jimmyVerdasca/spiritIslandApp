@@ -367,7 +367,12 @@ jobs:
           sudo udevadm trigger --name-match=kvm
 
 
-      - name: Run Android application
+      # =====================================================
+      # Android emulator - standalone
+      # =====================================================
+
+      - name: Run standalone Android application
+        if: matrix.mode == 'standalone'
         uses: reactivecircus/android-emulator-runner@v2
         with:
           api-level: 35
@@ -398,32 +403,17 @@ jobs:
             adb shell getprop ro.build.version.release
             adb shell getprop ro.product.model
 
-
-            echo "========================================"
-            echo "HTTP connectivity"
-            echo "========================================"
-
-            if [ "${{ matrix.mode }}" = "http" ]; then
-              adb reverse tcp:8000 tcp:8000
-              adb reverse --list
-            fi
-
-
             echo "========================================"
             echo "Install APK"
             echo "========================================"
 
             APK=$(find apk -name "*.apk" | head -n 1)
 
-            if [ -z "$APK" ]; then
-              echo "No APK found."
-              exit 1
-            fi
+            test -n "$APK"
 
             echo "Installing $APK"
 
             adb install -r "$APK"
-
 
             echo "========================================"
             echo "Find package/activity"
@@ -447,6 +437,110 @@ jobs:
             test -n "$PACKAGE"
             test -n "$ACTIVITY"
 
+            echo "========================================"
+            echo "Launch application"
+            echo "========================================"
+
+            adb shell am force-stop "$PACKAGE"
+
+            adb shell am start \
+              -n "$PACKAGE/$ACTIVITY"
+
+            sleep 15
+
+            echo "========================================"
+            echo "Check application"
+            echo "========================================"
+
+            adb shell pidof "$PACKAGE"
+
+            echo "Application is running."
+
+            sleep 10
+
+            adb shell pidof "$PACKAGE"
+
+            echo "Android standalone smoke test passed."
+
+
+      # =====================================================
+      # Android emulator - HTTP
+      # =====================================================
+
+      - name: Run HTTP Android application
+        if: matrix.mode == 'http'
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 35
+          target: google_apis
+          arch: x86_64
+          profile: pixel_2
+
+          emulator-options: >-
+            -no-window
+            -gpu swiftshader_indirect
+            -no-snapshot
+            -noaudio
+            -no-boot-anim
+            -camera-back none
+            -camera-front none
+
+          disable-animations: true
+
+          script: |
+            set -eux
+
+            echo "========================================"
+            echo "Android device"
+            echo "========================================"
+
+            adb devices
+
+            adb shell getprop ro.build.version.release
+            adb shell getprop ro.product.model
+
+            echo "========================================"
+            echo "Configure HTTP connectivity"
+            echo "========================================"
+
+            adb reverse tcp:8000 tcp:8000
+
+            echo "ADB reverse:"
+            adb reverse --list
+
+            echo "========================================"
+            echo "Install APK"
+            echo "========================================"
+
+            APK=$(find apk -name "*.apk" | head -n 1)
+
+            test -n "$APK"
+
+            echo "Installing $APK"
+
+            adb install -r "$APK"
+
+            echo "========================================"
+            echo "Find package/activity"
+            echo "========================================"
+
+            BUILD_TOOLS="$ANDROID_HOME/build-tools/$(ls "$ANDROID_HOME/build-tools" | sort -V | tail -n 1)"
+
+            PACKAGE=$(
+              "$BUILD_TOOLS/aapt" dump badging "$APK" |
+              sed -n "s/^package: name='\([^']*\)'.*/\1/p"
+            )
+
+            ACTIVITY=$(
+              "$BUILD_TOOLS/aapt" dump badging "$APK" |
+              sed -n "s/^launchable-activity: name='\([^']*\)'.*/\1/p"
+            )
+
+            echo "PACKAGE=$PACKAGE"
+            echo "ACTIVITY=$ACTIVITY"
+
+            test -n "$PACKAGE"
+            test -n "$ACTIVITY"
 
             echo "========================================"
             echo "Launch application"
@@ -457,44 +551,21 @@ jobs:
             adb shell am start \
               -n "$PACKAGE/$ACTIVITY"
 
-
-            echo "========================================"
-            echo "Wait for application"
-            echo "========================================"
-
             sleep 15
 
-
             echo "========================================"
-            echo "Check application process"
+            echo "Check application"
             echo "========================================"
 
-            if ! adb shell pidof "$PACKAGE"; then
-              echo "Application failed to start."
-              adb logcat -d -t 1500
-              exit 1
-            fi
+            adb shell pidof "$PACKAGE"
 
             echo "Application is running."
 
-
-            echo "========================================"
-            echo "Allow application to initialize"
-            echo "========================================"
-
             sleep 10
 
+            adb shell pidof "$PACKAGE"
 
-            if ! adb shell pidof "$PACKAGE"; then
-              echo "Application crashed after startup."
-              adb logcat -d -t 1500
-              exit 1
-            fi
-
-
-            echo "========================================"
-            echo "Android smoke test passed"
-            echo "========================================"
+            echo "Android HTTP smoke test passed."
 
 
       # =====================================================
