@@ -149,39 +149,72 @@ jobs:
         with:
           python-version: "3.10.11"
 
+
       - name: Generate active configuration
         run: |
           echo "from .http import *" > config/active.py
           cat config/active.py
 
 
-      - name: Create backend virtual environment
+      # =====================================================
+      # Backend / test environment
+      # =====================================================
+
+      - name: Create test virtual environment
         run: |
-          python -m venv backend/.venv
+          python -m venv tests/.venv
 
 
-      - name: Install backend dependencies
+      - name: Install test dependencies
         run: |
-          backend/.venv/bin/python -m pip install -r backend/requirements.txt
+          tests/.venv/bin/python -m pip install --upgrade pip
+          tests/.venv/bin/python -m pip install \
+            -r tests/integration/requirement.txt
+
+
+      # =====================================================
+      # Database
+      # =====================================================
 
       - name: Initialize backend database
         run: |
-          backend/.venv/bin/python -m shared.database.init_db
+          tests/.venv/bin/python \
+            -m shared.database.init_db
+
+
+      # =====================================================
+      # Tests
+      # =====================================================
+
+      - name: Run backend tests
+        run: |
+          tests/.venv/bin/python \
+            -m pytest tests/backend -v
+
+
+      - name: Run integration tests
+        run: |
+          tests/.venv/bin/python \
+            -m pytest tests/integration -v -s
+
+
+      # =====================================================
+      # Verify backend imports
+      # =====================================================
 
       - name: Verify backend imports
         run: |
-          backend/.venv/bin/python -c "import backend.main"
+          tests/.venv/bin/python \
+            -c "import backend.main"
 
 
-      - name: Test backend application
-        run: |
-          backend/.venv/bin/python -c \
-            "from backend.main import app; print(app.title)"
-
+      # =====================================================
+      # Backend artifact
+      # =====================================================
 
       - name: Create backend artifact
         run: |
-          rm -rf backend/.venv
+          rm -rf tests/.venv
           rm -rf artifacts
 
           mkdir -p artifacts/backend

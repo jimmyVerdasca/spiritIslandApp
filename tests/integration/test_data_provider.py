@@ -1,5 +1,5 @@
-from shared.data_access.factory import create_data_provider
 from shared.data_access.base import DataProvider
+from shared.data_access.factory import create_data_provider
 from shared.models.game import Game
 from shared.models.game_status import GameStatus
 
@@ -8,7 +8,6 @@ def make_game(provider):
     """
     Build a valid Game using objects loaded from the provider.
     """
-
     configuration = provider.configurations[0]
     spirit = provider.spirits[0]
     board = provider.boards[0]
@@ -78,12 +77,11 @@ def assert_game_lifecycle(provider):
     )
 
 
-def test_configured_data_provider():
+def test_configured_data_provider(backend_server, test_database):
     """
     Test the DataProvider selected by the current application
     configuration.
     """
-
     provider = create_data_provider(
         application="frontend",
     )
@@ -92,12 +90,11 @@ def test_configured_data_provider():
     assert_game_lifecycle(provider)
 
 
-def test_configured_data_provider_abandon():
+def test_configured_data_provider_abandon(backend_server, test_database):
     """
     Test game abandonment using the DataProvider selected by the
     current application configuration.
     """
-
     provider = create_data_provider(
         application="frontend",
     )
