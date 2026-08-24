@@ -241,13 +241,8 @@ jobs:
       - name: Configure HTTP test API URL
         if: matrix.mode == 'http'
         run: |
-          echo "SPIRIT_ISLAND_API_URL=http://127.0.0.1:8000" \
-            >> "$GITHUB_ENV"
+          echo "SPIRIT_ISLAND_API_URL=http://127.0.0.1:8000" >> "$GITHUB_ENV"
 
-
-      # =====================================================
-      # Python for HTTP backend
-      # =====================================================
 
       - name: Setup Python
         if: matrix.mode == 'http'
@@ -318,8 +313,7 @@ jobs:
       - name: Configure backend database
         if: matrix.mode == 'http'
         run: |
-          echo "SPIRIT_ISLAND_DB_PATH=$RUNNER_TEMP/android-test.db" \
-            >> "$GITHUB_ENV"
+          echo "SPIRIT_ISLAND_DB_PATH=$RUNNER_TEMP/android-test.db" >> "$GITHUB_ENV"
 
 
       - name: Prepare backend database
@@ -361,11 +355,7 @@ jobs:
           done
 
           echo "Backend failed to start."
-
-          if [ -f "$RUNNER_TEMP/backend.log" ]; then
-            cat "$RUNNER_TEMP/backend.log"
-          fi
-
+          cat "$RUNNER_TEMP/backend.log"
           exit 1
 
 
@@ -383,11 +373,10 @@ jobs:
 
 
       # =====================================================
-      # Standalone Android smoke test
+      # Android smoke test
       # =====================================================
 
-      - name: Run standalone Android application
-        if: matrix.mode == 'standalone'
+      - name: Run Android smoke test
         uses: reactivecircus/android-emulator-runner@v2
         with:
           api-level: 35
@@ -407,35 +396,11 @@ jobs:
           disable-animations: true
 
           script: |
-            bash ./tests/android-smoke-test.sh standalone
+            set -eux
 
+            chmod +x ./tests/android-smoke-test.sh
 
-      # =====================================================
-      # HTTP Android smoke test
-      # =====================================================
-
-      - name: Run HTTP Android application
-        if: matrix.mode == 'http'
-        uses: reactivecircus/android-emulator-runner@v2
-        with:
-          api-level: 35
-          target: google_apis
-          arch: x86_64
-          profile: pixel_2
-
-          emulator-options: >-
-            -no-window
-            -gpu swiftshader_indirect
-            -no-snapshot
-            -noaudio
-            -no-boot-anim
-            -camera-back none
-            -camera-front none
-
-          disable-animations: true
-
-          script: |
-            bash ./tests/android-smoke-test.sh http
+            bash ./tests/android-smoke-test.sh "${{ matrix.mode }}"
 
 
       # =====================================================
@@ -446,6 +411,10 @@ jobs:
         if: always() && matrix.mode == 'http'
         run: |
           if [ -f "$RUNNER_TEMP/backend.log" ]; then
+            echo "========================================"
+            echo "Backend logs"
+            echo "========================================"
+
             cat "$RUNNER_TEMP/backend.log"
           fi
 
