@@ -358,9 +358,44 @@ jobs:
           sudo udevadm control --reload-rules
           sudo udevadm trigger --name-match=kvm
 
-      - name: List Android emulator profiles
-        run: |
-          avdmanager list device
+      - name: Run Android application
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 35
+          target: google_apis
+          arch: x86_64
+          profile: pixel_7
+
+          emulator-options: >-
+            -no-window
+            -gpu swiftshader_indirect
+            -no-snapshot
+            -noaudio
+            -no-boot-anim
+            -camera-back none
+            -camera-front none
+
+    disable-animations: true
+
+    script: |
+      set -eux
+
+      echo "========================================"
+      echo "Available Android emulator profiles"
+      echo "========================================"
+
+      "$ANDROID_HOME/cmdline-tools/latest/bin/avdmanager" list device || true
+
+      echo "========================================"
+      echo "Android device"
+      echo "========================================"
+
+      adb devices
+
+      adb shell getprop ro.build.version.release
+      adb shell getprop ro.product.model
+
+      # ...rest of your test...
 
 
       - name: Run Android application
