@@ -159,6 +159,10 @@ jobs:
       # =====================================================
       # Backend / test environment
       # =====================================================
+      
+      - name: Configure integration test API URL
+        run: |
+          echo "SPIRIT_ISLAND_API_URL=http://127.0.0.1:8000" >> "$GITHUB_ENV"
 
       - name: Create test virtual environment
         run: |
