@@ -159,7 +159,7 @@ jobs:
       # =====================================================
       # Backend / test environment
       # =====================================================
-      
+
       - name: Configure integration test API URL
         run: |
           echo "SPIRIT_ISLAND_API_URL=http://127.0.0.1:8000" >> "$GITHUB_ENV"
@@ -435,9 +435,9 @@ jobs:
           script: |
             set -eux
 
-            chmod +x ./tests/android-smoke-test.sh
+            chmod +x ./tests/smoke/android-smoke-test.sh
 
-            bash ./tests/android-smoke-test.sh "${{ matrix.mode }}"
+            bash ./tests/smoke/android-smoke-test.sh "${{ matrix.mode }}"
 
 
       # =====================================================
