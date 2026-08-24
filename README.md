@@ -146,6 +146,8 @@ python main.py
 
 # BACKEND
 # Create the virtual environment
+python -m venv backend/.venv
+# activate the virtual environment
 source backend/.venv/Scripts/activate
 
 # create db on first installation (migration will update on later installs)
@@ -153,3 +155,12 @@ python -m shared.database.init_db --app-data
 
 # run the backend
 python -m uvicorn backend.main:app --reload
+
+# TESTING
+# create venv test
+python -m venv tests/.venv
+# install dependencies
+tests/venv/Scripts/python.exe -m pip install -r tests/requirements.txt
+
+# run tests
+tests/venv/Scripts/python.exe -m pytest -s

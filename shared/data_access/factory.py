@@ -9,11 +9,22 @@ def create_data_provider(
 ):
     if application == "backend":
 
-        from shared.database.config import BUNDLED_DB_PATH
-        from shared.data_access.sqlite import SQLiteDataProvider
+        from shared.database.config import (
+            BUNDLED_DB_PATH,
+            DB_PATH,
+        )
+        from shared.data_access.sqlite import (
+            SQLiteDataProvider
+        )
+
+        database_path = (
+            DB_PATH
+            if DB_PATH is not None
+            else BUNDLED_DB_PATH
+        )
 
         return SQLiteDataProvider(
-            database_path=BUNDLED_DB_PATH,
+            database_path=database_path,
         )
 
     if application == "frontend":
@@ -21,15 +32,20 @@ def create_data_provider(
         if MODE == "standalone":
 
             from shared.database.config import (
-                BUNDLED_DB_FILENAME
+                BUNDLED_DB_FILENAME,
+                DB_PATH,
             )
             from shared.data_access.sqlite import (
                 SQLiteDataProvider
             )
 
             database_path = (
-                Path(user_data_dir)
-                / BUNDLED_DB_FILENAME
+                DB_PATH
+                if DB_PATH is not None
+                else (
+                    Path(user_data_dir)
+                    / BUNDLED_DB_FILENAME
+                )
             )
 
             return SQLiteDataProvider(
