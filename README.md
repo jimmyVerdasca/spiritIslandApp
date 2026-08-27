@@ -149,6 +149,7 @@ python main.py
 python -m venv backend/.venv
 # activate the virtual environment
 source backend/.venv/Scripts/activate
+pip install -r backend/requirements.txt
 
 # create db on first installation (migration will update on later installs)
 python -m shared.database.init_db --app-data 
