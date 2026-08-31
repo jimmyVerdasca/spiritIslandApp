@@ -1,186 +1,113 @@
-import random
-
-from shared.models.game import Board, BoardConfiguration
-from shared.models.converters import (
-    row_to_board,
-    row_to_configuration,
-)
-
 
 # =========================================================
 # BOARDS
 # =========================================================
 
-def get_all(cursor) -> list[Board]:
+GET_ALL = """
+    SELECT
+        id,
+        key
 
-    cursor.execute(
-        """
-        SELECT id, key
-        FROM boards
-        ORDER BY key
-        """
-    )
+    FROM boards
 
-    return [
-        row_to_board(row)
-        for row in cursor.fetchall()
-    ]
+    ORDER BY key
+"""
 
 
-def get_by_key(cursor, key) -> Board:
+GET_BY_KEY = """
+    SELECT
+        id,
+        key
 
-    cursor.execute(
-        """
-        SELECT id, key
-        FROM boards
-        WHERE key = ?
-        """,
-        (key,)
-    )
+    FROM boards
 
-    row = cursor.fetchone()
-
-    if row is None:
-        raise ValueError(
-            f"Board not found: {key}"
-        )
-
-    return row_to_board(row)
+    WHERE key = ?
+"""
 
 
-def get_for_game(cursor, game_id) -> list[Board]:
+GET_FOR_GAME = """
+    SELECT
+        b.id,
+        b.key
 
-    cursor.execute(
-        """
-        SELECT
-            b.id,
-            b.key
+    FROM boards b
 
-        FROM boards b
+    JOIN game_boards gb
+        ON gb.board_id = b.id
 
-        JOIN game_boards gb
-            ON gb.board_id = b.id
+    WHERE gb.game_id = ?
 
-        WHERE gb.game_id = ?
-
-        ORDER BY gb.position
-        """,
-        (game_id,)
-    )
-
-    return [
-        row_to_board(row)
-        for row in cursor.fetchall()
-    ]
+    ORDER BY gb.position
+"""
 
 
-def get_key(cursor, board_id) -> str:
+GET_KEY = """
+    SELECT
+        key
 
-    cursor.execute(
-        """
-        SELECT key
-        FROM boards
-        WHERE id = ?
-        """,
-        (board_id,)
-    )
+    FROM boards
 
-    row = cursor.fetchone()
-
-    if row is None:
-        raise ValueError(
-            f"Board id not found: {board_id}"
-        )
-
-    return row["key"]
+    WHERE id = ?
+"""
 
 
 # =========================================================
 # BOARD CONFIGURATION
 # =========================================================
 
-def get_configuration(
-    cursor,
-    key=None,
-    players=None,
-) -> BoardConfiguration:
+GET_CONFIGURATION_BY_KEY = """
+    SELECT
+        id,
+        key,
+        min_players,
+        max_players
 
-    if key:
+    FROM board_configurations
 
-        cursor.execute(
-            """
-            SELECT
-                id,
-                key,
-                min_players,
-                max_players
+    WHERE key = ?
+"""
 
-            FROM board_configurations
 
-            WHERE key = ?
-            """,
-            (key,)
-        )
+GET_CONFIGURATION_FOR_PLAYERS = """
+    SELECT
+        id,
+        key,
+        min_players,
+        max_players
 
-    elif players is not None:
+    FROM board_configurations
 
-        cursor.execute(
-            """
-            SELECT
-                id,
-                key,
-                min_players,
-                max_players
+    WHERE min_players <= ?
+    AND max_players >= ?
+"""
 
-            FROM board_configurations
 
-            WHERE min_players <= ?
-            AND max_players >= ?
-            """,
-            (
-                players,
-                players,
-            )
-        )
+GET_ALL_CONFIGURATIONS = """
+    SELECT
+        id,
+        key,
+        min_players,
+        max_players
 
-    else:
-
-        cursor.execute(
-            """
-            SELECT
-                id,
-                key,
-                min_players,
-                max_players
-
-            FROM board_configurations
-            """
-        )
-
-    rows = cursor.fetchall()
-
-    if not rows:
-
-        raise Exception(
-            "No compatible board configuration"
-        )
-
-    return row_to_configuration(
-        random.choice(rows)
-    )
-
+    FROM board_configurations
+"""
 
 # =========================================================
-# RANDOM BOARDS
+# GET BOARDS BY GAME ID
 # =========================================================
 
-def get_random_boards(
-    cursor,
-    available: list[Board],
-    quantity: int,
-) -> list[Board]:
+GET_BY_GAME_ID = """
+    SELECT
+        b.id,
+        b.key,
+        gb.position
 
-    return random.sample(
-        available,
-        quantity,
-    )
+    FROM game_boards gb
+
+    JOIN boards b
+        ON b.id = gb.board_id
+
+    WHERE gb.game_id = ?
+
+    ORDER BY gb.position
+"""

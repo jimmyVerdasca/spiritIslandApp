@@ -1,11 +1,18 @@
 import shutil
-import sqlite3
-from contextlib import contextmanager
 from pathlib import Path
 
 from shared.models.game_status import GameStatus
 from shared.models.game import Game
-from shared.models.converters import row_to_game
+from shared.models.converters import (
+    row_to_game,
+    row_to_configuration,
+    row_to_spirit,
+    row_to_board,
+    row_to_adversary,
+    row_to_scenario,
+    row_to_adversary_difficulty,
+    row_to_trophy,
+)
 from shared.engine.trophy_conditions import CONDITIONS
 
 from .config import DATABASE_VERSION
@@ -14,13 +21,23 @@ from .migrations.runner import run_migrations
 
 
 # =========================================================
-# DATABASE INITIALIZATION
+# LOCAL DATABASE INITIALIZATION
 # =========================================================
+
 
 def ensure_database(
     database_path,
     template_path,
 ):
+    """
+    Ensure a local SQLite database exists and is migrated.
+
+    This is SQLite/filesystem-specific and is used by
+    SQLiteDataProvider.
+
+    Remote D1 databases should have their own deployment
+    and migration mechanism.
+    """
 
     database_path = Path(
         database_path
@@ -29,10 +46,6 @@ def ensure_database(
     template_path = Path(
         template_path
     )
-
-    # -----------------------------------------------------
-    # First launch
-    # -----------------------------------------------------
 
     if not database_path.exists():
 
@@ -53,195 +66,293 @@ def ensure_database(
             database_path,
         )
 
-    # -----------------------------------------------------
-    # Existing database
-    # -----------------------------------------------------
-
     run_migrations(
         database_path
     )
 
 
 # =========================================================
-# CONNECTION
+# DATABASE VERSION
 # =========================================================
 
-def get_connection(
-    database_path,
-    row_factory=True,
+
+def validate_database_version(
+    executor,
 ):
+    """
+    Validate the local SQLite database schema version.
 
-    database_path = Path(
-        database_path
-    )
+    This is intentionally SQLite-specific.
 
-    db = sqlite3.connect(
-        database_path
-    )
+    D1 should use a separate schema/version mechanism because
+    PRAGMA user_version is not part of the portable SQL contract.
+    """
 
-    if row_factory:
-
-        db.row_factory = sqlite3.Row
-
-    cursor = db.cursor()
-
-    cursor.execute(
+    row = executor.fetchone(
         "PRAGMA user_version"
     )
 
-    version = cursor.fetchone()[0]
+    if row is None:
+
+        raise RuntimeError(
+            "Unable to determine database version"
+        )
+
+    version = row[0]
 
     if version != DATABASE_VERSION:
+
         raise RuntimeError(
             f"Database version mismatch: "
             f"expected {DATABASE_VERSION}, "
             f"found {version}"
         )
 
-    return db
-
-
-@contextmanager
-def database(
-    database_path,
-):
-
-    connection = get_connection(
-        database_path
-    )
-
-    try:
-
-        yield connection
-
-    finally:
-
-        connection.close()
-
 
 # =========================================================
 # GAMES
 # =========================================================
 
+
 def save_game(
-    database_path,
+    executor,
     game: Game,
 ) -> int:
+    """
+    Save a complete game.
 
-    db = get_connection(
-        database_path
-    )
+    The query modules contain only raw SQL. All model-to-row
+    conversion and orchestration happens here.
+    """
 
     try:
 
-        cursor = db.cursor()
+        # -------------------------------------------------
+        # GAME
+        # -------------------------------------------------
 
-        game_id = queries.games.save_game(
-            cursor,
-            game,
+        row = executor.fetchone(
+            queries.games.SAVE_GAME,
+            (
+                game.players,
+                game.configuration.id,
+                game.status.value,
+            ),
         )
 
-        db.commit()
+        if row is None:
+
+            raise RuntimeError(
+                "Failed to create game"
+            )
+
+        game_id = row["id"]
+
+        # -------------------------------------------------
+        # SPIRITS
+        # -------------------------------------------------
+
+        for position, spirit in enumerate(
+            game.spirits,
+            start=1,
+        ):
+
+            executor.execute(
+                queries.games.SAVE_GAME_SPIRIT,
+                (
+                    game_id,
+                    spirit.id,
+                    position,
+                ),
+            )
+
+        # -------------------------------------------------
+        # BOARDS
+        # -------------------------------------------------
+
+        for position, board in enumerate(
+            game.boards,
+            start=1,
+        ):
+
+            executor.execute(
+                queries.games.SAVE_GAME_BOARD,
+                (
+                    game_id,
+                    board.id,
+                    position,
+                ),
+            )
+
+        # -------------------------------------------------
+        # ADVERSARIES
+        # -------------------------------------------------
+
+        for game_adversary in game.adversaries:
+
+            executor.execute(
+                queries.games.SAVE_GAME_ADVERSARY,
+                (
+                    game_id,
+                    game_adversary.adversary.id,
+                    game_adversary.difficulty.id,
+                ),
+            )
+
+        # -------------------------------------------------
+        # SCENARIOS
+        # -------------------------------------------------
+
+        for scenario in game.scenarios:
+
+            executor.execute(
+                queries.games.SAVE_GAME_SCENARIO,
+                (
+                    game_id,
+                    scenario.id,
+                ),
+            )
+
+        executor.commit()
 
         return game_id
 
     except Exception:
 
-        db.rollback()
+        executor.rollback()
 
         raise
 
-    finally:
 
-        db.close()
+# =========================================================
+# GET GAMES BY STATUS
+# =========================================================
 
 
 def _get_games_by_status(
-    database_path,
+    executor,
     status: GameStatus,
     result=None,
     limit=20,
     offset=0,
 ) -> list[Game]:
 
-    db = get_connection(
-        database_path
+    params = [
+        status.value,
+        result,
+        result,
+        limit,
+        offset,
+    ]
+
+    rows = executor.fetchall(
+        queries.games.GET_BY_STATUS,
+        params,
     )
 
-    try:
+    games = []
 
-        cursor = db.cursor()
+    for row in rows:
 
-        rows = queries.games.get_by_status(
-            cursor,
-            status,
-            result,
-            limit,
-            offset,
+        game = row_to_game(
+            row
         )
 
-        games = []
+        # -------------------------------------------------
+        # CONFIGURATION
+        # -------------------------------------------------
 
-        for row in rows:
+        configuration_row = executor.fetchone(
+            queries.configurations.GET_BY_KEY,
+            (
+                game.configuration,
+            ),
+        )
 
-            game = row_to_game(
-                row
+        if configuration_row is None:
+
+            raise ValueError(
+                f"Configuration not found: "
+                f"{game.configuration}"
             )
 
-            game.configuration = (
-                queries.configurations.get_by_key(
-                    cursor,
-                    game.configuration,
-                )
+        game.configuration = (
+            row_to_configuration(
+                configuration_row
             )
+        )
 
-            game.spirits = (
-                queries.spirits.get_by_id(
-                    cursor,
+        # -------------------------------------------------
+        # SPIRITS
+        # -------------------------------------------------
+
+        game.spirits = [
+            row_to_spirit(row)
+            for row in executor.fetchall(
+                queries.spirits.GET_BY_GAME_ID,
+                (
                     game.id,
-                )
+                ),
             )
+        ]
 
-            game.boards = (
-                queries.boards.get_for_game(
-                    cursor,
+        # -------------------------------------------------
+        # BOARDS
+        # -------------------------------------------------
+
+        game.boards = [
+            row_to_board(row)
+            for row in executor.fetchall(
+                queries.boards.GET_BY_GAME_ID,
+                (
                     game.id,
-                )
+                ),
             )
+        ]
 
-            game.adversaries = (
-                queries.adversaries.get_by_id(
-                    cursor,
+        # -------------------------------------------------
+        # ADVERSARIES
+        # -------------------------------------------------
+
+        game.adversaries = [
+            row_to_adversary(row)
+            for row in executor.fetchall(
+                queries.adversaries.GET_BY_GAME_ID,
+                (
                     game.id,
-                )
+                ),
             )
+        ]
 
-            game.scenarios = (
-                queries.scenarios.get_by_id(
-                    cursor,
+        # -------------------------------------------------
+        # SCENARIOS
+        # -------------------------------------------------
+
+        game.scenarios = [
+            row_to_scenario(row)
+            for row in executor.fetchall(
+                queries.scenarios.GET_BY_GAME_ID,
+                (
                     game.id,
-                )
+                ),
             )
+        ]
 
-            games.append(
-                game
-            )
+        games.append(
+            game
+        )
 
-        return games
-
-    finally:
-
-        db.close()
+    return games
 
 
 def get_running_games(
-    database_path,
+    executor,
     limit=20,
     offset=0,
 ) -> list[Game]:
 
     return _get_games_by_status(
-        database_path,
+        executor,
         GameStatus.RUNNING,
         limit=limit,
         offset=offset,
@@ -249,14 +360,14 @@ def get_running_games(
 
 
 def get_finished_games(
-    database_path,
+    executor,
     result=None,
     limit=20,
     offset=0,
 ) -> list[Game]:
 
     return _get_games_by_status(
-        database_path,
+        executor,
         GameStatus.FINISHED,
         result=result,
         limit=limit,
@@ -265,13 +376,13 @@ def get_finished_games(
 
 
 def get_abandoned_games(
-    database_path,
+    executor,
     limit=20,
     offset=0,
 ) -> list[Game]:
 
     return _get_games_by_status(
-        database_path,
+        executor,
         GameStatus.ABANDONED,
         limit=limit,
         offset=offset,
@@ -282,217 +393,145 @@ def get_abandoned_games(
 # STATIC DATA
 # =========================================================
 
+
 def get_configurations(
-    database_path,
+    executor,
 ):
 
-    db = get_connection(
-        database_path
-    )
-
-    try:
-
-        cursor = db.cursor()
-
-        return queries.configurations.get_all(
-            cursor
+    return [
+        row_to_configuration(row)
+        for row in executor.fetchall(
+            queries.configurations.GET_ALL
         )
-
-    finally:
-
-        db.close()
+    ]
 
 
 def get_spirits(
-    database_path,
+    executor,
 ):
 
-    db = get_connection(
-        database_path
-    )
-
-    try:
-
-        cursor = db.cursor()
-
-        return queries.spirits.get_all(
-            cursor
+    return [
+        row_to_spirit(row)
+        for row in executor.fetchall(
+            queries.spirits.GET_ALL
         )
-
-    finally:
-
-        db.close()
+    ]
 
 
 def get_boards(
-    database_path,
+    executor,
 ):
 
-    db = get_connection(
-        database_path
-    )
-
-    try:
-
-        cursor = db.cursor()
-
-        return queries.boards.get_all(
-            cursor
+    return [
+        row_to_board(row)
+        for row in executor.fetchall(
+            queries.boards.GET_ALL
         )
-
-    finally:
-
-        db.close()
+    ]
 
 
 def get_adversaries(
-    database_path,
+    executor,
 ):
 
-    db = get_connection(
-        database_path
-    )
-
-    try:
-
-        cursor = db.cursor()
-
-        return queries.adversaries.get_all(
-            cursor
+    return [
+        row_to_adversary(row)
+        for row in executor.fetchall(
+            queries.adversaries.GET_ALL
         )
-
-    finally:
-
-        db.close()
+    ]
 
 
 def get_difficulties(
-    database_path,
+    executor,
 ):
 
-    db = get_connection(
-        database_path
+    from shared.models.converters import (
+        row_to_difficulty,
     )
 
-    try:
-
-        cursor = db.cursor()
-
-        return queries.difficulties.get_all(
-            cursor
+    return [
+        row_to_difficulty(row)
+        for row in executor.fetchall(
+            queries.difficulties.GET_ALL
         )
-
-    finally:
-
-        db.close()
+    ]
 
 
 def get_scenarios(
-    database_path,
+    executor,
 ):
 
-    db = get_connection(
-        database_path
-    )
-
-    try:
-
-        cursor = db.cursor()
-
-        return queries.scenarios.get_all(
-            cursor
+    return [
+        row_to_scenario(row)
+        for row in executor.fetchall(
+            queries.scenarios.GET_ALL
         )
-
-    finally:
-
-        db.close()
+    ]
 
 
 def get_adversaries_difficulties(
-    database_path,
+    executor,
 ):
 
-    db = get_connection(
-        database_path
-    )
-
-    try:
-
-        cursor = db.cursor()
-
-        return (
-            queries.adversary_difficulty.get_all(
-                cursor
-            )
+    return [
+        row_to_adversary_difficulty(row)
+        for row in executor.fetchall(
+            queries.adversary_difficulty.GET_ALL
         )
-
-    finally:
-
-        db.close()
+    ]
 
 
 def get_scenario_difficulty(
-    database_path,
+    executor,
     scenario_id,
 ):
 
-    db = get_connection(
-        database_path
+    row = executor.fetchone(
+        queries.scenarios.GET_SCENARIO_DIFFICULTY,
+        (
+            scenario_id,
+        ),
     )
 
-    try:
+    if row is None:
 
-        cursor = db.cursor()
+        return None
 
-        scenario = (
-            queries.scenarios
-            .get_scenario_difficulty(
-                cursor,
-                scenario_id,
-            )
-        )
-
-        if scenario is None:
-            return None
-
-        return scenario.score_difficulty
-
-    finally:
-
-        db.close()
+    return row["score_difficulty"]
 
 
 # =========================================================
 # GAME STATE
 # =========================================================
 
+
 def abandon_game(
-    database_path,
+    executor,
     game_id,
 ):
 
-    db = get_connection(
-        database_path
-    )
-
     try:
 
-        cursor = db.cursor()
-
-        queries.games.abandon_game(
-            cursor,
-            game_id,
+        executor.execute(
+            queries.games.ABANDON_GAME,
+            (
+                GameStatus.ABANDONED.value,
+                game_id,
+            ),
         )
 
-        db.commit()
+        executor.commit()
 
-    finally:
+    except Exception:
 
-        db.close()
+        executor.rollback()
+
+        raise
 
 
 def finish_game(
-    database_path,
+    executor,
     game_id,
     result,
     score,
@@ -501,89 +540,84 @@ def finish_game(
     blight,
 ):
 
-    db = get_connection(
-        database_path
-    )
-
     try:
 
-        cursor = db.cursor()
-
-        queries.games.finish_game(
-            cursor,
-            game_id,
-            result,
-            score,
-            invader_cards,
-            dahan,
-            blight,
+        executor.execute(
+            queries.games.FINISH_GAME,
+            (
+                GameStatus.FINISHED.value,
+                result,
+                score,
+                invader_cards,
+                dahan,
+                blight,
+                game_id,
+            ),
         )
 
-        db.commit()
+        executor.commit()
 
-    finally:
+    except Exception:
 
-        db.close()
+        executor.rollback()
+
+        raise
 
 
 # =========================================================
 # TROPHIES
 # =========================================================
 
+
 def get_trophies(
-    database_path,
+    executor,
 ):
 
-    db = get_connection(
-        database_path
-    )
+    trophies = [
+        row_to_trophy(row)
+        for row in executor.fetchall(
+            queries.trophies.GET_ALL
+        )
+    ]
 
-    try:
+    for trophy in trophies:
 
-        cursor = db.cursor()
-
-        trophies = queries.trophies.get_all(
-            cursor
+        trophy.unlocked = (
+            check_trophy_condition(
+                executor,
+                trophy,
+            )
         )
 
-        for trophy in trophies:
-
-            trophy.unlocked = (
-                check_trophy_condition(
-                    cursor,
-                    trophy,
-                    database_path,
-                )
-            )
-
-        return trophies
-
-    finally:
-
-        db.close()
+    return trophies
 
 
 def check_trophy_condition(
-    cursor,
+    executor,
     trophy,
-    database_path,
 ):
 
     if trophy.sql_condition:
 
-        cursor.execute(
+        row = executor.fetchone(
             trophy.sql_condition
         )
 
+        if row is None:
+
+            return False
+
+        # Trophy SQL conditions are expected to return
+        # a single boolean/integer result.
         return bool(
-            cursor.fetchone()[0]
+            row[0]
         )
 
     if trophy.python_condition:
 
         return check_python_condition(
             trophy.python_condition,
-            database_path,
+            executor,
         )
 
     return False
@@ -591,11 +625,11 @@ def check_trophy_condition(
 
 def check_python_condition(
     condition_name,
-    database_path,
+    executor,
 ):
 
     games = get_finished_games(
-        database_path
+        executor
     )
 
     condition = CONDITIONS.get(
@@ -603,6 +637,7 @@ def check_python_condition(
     )
 
     if condition is None:
+
         return False
 
     return condition(

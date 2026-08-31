@@ -1,96 +1,70 @@
-from shared.models.game import Adversary, GameAdversary
-from shared.models.converters import (
-    row_to_adversary,
-    row_to_game_adversary,
-)
+# =========================================================
+# ALL ADVERSARIES
+# =========================================================
+
+GET_ALL = """
+    SELECT
+        id,
+        key
+    FROM adversaries
+    ORDER BY key
+"""
 
 
-def get_all(cursor) -> list[Adversary]:
+# =========================================================
+# RANDOM ADVERSARY
+# =========================================================
 
-    cursor.execute(
-        """
-        SELECT id, key
-        FROM adversaries
-        ORDER BY key
-        """
-    )
-
-    return [
-        row_to_adversary(row)
-        for row in cursor.fetchall()
-    ]
+GET_RANDOM = """
+    SELECT
+        id,
+        key
+    FROM adversaries
+    ORDER BY RANDOM()
+    LIMIT 1
+"""
 
 
-def get_random(cursor) -> Adversary:
+# =========================================================
+# ADVERSARY BY KEY
+# =========================================================
 
-    cursor.execute(
-        """
-        SELECT id, key
-        FROM adversaries
-        ORDER BY RANDOM()
-        LIMIT 1
-        """
-    )
-
-    return row_to_adversary(
-        cursor.fetchone()
-    )
+GET_BY_KEY = """
+    SELECT
+        id,
+        key
+    FROM adversaries
+    WHERE key = ?
+"""
 
 
-def get_by_key(cursor, key) -> Adversary:
+# =========================================================
+# ADVERSARIES FOR GAME
+# =========================================================
 
-    cursor.execute(
-        """
-        SELECT id, key
-        FROM adversaries
-        WHERE key = ?
-        """,
-        (key,)
-    )
+GET_BY_GAME_ID = """
+    SELECT
+        a.id AS adversary_id,
+        a.key AS adversary_key,
 
-    row = cursor.fetchone()
+        d.id AS difficulty_id,
+        d.level AS difficulty_level,
 
-    if row is None:
-        raise ValueError(
-            f"Adversary not found: {key}"
-        )
+        ad.score_difficulty AS score_difficulty
 
-    return row_to_adversary(row)
+    FROM game_adversaries ga
 
+    JOIN adversaries a
+        ON a.id = ga.adversary_id
 
-def get_by_id(cursor, game_id) -> list[GameAdversary]:
-    
-    cursor.execute(
-        """
-        SELECT
-            a.id AS adversary_id,
-            a.key AS adversary_key,
+    JOIN difficulties d
+        ON d.id = ga.difficulty_id
 
-            d.id AS difficulty_id,
-            d.level AS difficulty_level,
+    JOIN adversary_difficulties ad
+        ON ad.adversary_id = a.id
+        AND ad.difficulty_id = d.id
 
-            ad.score_difficulty AS score_difficulty
+    WHERE ga.game_id = ?
 
-        FROM game_adversaries ga
-
-        JOIN adversaries a
-            ON a.id = ga.adversary_id
-
-        JOIN difficulties d
-            ON d.id = ga.difficulty_id
-
-        JOIN adversary_difficulties ad
-            ON ad.adversary_id = a.id
-            AND ad.difficulty_id = d.id
-
-        WHERE ga.game_id = ?
-
-        ORDER BY ga.adversary_id
-        """,
-        (game_id,)
-    )
-
-    return [
-        row_to_game_adversary(row)
-        for row in cursor.fetchall()
-    ]
+    ORDER BY ga.adversary_id
+"""

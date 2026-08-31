@@ -2,21 +2,50 @@ from pathlib import Path
 
 from shared.database import database
 from shared.database.config import BUNDLED_DB_PATH
+from shared.database.sqlite_connection import SQLiteConnection
+from shared.database.sqlite_executor import SQLiteExecutor
 
 from .base import DataProvider
 
 
 class SQLiteDataProvider(DataProvider):
 
-    def __init__(self, database_path: Path):
+    def __init__(
+        self,
+        database_path: Path,
+    ):
 
         self.database_path = Path(
             database_path
         )
 
+        # =================================================
+        # Database initialization
+        # =================================================
+
         database.ensure_database(
             database_path=self.database_path,
             template_path=BUNDLED_DB_PATH,
+        )
+
+        # =================================================
+        # Connection / executor
+        # =================================================
+
+        self.connection = SQLiteConnection(
+            self.database_path
+        )
+
+        self.executor = SQLiteExecutor(
+            self.connection
+        )
+
+        # =================================================
+        # Database validation
+        # =================================================
+
+        database.validate_database_version(
+            self.executor
         )
 
         # =================================================
@@ -25,49 +54,49 @@ class SQLiteDataProvider(DataProvider):
 
         self._configurations = (
             database.get_configurations(
-                self.database_path
+                self.executor
             )
         )
 
         self._spirits = (
             database.get_spirits(
-                self.database_path
+                self.executor
             )
         )
 
         self._boards = (
             database.get_boards(
-                self.database_path
+                self.executor
             )
         )
 
         self._adversaries = (
             database.get_adversaries(
-                self.database_path
+                self.executor
             )
         )
 
         self._difficulties = (
             database.get_difficulties(
-                self.database_path
+                self.executor
             )
         )
 
         self._scenarios = (
             database.get_scenarios(
-                self.database_path
+                self.executor
             )
         )
 
         self._adversaries_difficulties = (
             database.get_adversaries_difficulties(
-                self.database_path
+                self.executor
             )
         )
 
         self._trophies = (
             database.get_trophies(
-                self.database_path
+                self.executor
             )
         )
 
@@ -111,11 +140,14 @@ class SQLiteDataProvider(DataProvider):
     # Games
     # =================================================
 
-    def save_game(self, game):
+    def save_game(
+        self,
+        game,
+    ):
 
         return database.save_game(
-            self.database_path,
-            game
+            self.executor,
+            game,
         )
 
     def get_running_games(
@@ -125,7 +157,7 @@ class SQLiteDataProvider(DataProvider):
     ):
 
         return database.get_running_games(
-            self.database_path,
+            self.executor,
             limit=limit,
             offset=offset,
         )
@@ -138,7 +170,7 @@ class SQLiteDataProvider(DataProvider):
     ):
 
         return database.get_finished_games(
-            self.database_path,
+            self.executor,
             result=result,
             limit=limit,
             offset=offset,
@@ -151,7 +183,7 @@ class SQLiteDataProvider(DataProvider):
     ):
 
         return database.get_abandoned_games(
-            self.database_path,
+            self.executor,
             limit=limit,
             offset=offset,
         )
@@ -160,11 +192,14 @@ class SQLiteDataProvider(DataProvider):
     # Game state
     # =================================================
 
-    def abandon_game(self, game_id):
+    def abandon_game(
+        self,
+        game_id,
+    ):
 
         return database.abandon_game(
-            self.database_path,
-            game_id
+            self.executor,
+            game_id,
         )
 
     def finish_game(
@@ -178,7 +213,7 @@ class SQLiteDataProvider(DataProvider):
     ):
 
         return database.finish_game(
-            self.database_path,
+            self.executor,
             game_id,
             result,
             score,
@@ -186,3 +221,11 @@ class SQLiteDataProvider(DataProvider):
             dahan,
             blight,
         )
+
+    # =================================================
+    # Lifecycle
+    # =================================================
+
+    def close(self):
+
+        self.executor.close()
