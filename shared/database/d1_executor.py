@@ -1,5 +1,5 @@
 from .sqlite_executor import SQLExecutor
-from .d1_executor import D1Connection
+from .d1_connection import D1Connection
 
 
 class D1Executor(SQLExecutor):
