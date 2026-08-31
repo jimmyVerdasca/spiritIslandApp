@@ -1,94 +1,36 @@
-import random
+GET_ALL = """
+    SELECT
+        id,
+        key
 
-from shared.models.game import Spirit
-from shared.models.converters import row_to_spirit
+    FROM spirits
 
-
-def get_all(cursor) -> list[Spirit]:
-
-    cursor.execute(
-        """
-        SELECT
-            id,
-            key
-
-        FROM spirits
-
-        ORDER BY key
-        """
-    )
-
-    return [
-        row_to_spirit(row)
-        for row in cursor.fetchall()
-    ]
+    ORDER BY key
+"""
 
 
-def get_random(
-    cursor,
-    count
-) -> list[Spirit]:
+GET_BY_KEY = """
+    SELECT
+        id,
+        key
 
-    spirits = get_all(cursor)
+    FROM spirits
 
-    return random.sample(
-        spirits,
-        count
-    )
+    WHERE key = ?
+"""
 
 
-def get_by_key(
-    cursor,
-    key
-) -> Spirit:
+GET_BY_GAME_ID = """
+    SELECT
+        s.id,
+        s.key
 
-    cursor.execute(
-        """
-        SELECT
-            id,
-            key
+    FROM spirits s
 
-        FROM spirits
+    JOIN game_spirits gs
+        ON gs.spirit_id = s.id
 
-        WHERE key = ?
-        """,
-        (key,)
-    )
+    WHERE gs.game_id = ?
 
-    row = cursor.fetchone()
-
-    if row is None:
-        raise ValueError(
-            f"Spirit not found: {key}"
-        )
-
-    return row_to_spirit(row)
-
-
-def get_by_id(
-    cursor,
-    game_id
-) -> list[Spirit]:
-
-    cursor.execute(
-        """
-        SELECT
-            s.id,
-            s.key
-
-        FROM spirits s
-
-        JOIN game_spirits gs
-            ON gs.spirit_id = s.id
-
-        WHERE gs.game_id = ?
-
-        ORDER BY gs.position
-        """,
-        (game_id,)
-    )
-
-    return [
-        row_to_spirit(row)
-        for row in cursor.fetchall()
-    ]
+    ORDER BY gs.position
+"""

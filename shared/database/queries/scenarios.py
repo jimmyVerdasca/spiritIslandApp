@@ -1,127 +1,63 @@
-from shared.models.game import Scenario
-from shared.models.converters import row_to_scenario
+GET_ALL = """
+    SELECT
+        id,
+        key,
+        score_difficulty
+
+    FROM scenarios
+
+    ORDER BY key
+"""
 
 
-def get_all(cursor) -> list[Scenario]:
+GET_RANDOM = """
+    SELECT
+        id,
+        key,
+        score_difficulty
 
-    cursor.execute(
-        """
-        SELECT
-            id,
-            key,
-            score_difficulty
+    FROM scenarios
 
-        FROM scenarios
+    ORDER BY RANDOM()
 
-        ORDER BY key
-        """
-    )
-
-    return [
-        row_to_scenario(row)
-        for row in cursor.fetchall()
-    ]
+    LIMIT 1
+"""
 
 
-def get_random(cursor) -> Scenario:
+GET_BY_KEY = """
+    SELECT
+        id,
+        key,
+        score_difficulty
 
-    cursor.execute(
-        """
-        SELECT
-            id,
-            key,
-            score_difficulty
+    FROM scenarios
 
-        FROM scenarios
-
-        ORDER BY RANDOM()
-        LIMIT 1
-        """
-    )
-
-    row = cursor.fetchone()
-
-    if row is None:
-        raise ValueError(
-            "No scenarios found"
-        )
-
-    return row_to_scenario(row)
+    WHERE key = ?
+"""
 
 
-def get_by_key(cursor, key) -> Scenario:
+GET_BY_GAME_ID = """
+    SELECT
+        s.id,
+        s.key,
+        s.score_difficulty
 
-    cursor.execute(
-        """
-        SELECT
-            id,
-            key,
-            score_difficulty
+    FROM scenarios s
 
-        FROM scenarios
+    JOIN game_scenarios gs
+        ON gs.scenario_id = s.id
 
-        WHERE key = ?
-        """,
-        (key,)
-    )
-
-    row = cursor.fetchone()
-
-    if row is None:
-        raise ValueError(
-            f"Scenario not found: {key}"
-        )
-
-    return row_to_scenario(row)
+    WHERE gs.game_id = ?
+"""
 
 
-def get_by_id(cursor, game_id) -> list[Scenario]:
+GET_BY_ID = """
+    SELECT
+        id,
+        key,
+        score_difficulty
 
-    cursor.execute(
-        """
-        SELECT
-            s.id,
-            s.key,
-            s.score_difficulty
+    FROM scenarios
 
-        FROM scenarios s
-
-        JOIN game_scenarios gs
-            ON gs.scenario_id = s.id
-
-        WHERE gs.game_id = ?
-        """,
-        (game_id,)
-    )
-
-    return [
-        row_to_scenario(row)
-        for row in cursor.fetchall()
-    ]
-
-
-def get_scenario_difficulty(
-    cursor,
-    scenario_id
-) -> Scenario | None:
-
-    cursor.execute(
-        """
-        SELECT
-            id,
-            key,
-            score_difficulty
-
-        FROM scenarios
-
-        WHERE id = ?
-        """,
-        (scenario_id,)
-    )
-
-    row = cursor.fetchone()
-
-    if row is None:
-        return None
-
-    return row_to_scenario(row)
+    WHERE id = ?
+"""

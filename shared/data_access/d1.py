@@ -1,51 +1,27 @@
-from pathlib import Path
-
 from shared.database import database
-from shared.database.config import BUNDLED_DB_PATH
-from shared.database.sqlite_connection import SQLiteConnection
-from shared.database.sqlite_executor import SQLiteExecutor
+from shared.database.d1_connection import D1Connection
+from shared.database.d1_executor import D1Executor
 
 from .base import DataProvider
 
 
-class SQLiteDataProvider(DataProvider):
+class D1DataProvider(DataProvider):
 
     def __init__(
         self,
-        database_path: Path,
+        account_id,
+        database_id,
+        api_token,
     ):
 
-        self.database_path = Path(
-            database_path
+        self.connection = D1Connection(
+            account_id=account_id,
+            database_id=database_id,
+            api_token=api_token,
         )
 
-        # =================================================
-        # Database initialization
-        # =================================================
-
-        database.ensure_database(
-            database_path=self.database_path,
-            template_path=BUNDLED_DB_PATH,
-        )
-
-        # =================================================
-        # Connection / executor
-        # =================================================
-
-        self.connection = SQLiteConnection(
-            self.database_path
-        )
-
-        self.executor = SQLiteExecutor(
+        self.executor = D1Executor(
             self.connection
-        )
-
-        # =================================================
-        # Database validation
-        # =================================================
-
-        database.validate_database_version(
-            self.executor
         )
 
         # =================================================
