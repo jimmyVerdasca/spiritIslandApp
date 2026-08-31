@@ -41,16 +41,37 @@ class D1Error(RuntimeError):
 
 class D1Row(dict):
     """
-    Row object compatible with the way the existing code accesses
-    sqlite3.Row:
+    SQLite-row-compatible dictionary.
+
+    Supports both:
 
         row["id"]
         row["key"]
 
-    It also supports normal dictionary behavior.
+    and positional access:
+
+        row[0]
+        row[1]
     """
 
-    pass
+    def __getitem__(self, key):
+
+        if isinstance(key, int):
+
+            try:
+                return list(
+                    self.values()
+                )[key]
+
+            except IndexError:
+
+                raise IndexError(
+                    f"D1Row index out of range: {key}"
+                )
+
+        return super().__getitem__(
+            key
+        )
 
 
 # =========================================================
