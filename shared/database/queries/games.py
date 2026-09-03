@@ -30,6 +30,23 @@ SAVE_GAME_BOARD = """
     VALUES (?, ?, ?)
 """
 
+SAVE_GAME_ADVERSARY = """
+    INSERT INTO game_adversaries (
+        game_id,
+        adversary_id,
+        difficulty_id
+    )
+    VALUES (?, ?, ?)
+"""
+
+SAVE_GAME_SCENARIO = """
+    INSERT INTO game_scenarios (
+        game_id,
+        scenario_id
+    )
+    VALUES (?, ?)
+"""
+
 
 # =========================================================
 # GET GAMES BY STATUS
