@@ -1,4 +1,5 @@
 import requests
+import time
 
 from shared.models.converters import (
     game_to_json,
@@ -54,20 +55,81 @@ class HTTPDataProvider(DataProvider):
         params=None,
         json=None,
     ):
+        max_wait = 60
+        retry_delay = 1
 
-        response = self.session.request(
-            method=method,
-            url=f"{self.base_url}/{path.lstrip('/')}",
-            params=params,
-            json=json,
-        )
+        start_time = time.monotonic()
+        attempt = 0
 
-        response.raise_for_status()
+        while True:
 
-        if response.status_code == 204:
-            return None
+            attempt += 1
 
-        return response.json()
+            try:
+
+                response = self.session.request(
+                    method=method,
+                    url=f"{self.base_url}/{path.lstrip('/')}",
+                    params=params,
+                    json=json,
+                    timeout=5,
+                )
+
+                response.raise_for_status()
+
+                elapsed = time.monotonic() - start_time
+
+                print(
+                    f"SUCCESS after {elapsed:.2f}s "
+                    f"({attempt} attempt(s))"
+                )
+
+                if response.status_code == 204:
+                    return None
+
+                print(f"STATUS: {response.status_code}")
+                print(f"BODY: {response.text!r}")
+
+                return response.json()
+
+            except (requests.ConnectionError, requests.Timeout) as e:
+
+                elapsed = time.monotonic() - start_time
+
+                if elapsed >= max_wait:
+                    print(
+                        f"Request failed after {elapsed:.2f}s "
+                        f"({attempt} attempt(s)): {e}"
+                    )
+                    raise
+
+                print(
+                    f"Attempt {attempt} failed after "
+                    f"{elapsed:.2f}s: {e}"
+                )
+
+                print(
+                    f"Retrying in {retry_delay} second..."
+                )
+
+                time.sleep(retry_delay)
+
+            except requests.HTTPError as e:
+
+                print(
+                    f"HTTP error ({response.status_code}): {e}"
+                )
+
+                print(f"BODY: {response.text!r}")
+
+                raise
+
+            except requests.RequestException as e:
+
+                print(f"Request error: {e}")
+
+                raise
+
 
     def _get(
         self,
@@ -75,12 +137,9 @@ class HTTPDataProvider(DataProvider):
         *,
         params=None,
     ):
-
-        return self._request(
-            "GET",
-            path,
-            params=params,
-        )
+        result = self._request("GET", path, params=params)
+        print(f"_get {path} -> {result!r}")
+        return result
 
     def _post(
         self,
@@ -89,11 +148,15 @@ class HTTPDataProvider(DataProvider):
         json=None,
     ):
 
-        return self._request(
+        result = self._request(
             "POST",
             path,
             json=json,
         )
+
+        print(f"_post {path} -> {result!r}")
+
+        return result
 
     # =================================================
     # Static data
@@ -266,18 +329,19 @@ class HTTPDataProvider(DataProvider):
     # =================================================
     # Games
     # =================================================
-
+    
     def save_game(
-        self,
-        game,
-    ):
-
-        data = self._post(
-            "/games",
-            json=game_to_json(game),
-        )
-
-        return data["id"]
+            self,
+            game,
+        ):
+    
+            data = self._post(
+                "/games",
+                json=game_to_json(game),
+            )
+            print(f"SAVE_GAME DATA: {data!r}")
+    
+            return data["id"]
 
     def get_running_games(
         self,

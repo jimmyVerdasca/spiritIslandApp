@@ -913,7 +913,7 @@ class NewGameScreen(BaseScreen):
     ):
 
         configurations = (
-            self.data.get_configurations()
+            self.data.configurations
         )
 
 
@@ -2075,7 +2075,7 @@ class NewGameScreen(BaseScreen):
     # ====================================================
     # Generate
     # ====================================================
-
+    
     def generate(
         self,
         instance,
