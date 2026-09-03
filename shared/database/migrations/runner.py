@@ -110,7 +110,7 @@ def run_migrations(database_path):
         db.commit()
         print(
             f"Database migration completed: "
-            f"version {started_version} → {next_version}"
+            f"version {started_version} -> {next_version}"
         )
 
     except Exception:

@@ -164,4 +164,19 @@ python -m venv tests/.venv
 tests/venv/Scripts/python.exe -m pip install -r tests/requirements.txt
 
 # run tests
+source tests/.venv/Scripts/activate
 tests/venv/Scripts/python.exe -m pytest -s
+
+
+#FRONTEND connected to prod:
+python -m venv venvDeploy
+# activate venvDeploy + add secret exports
+# CLOUDFLARE_ACCOUNT_ID="xxx"
+# export CLOUDFLARE_API_TOKEN="xxx"
+# export CLOUDFLARE_D1_DATABASE_ID="xxx"
+source venvDeploy/Scripts/activate
+# install dependencies
+pip install -r frontend/requirements.txt
+
+# run frontend
+python main.py
